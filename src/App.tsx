@@ -20,6 +20,9 @@ const Learn = lazy(() =>
 const LessonDetail = lazy(() =>
   import('./screens/LessonDetail').then((m) => ({ default: m.LessonDetail })),
 );
+const Difficulties = lazy(() =>
+  import('./screens/Difficulties').then((m) => ({ default: m.Difficulties })),
+);
 const Challenges = lazy(() =>
   import('./screens/Challenges').then((m) => ({ default: m.Challenges })),
 );
@@ -31,6 +34,7 @@ const SCREENS: Record<Screen, ComponentType> = {
   stats: Stats,
   learn: Learn,
   lesson: LessonDetail,
+  difficulties: Difficulties,
   challenges: Challenges,
 };
 

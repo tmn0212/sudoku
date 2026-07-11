@@ -5,17 +5,18 @@ import { solve } from '../engine/solver';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 import type { Difficulty, Puzzle } from '../engine/types';
+import type { Mode } from '../db/idb';
 
 /**
  * Loads a challenge-bank puzzle, derives its solution with the engine, and
- * starts it as a game. Solving a known-unique puzzle is fast (a few ms), so it
- * runs on the main thread — no worker needed.
+ * starts it as a game in the requested mode. Solving a known-unique puzzle is
+ * fast (a few ms), so it runs on the main thread — no worker needed.
  */
 export const useStartChallenge = () => {
   const [loading, setLoading] = useState(false);
 
   const startChallenge = useCallback(
-    async (difficulty: Difficulty, index: number) => {
+    async (mode: Mode, difficulty: Difficulty, index: number) => {
       setLoading(true);
       try {
         const pack = await loadChallengePack(difficulty);
@@ -32,7 +33,7 @@ export const useStartChallenge = () => {
           difficulty,
           givens: grid.reduce((n, v) => (v !== 0 ? n + 1 : n), 0),
         };
-        useGame.getState().startChallenge(puzzle, { difficulty, index });
+        useGame.getState().startChallenge(puzzle, { difficulty, index }, mode);
         useUi.getState().navigate('game');
       } finally {
         setLoading(false);

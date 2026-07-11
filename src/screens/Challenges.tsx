@@ -3,8 +3,10 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { loadChallengePack } from '../data/challenges';
 import { getChallengeProgress } from '../db/progress';
 import { useStartChallenge } from '../hooks/useStartChallenge';
-import { DIFFICULTIES, type Difficulty } from '../engine/types';
-import type { ChallengeProgress } from '../db/idb';
+import { useGame } from '../game/store';
+import { useUi } from '../state/uiStore';
+import type { Difficulty } from '../engine/types';
+import type { ChallengeProgress, Mode } from '../db/idb';
 
 const LABELS: Record<Difficulty, string> = {
   easy: 'Easy',
@@ -15,7 +17,10 @@ const LABELS: Record<Difficulty, string> = {
 };
 
 export const Challenges = () => {
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const mode = (useUi((s) => s.params.mode) as Mode) ?? 'good';
+  const difficulty = (useUi((s) => s.params.difficulty) as Difficulty) ?? 'easy';
+  const navigate = useUi((s) => s.navigate);
+
   const [count, setCount] = useState(0);
   const [progress, setProgress] = useState<Map<number, ChallengeProgress>>(
     new Map(),
@@ -23,12 +28,23 @@ export const Challenges = () => {
   const [loading, setLoading] = useState(true);
   const { startChallenge } = useStartChallenge();
 
+  // Which challenge (if any) is the single in-progress game right now.
+  const gameStatus = useGame((s) => s.status);
+  const gameMode = useGame((s) => s.mode);
+  const gameChallenge = useGame((s) => s.challenge);
+  const activeIndex =
+    gameStatus === 'playing' &&
+    gameMode === mode &&
+    gameChallenge?.difficulty === difficulty
+      ? gameChallenge.index
+      : null;
+
   useEffect(() => {
     let alive = true;
     setLoading(true);
     Promise.all([
       loadChallengePack(difficulty),
-      getChallengeProgress('good', difficulty),
+      getChallengeProgress(mode, difficulty),
     ]).then(([pack, prog]) => {
       if (!alive) return;
       setCount(pack.puzzles.length);
@@ -38,37 +54,42 @@ export const Challenges = () => {
     return () => {
       alive = false;
     };
-  }, [difficulty]);
+  }, [mode, difficulty]);
 
   const solvedCount = [...progress.values()].filter((p) => p.solved).length;
 
+  const open = (index: number) => {
+    if (index === activeIndex) navigate('game'); // resume, don't restart
+    else void startChallenge(mode, difficulty, index);
+  };
+
+  const randomUnsolved = () => {
+    const pool: number[] = [];
+    for (let i = 0; i < count; i++) if (!progress.get(i)?.solved) pool.push(i);
+    if (pool.length === 0) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    void startChallenge(mode, difficulty, pick);
+  };
+
+  const allSolved = !loading && count > 0 && solvedCount >= count;
+
   return (
     <div className="screen">
-      <ScreenHeader title="Challenges" />
+      <ScreenHeader title={`${LABELS[difficulty]} Challenges`} />
       <div className="screen__body">
-        <div
-          className="chal-tabs"
-          role="tablist"
-          aria-label="Challenge difficulty"
-        >
-          {DIFFICULTIES.map((d) => (
-            <button
-              key={d}
-              role="tab"
-              aria-selected={d === difficulty}
-              className={`chal-tab ${d === difficulty ? 'chal-tab--active' : ''}`}
-              onClick={() => setDifficulty(d)}
-            >
-              {LABELS[d]}
-            </button>
-          ))}
-        </div>
-
-        {!loading && (
+        <div className="chal-top">
           <p className="chal-summary">
-            {solvedCount} of {count} solved
+            {solvedCount} of {count || '…'} solved
+            <span className="chal-summary__mode"> · {mode === 'arcade' ? 'Arcade' : 'Good'}</span>
           </p>
-        )}
+          <button
+            className="chal-random"
+            onClick={randomUnsolved}
+            disabled={loading || allSolved}
+          >
+            {allSolved ? 'All done 🎉' : '🎲 Random'}
+          </button>
+        </div>
 
         {loading ? (
           <div className="chal-loading" role="status">
@@ -79,24 +100,35 @@ export const Challenges = () => {
           <div className="chal-grid">
             {Array.from({ length: count }, (_, i) => {
               const p = progress.get(i);
+              const active = i === activeIndex;
+              const state = active
+                ? 'active'
+                : p?.solved
+                  ? 'solved'
+                  : p
+                    ? 'retry'
+                    : 'new';
               return (
                 <button
                   key={i}
-                  className={`chal-cell ${p?.solved ? 'chal-cell--solved' : ''}`}
-                  onClick={() => startChallenge(difficulty, i)}
+                  className={`chal-cell chal-cell--${state}`}
+                  onClick={() => open(i)}
                 >
                   <span className="chal-cell__num">{i + 1}</span>
-                  {p?.solved ? (
+                  {state === 'active' ? (
+                    <span className="chal-cell__tag">Continue</span>
+                  ) : state === 'solved' ? (
                     <span className="chal-cell__score">
-                      {p.bestScore.toLocaleString()}
+                      {p!.bestScore.toLocaleString()}
                     </span>
-                  ) : p ? (
-                    <span className="chal-cell__try">retry</span>
+                  ) : state === 'retry' ? (
+                    <span className="chal-cell__tag">Retry</span>
                   ) : null}
-                  {p?.solved && (
-                    <span className="chal-cell__check" aria-hidden="true">
-                      ✓
-                    </span>
+                  {state === 'solved' && (
+                    <span className="chal-cell__check" aria-hidden="true">✓</span>
+                  )}
+                  {state === 'active' && (
+                    <span className="chal-cell__dot" aria-hidden="true" />
                   )}
                 </button>
               );

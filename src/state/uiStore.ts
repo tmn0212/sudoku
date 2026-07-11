@@ -13,6 +13,7 @@ export type Screen =
   | 'lesson'
   | 'stats'
   | 'settings'
+  | 'difficulties'
   | 'challenges';
 
 export type ScreenParams = Record<string, string | number>;

@@ -3,6 +3,7 @@ import { DIFFICULTIES, type Difficulty } from '../../engine/types';
 import { parseGrid } from '../../engine/board';
 import { hasUniqueSolution } from '../../engine/solver';
 import { gradeDifficulty } from '../../engine/generator';
+import { PACK_SIZES } from './index';
 import easy from './easy.json';
 import medium from './medium.json';
 import hard from './hard.json';
@@ -27,6 +28,12 @@ describe('challenge bank', () => {
     for (const d of DIFFICULTIES) {
       expect(PACKS[d].difficulty).toBe(d);
       expect(PACKS[d].puzzles.length).toBeGreaterThanOrEqual(30);
+    }
+  });
+
+  it('PACK_SIZES stays in sync with the actual packs', () => {
+    for (const d of DIFFICULTIES) {
+      expect(PACK_SIZES[d]).toBe(PACKS[d].puzzles.length);
     }
   });
 

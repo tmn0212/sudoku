@@ -12,6 +12,19 @@ export interface ChallengePack {
   puzzles: string[];
 }
 
+/**
+ * Puzzle count per pack. Kept as a tiny static map so screens can show totals
+ * ("12 / 60 solved") without importing (and holding in memory) the JSON packs
+ * themselves. A test asserts these stay in sync with the actual packs.
+ */
+export const PACK_SIZES: Record<Difficulty, number> = {
+  easy: 60,
+  medium: 60,
+  hard: 50,
+  pro: 40,
+  impossible: 30,
+};
+
 const loaders: Record<Difficulty, () => Promise<unknown>> = {
   easy: () => import('./easy.json'),
   medium: () => import('./medium.json'),
