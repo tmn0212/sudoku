@@ -677,7 +677,10 @@ const twoStringKite = ({ grid, candidates }: SolveState): Step | null => {
             if (boxOf(rConn) !== boxOf(cConn)) continue;
             const rFree = rs[0] === rConn ? rs[1] : rs[0];
             const cFree = cs[0] === cConn ? cs[1] : cs[0];
-            const target = cellIndex(rowOf(rFree), colOf(cFree));
+            // The cell seeing both free ends: the column-end's row × the
+            // row-end's column. (The other intersection lies on the row string
+            // itself, so it can never hold the digit.)
+            const target = cellIndex(rowOf(cFree), colOf(rFree));
             if (rs.includes(target) || cs.includes(target)) continue;
             if (grid[target] === 0 && hasCandidate(candidates[target], n)) {
               return {
@@ -960,6 +963,24 @@ export const applyStepToState = (
   step: Step,
 ): void => {
   applyStep({ grid, candidates }, step);
+};
+
+/**
+ * Run one specific named technique against a state, ignoring difficulty order.
+ * Used by lessons to demonstrate a chosen technique even when an easier move is
+ * also available.
+ */
+export const runTechnique = (
+  name: TechniqueName,
+  grid: Grid,
+  candidates?: CandidateMask[],
+): Step | null => {
+  const entry = TECHNIQUES.find((t) => t.name === name);
+  if (!entry) return null;
+  return entry.run({
+    grid: cloneGrid(grid),
+    candidates: candidates ? candidates.slice() : computeCandidates(grid),
+  });
 };
 
 export interface LogicalSolveResult {

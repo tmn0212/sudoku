@@ -4,37 +4,70 @@ import { LessonBoard } from '../components/LessonBoard';
 import { lessonById } from '../data/lessons';
 import { parseGrid } from '../engine/board';
 import { solve } from '../engine/solver';
-import { findStep } from '../engine/techniques';
+import {
+  applyStepToState,
+  findStep,
+  runTechnique,
+} from '../engine/techniques';
 import { gradeDifficulty } from '../engine/generator';
 import { getLearned, markLearned, unmarkLearned } from '../db/learned';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
+import type { Grid, Step } from '../engine/types';
+
+interface Frame {
+  grid: Grid;
+  candidates: number[];
+  step: Step | null;
+}
+
+/** Build a step-by-step walkthrough from a lesson's example state: the taught
+ * technique first, then a few follow-up deductions so the puzzle visibly
+ * progresses. */
+const buildFrames = (values: string, candidates: number[], id: string): Frame[] => {
+  const grid = parseGrid(values);
+  const cand = candidates.slice();
+  const frames: Frame[] = [];
+
+  const taught = runTechnique(id as Step['technique'], grid, cand);
+  if (taught) {
+    frames.push({ grid: grid.slice(), candidates: cand.slice(), step: taught });
+    applyStepToState(grid, cand, taught);
+  }
+  for (let k = 0; k < 6; k++) {
+    const step = findStep(grid, cand);
+    if (!step) break;
+    frames.push({ grid: grid.slice(), candidates: cand.slice(), step });
+    applyStepToState(grid, cand, step);
+  }
+  frames.push({ grid: grid.slice(), candidates: cand.slice(), step: null });
+  return frames;
+};
 
 export const LessonDetail = () => {
   const id = useUi((s) => s.params.id) as string | undefined;
   const navigate = useUi((s) => s.navigate);
-  const back = useUi((s) => s.back);
   const lesson = id ? lessonById(id) : undefined;
 
-  const [revealed, setRevealed] = useState(false);
+  const [i, setI] = useState(0);
   const [isLearned, setIsLearned] = useState(false);
 
+  const frames = useMemo<Frame[]>(
+    () =>
+      lesson?.example
+        ? buildFrames(lesson.example.values, lesson.example.candidates, lesson.id)
+        : [],
+    [lesson],
+  );
+
   useEffect(() => {
-    setRevealed(false);
+    setI(0);
     if (!lesson) return;
     let alive = true;
     getLearned().then((s) => alive && setIsLearned(s.has(lesson.id)));
     return () => {
       alive = false;
     };
-  }, [lesson]);
-
-  const example = useMemo(() => {
-    if (!lesson?.example) return null;
-    const grid = parseGrid(lesson.example.values);
-    const candidateMasks = lesson.example.candidates;
-    const step = findStep(grid, candidateMasks);
-    return { grid, candidateMasks, step };
   }, [lesson]);
 
   if (!lesson) {
@@ -75,53 +108,72 @@ export const LessonDetail = () => {
     navigate('game');
   };
 
+  const frame = frames[i];
+  const moves = frames.length - 1; // last frame is the "done" state
+  const atStart = i === 0;
+  const atEnd = i >= frames.length - 1;
+
   return (
     <div className="screen">
       <ScreenHeader title={lesson.title} />
       <div className="screen__body">
-        <span className={`lesson-tier lesson-tier--${lesson.tier.toLowerCase()}`}>
-          {lesson.tier}
-        </span>
+        <p className="walk__summary">{lesson.summary}</p>
 
-        <div className="lesson-prose">
-          {lesson.steps.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
+        {frame && (
+          <LessonBoard
+            grid={frame.grid}
+            candidateMasks={frame.candidates}
+            highlights={frame.step?.highlights ?? []}
+            placements={frame.step?.placements ?? []}
+            eliminations={frame.step?.eliminations ?? []}
+            revealed
+          />
+        )}
+
+        <div className="walk__caption">
+          {frame?.step ? (
+            <>
+              <span className="walk__step">
+                {i === 0 ? lesson.title : 'Then'} · step {i + 1} of {moves}
+              </span>
+              <p className="walk__reason">{frame.step.reason}</p>
+            </>
+          ) : (
+            <p className="walk__reason walk__reason--done">
+              That’s the move — the puzzle opens up from here. Try it yourself
+              below.
+            </p>
+          )}
         </div>
 
-        {example && (
-          <>
-            <h2 className="lesson-heading">See it on the board</h2>
-            <LessonBoard
-              grid={example.grid}
-              candidateMasks={example.candidateMasks}
-              highlights={example.step?.highlights ?? []}
-              placements={example.step?.placements ?? []}
-              eliminations={example.step?.eliminations ?? []}
-              revealed={revealed}
-            />
-
-            {example.step && (
-              <div className={`lesson-reveal ${revealed ? 'lesson-reveal--open' : ''}`}>
-                {revealed ? (
-                  <p className="lesson-reveal__text">{example.step.reason}</p>
-                ) : (
-                  <button
-                    className="lesson-reveal__button"
-                    onClick={() => setRevealed(true)}
-                  >
-                    Reveal the move
-                  </button>
-                )}
-              </div>
-            )}
-          </>
-        )}
+        <div className="walk__nav">
+          <button
+            className="walk__btn"
+            onClick={() => setI((n) => Math.max(0, n - 1))}
+            disabled={atStart}
+          >
+            ‹ Back
+          </button>
+          <button
+            className="walk__btn walk__btn--ghost"
+            onClick={() => setI(0)}
+            disabled={atStart}
+          >
+            Restart
+          </button>
+          <button
+            className="walk__btn walk__btn--next"
+            onClick={() => setI((n) => Math.min(frames.length - 1, n + 1))}
+            disabled={atEnd}
+          >
+            Next ›
+          </button>
+        </div>
 
         <div className="lesson-actions">
           {lesson.practice && (
             <button className="lesson-actions__practice" onClick={practice}>
-              Practice this technique
+              Play a puzzle with this move
             </button>
           )}
           <button
@@ -131,10 +183,6 @@ export const LessonDetail = () => {
             {isLearned ? '✓ Learned' : 'Mark as learned'}
           </button>
         </div>
-
-        <button className="lesson-back" onClick={back}>
-          Back to lessons
-        </button>
       </div>
     </div>
   );

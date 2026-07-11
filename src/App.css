@@ -204,7 +204,7 @@
 /* ---------- Controls ---------- */
 .controls {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: clamp(4px, 1.5vw, 10px);
 }
 
@@ -1004,6 +1004,70 @@
   font-size: 0.92rem;
   line-height: 1.5;
   text-align: left;
+}
+
+/* ---------- Interactive lesson walkthrough ---------- */
+.walk__summary {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.walk__caption {
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--peer);
+  min-height: 84px;
+}
+.walk__step {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+.walk__reason {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.walk__reason--done {
+  color: var(--muted);
+}
+.walk__nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.walk__btn {
+  border: 1.5px solid var(--grid-thin);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 14px 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform 0.07s ease, background 0.15s ease;
+}
+.walk__btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.walk__btn:disabled {
+  opacity: 0.4;
+}
+.walk__btn--ghost {
+  border-style: dashed;
+  color: var(--muted);
+  font-weight: 600;
+}
+.walk__btn--next {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .lesson-actions {

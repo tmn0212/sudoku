@@ -23,6 +23,7 @@ import {
   TECHNIQUES,
   applyStepToState,
   findStep,
+  runTechnique,
   solveLogically,
 } from '../src/engine/techniques';
 import { computeCandidates, stringifyGrid } from '../src/engine/board';
@@ -43,27 +44,26 @@ const practice: Partial<Record<TechniqueName, string>> = {};
 
 const allFound = () => TARGETS.every((t) => examples[t] && practice[t]);
 
-/** Solve a puzzle step by step, snapshotting the state the first time each
- * target technique is the one that fires. */
+/** Solve a puzzle step by step; at every state, snapshot it for any target
+ * technique that *fires* there (not just the one findStep picks). This makes
+ * even rare techniques demonstrable — a lesson runs that technique's own finder
+ * on the snapshot to show the move. */
 const harvestExample = (puzzle: Grid): void => {
   const grid = puzzle.slice();
   const candidates = computeCandidates(puzzle);
   for (let guard = 0; guard < 200; guard++) {
-    let applied = false;
-    for (const tech of TECHNIQUES) {
-      const step = tech.run({ grid, candidates });
-      if (!step) continue;
-      if (!examples[tech.name]) {
-        examples[tech.name] = {
+    for (const t of TARGETS) {
+      if (examples[t]) continue;
+      if (runTechnique(t, grid, candidates)) {
+        examples[t] = {
           values: stringifyGrid(grid),
           candidates: candidates.slice(),
         };
       }
-      applyStepToState(grid, candidates, step);
-      applied = true;
-      break;
     }
-    if (!applied) break;
+    const step = findStep(grid, candidates);
+    if (!step) break;
+    applyStepToState(grid, candidates, step);
   }
 };
 
@@ -121,16 +121,14 @@ const outFile = join(
 );
 writeFileSync(outFile, JSON.stringify(out, null, 0));
 
-// Sanity: every emitted example must have findStep return its own technique.
+// Sanity: every emitted example must have its own technique fire on it.
 let verified = 0;
 for (const [name, ex] of Object.entries(out)) {
   if (!ex.values || !ex.candidates) continue;
-  const step = findStep(
-    [...ex.values].map((c) => (c === '.' ? 0 : Number(c))),
-    ex.candidates,
-  );
-  if (step?.technique === name) verified++;
-  else console.log(`  !! ${name}: findStep returned ${step?.technique ?? 'null'}`);
+  const grid = [...ex.values].map((c) => (c === '.' ? 0 : Number(c)));
+  const step = runTechnique(name as TechniqueName, grid, ex.candidates);
+  if (step) verified++;
+  else console.log(`  !! ${name}: technique did not fire on its example`);
 }
 
 console.log(`Scanned ${scanned} puzzles in ${((Date.now() - started) / 1000).toFixed(1)}s`);

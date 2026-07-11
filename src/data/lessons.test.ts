@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { LESSONS, TIERS } from './lessons';
 import { parseGrid } from '../engine/board';
 import { solve } from '../engine/solver';
-import { findStep, solveLogically } from '../engine/techniques';
+import { runTechnique, solveLogically } from '../engine/techniques';
 
 describe('lesson catalog', () => {
   it('covers all 21 techniques with complete prose', () => {
@@ -15,9 +15,8 @@ describe('lesson catalog', () => {
     }
   });
 
-  it('provides an interactive example for nearly every technique', () => {
-    const withExample = LESSONS.filter((l) => l.example).length;
-    expect(withExample).toBeGreaterThanOrEqual(18);
+  it('provides an interactive example for every technique', () => {
+    expect(LESSONS.every((l) => l.example)).toBe(true);
   });
 
   for (const lesson of LESSONS) {
@@ -27,9 +26,9 @@ describe('lesson catalog', () => {
       });
 
       if (lesson.example) {
-        it('example state makes findStep return this technique', () => {
+        it('technique fires on its example state (for the walkthrough)', () => {
           const grid = parseGrid(lesson.example!.values);
-          const step = findStep(grid, lesson.example!.candidates);
+          const step = runTechnique(lesson.id, grid, lesson.example!.candidates);
           expect(step).not.toBeNull();
           expect(step!.technique).toBe(lesson.id);
         });
