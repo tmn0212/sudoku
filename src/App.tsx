@@ -57,7 +57,10 @@ function App() {
           </div>
         }
       >
-        <Screen />
+        {/* Keyed on screen so each navigation remounts and plays an entrance. */}
+        <div className="screen-anim" key={screen}>
+          <Screen />
+        </div>
       </Suspense>
       <ReloadPrompt />
     </>

@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { CELL_COUNT, PEERS, findConflicts } from '../engine/board';
 import { useGame } from '../game/store';
+import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
 import { Cell } from './Cell';
 
@@ -41,6 +42,8 @@ export const Board = () => {
     [selected, highlightPeers],
   );
   const hintCells = useMemo(() => new Set(hint?.cells ?? []), [hint]);
+  const flashCells = useFx((s) => s.flashCells);
+  const flashSet = useMemo(() => new Set(flashCells), [flashCells]);
   const selectedValue = selected == null || !highlightSame ? 0 : values[selected];
   const checking = autoCheck || mode === 'arcade';
 
@@ -94,6 +97,7 @@ export const Board = () => {
           conflict={conflicts.has(i)}
           wrong={checking && !given[i] && values[i] !== 0 && values[i] !== solution[i]}
           hint={hintCells.has(i)}
+          flash={flashSet.has(i)}
         />
       ))}
     </div>

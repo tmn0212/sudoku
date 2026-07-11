@@ -11,6 +11,7 @@ import { useGameTimer } from '../hooks/useGameTimer';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useRecordGame } from '../hooks/useRecordGame';
 import { useGameFeedback } from '../hooks/useGameFeedback';
+import { useCompletionFx } from '../hooks/useCompletionFx';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 
@@ -22,6 +23,7 @@ export const Game = () => {
   useKeyboard();
   useRecordGame();
   useGameFeedback();
+  useCompletionFx();
 
   const goHome = () => reset('home');
 

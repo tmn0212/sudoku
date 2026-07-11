@@ -145,6 +145,44 @@
   box-shadow: inset 0 0 0 2px var(--hint-fg);
 }
 
+/* Completion flash: a row/column/box lights up green in a diagonal wave the
+   moment it's correctly filled. --flash-delay (set per cell) staggers it. */
+.cell--flash {
+  animation: cellFlash 0.55s ease var(--flash-delay, 0ms) both;
+}
+.cell--flash .cell__value {
+  animation: cellPopValue 0.55s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellFlash {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: color-mix(in srgb, #22c55e 60%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes cellPopValue {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.32);
+    color: #15a34a;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell--flash,
+  .cell--flash .cell__value {
+    animation: none;
+  }
+}
+
 .cell__value {
   font-size: 6.2cqw;
   line-height: 1;
@@ -887,6 +925,28 @@
 .screen-loading .spinner {
   border-color: var(--grid-thin);
   border-top-color: var(--primary);
+}
+
+/* Screen entrance animation — each navigation remounts .screen-anim (keyed on
+   the active screen in App.tsx) and plays a quick fade + rise. */
+.screen-anim {
+  height: 100%;
+  animation: screenIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-anim {
+    animation: none;
+  }
 }
 
 /* ---------- Learn ---------- */

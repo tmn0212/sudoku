@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type CSSProperties } from 'react';
 import { colOf, hasCandidate, rowOf } from '../engine/board';
 
 export interface CellProps {
@@ -17,6 +17,8 @@ export interface CellProps {
   conflict: boolean;
   wrong: boolean;
   hint: boolean;
+  /** Plays the "unit completed" celebration flash. */
+  flash?: boolean;
 }
 
 const noteClass = (notes: number, notesAlt: number, bans: number, n: number): string => {
@@ -40,6 +42,7 @@ const CellComponent = ({
   conflict,
   wrong,
   hint,
+  flash,
 }: CellProps) => {
   const row = rowOf(index);
   const col = colOf(index);
@@ -52,12 +55,19 @@ const CellComponent = ({
   if (same && !selected) classes.push('cell--same');
   if (conflict || wrong) classes.push('cell--error');
   if (hint) classes.push('cell--hint');
+  if (flash) classes.push('cell--flash');
   if (col % 3 === 2 && col !== 8) classes.push('cell--box-right');
   if (row % 3 === 2 && row !== 8) classes.push('cell--box-bottom');
+
+  // Diagonal wave: cells nearer the top-left of the completed unit fire first.
+  const style = flash
+    ? ({ '--flash-delay': `${(row + col) * 26}ms` } as CSSProperties)
+    : undefined;
 
   return (
     <div
       className={classes.join(' ')}
+      style={style}
       role="gridcell"
       data-index={index}
       data-testid={`cell-${index}`}
