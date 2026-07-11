@@ -20,9 +20,100 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <title>Sudoku</title>
+
+    <!-- Branded splash: painted from static HTML/CSS so it shows the instant the
+         document loads (before the JS bundle parses), covering the PWA's cold
+         start. main.tsx fades it out after the app mounts, min 1s on screen. -->
+    <style>
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #eef1f6;
+        color: #0b1220;
+        opacity: 1;
+        transition: opacity 0.4s ease;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #splash.splash--hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .splash__logo {
+        width: 96px;
+        height: 96px;
+        border-radius: 24px;
+        background: #1f6feb;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 40px;
+        font-family: system-ui, -apple-system, sans-serif;
+        box-shadow: 0 12px 30px rgba(31, 111, 235, 0.35);
+        animation: splashPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      .splash__title {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-family: system-ui, -apple-system, sans-serif;
+        animation: splashRise 0.5s ease 0.08s both;
+      }
+      .splash__tagline {
+        margin: 0;
+        font-size: 15px;
+        color: #5b6472;
+        font-family: system-ui, -apple-system, sans-serif;
+        animation: splashRise 0.5s ease 0.16s both;
+      }
+      .splash__by {
+        position: absolute;
+        bottom: calc(28px + env(safe-area-inset-bottom));
+        font-size: 13px;
+        color: #8a94a6;
+        letter-spacing: 0.02em;
+        font-family: system-ui, -apple-system, sans-serif;
+        animation: splashRise 0.5s ease 0.24s both;
+      }
+      @keyframes splashPop {
+        from { transform: scale(0.7); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+      @keyframes splashRise {
+        from { transform: translateY(8px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @media (prefers-color-scheme: dark) {
+        #splash { background: #0d1117; color: #e6edf3; }
+        .splash__tagline { color: #8b949e; }
+        .splash__by { color: #6e7681; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .splash__logo, .splash__title, .splash__tagline, .splash__by { animation: none; }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash">
+      <div class="splash__logo"><span>5</span><span>·</span><span>3</span></div>
+      <h1 class="splash__title">Sudoku</h1>
+      <p class="splash__tagline">Play offline · learn the techniques</p>
+      <p class="splash__by">by Minh Nguyen</p>
+    </div>
     <div id="root"></div>
+    <script>
+      window.__splashAt = Date.now();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
