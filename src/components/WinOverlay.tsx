@@ -10,14 +10,29 @@ export const WinOverlay = ({ onNewGame }: WinOverlayProps) => {
   const elapsedMs = useGame((s) => s.elapsedMs);
   const mistakes = useGame((s) => s.mistakes);
   const difficulty = useGame((s) => s.difficulty);
+  const score = useGame((s) => s.score);
 
-  if (status !== 'won') return null;
+  if (status === 'playing') return null;
+  const won = status === 'won';
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label="Puzzle solved">
+    <div
+      className="overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={won ? 'Puzzle solved' : 'Game over'}
+    >
       <div className="overlay__card">
-        <div className="overlay__emoji" aria-hidden="true">🎉</div>
-        <h2 className="overlay__title">Solved!</h2>
+        <div className="overlay__emoji" aria-hidden="true">
+          {won ? '🎉' : '💥'}
+        </div>
+        <h2 className="overlay__title">{won ? 'Solved!' : 'Out of lives'}</h2>
+        {won && (
+          <div className="overlay__score">
+            <span className="overlay__score-value">{score.toLocaleString()}</span>
+            <span className="overlay__score-label">points</span>
+          </div>
+        )}
         <dl className="overlay__stats">
           <div>
             <dt>Time</dt>
@@ -33,7 +48,7 @@ export const WinOverlay = ({ onNewGame }: WinOverlayProps) => {
           </div>
         </dl>
         <button className="overlay__button" onClick={onNewGame}>
-          New Game
+          {won ? 'New Game' : 'Try Again'}
         </button>
       </div>
     </div>

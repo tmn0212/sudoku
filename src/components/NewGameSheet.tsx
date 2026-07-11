@@ -9,18 +9,20 @@ interface NewGameSheetProps {
 const DESCRIPTIONS: Record<Difficulty, string> = {
   easy: 'Singles only — a gentle warm-up.',
   medium: 'Locked candidates and pairs.',
-  hard: 'Triples and hidden pairs.',
-  expert: 'Minimal clues, advanced logic.',
+  hard: 'Triples and X-Wing.',
+  pro: 'Swordfish and XY-Wing.',
+  impossible: 'Chains and deep logic.',
 };
 
 export const NewGameSheet = ({ open, onClose }: NewGameSheetProps) => {
   const newGame = useGame((s) => s.newGame);
+  const mode = useGame((s) => s.mode);
   const current = useGame((s) => s.difficulty);
 
   if (!open) return null;
 
   const start = (difficulty: Difficulty) => {
-    newGame(difficulty);
+    newGame(difficulty, mode);
     onClose();
   };
 

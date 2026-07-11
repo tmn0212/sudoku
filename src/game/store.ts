@@ -21,11 +21,17 @@ import {
 import { findStep } from '../engine/techniques';
 import { generatePuzzle } from '../engine/generator';
 import { useSettings } from '../state/settingsStore';
+import { computeScore } from '../scoring/score';
 import type { Difficulty, Grid, Puzzle, Step } from '../engine/types';
 import type { Mode } from '../db/idb';
 
 /** What a digit press does to the selected cells. */
 export type InputMode = 'normal' | 'note' | 'noteAlt' | 'ban';
+
+/** Mistakes allowed in Arcade mode before the game ends. */
+export const ARCADE_LIVES = 3;
+
+export type GameStatus = 'playing' | 'won' | 'lost';
 
 export interface HintState {
   message: string;
@@ -60,10 +66,12 @@ export interface GameState {
   inputMode: InputMode;
 
   // --- meta ---
-  status: 'playing' | 'won';
+  status: GameStatus;
   elapsedMs: number;
   mistakes: number;
   hints: number;
+  /** Final score, set when the game ends (0 while playing). */
+  score: number;
   autoCheck: boolean;
   hint: HintState | null;
 
@@ -116,10 +124,11 @@ const buildGame = ({ puzzle, solution, difficulty }: Puzzle, mode: Mode) => ({
   selection: [] as number[],
   selected: null as number | null,
   inputMode: 'normal' as InputMode,
-  status: 'playing' as const,
+  status: 'playing' as GameStatus,
   elapsedMs: 0,
   mistakes: 0,
   hints: 0,
+  score: 0,
   hint: null as HintState | null,
   past: [] as Snapshot[],
   future: [] as Snapshot[],
@@ -183,7 +192,7 @@ export const useGame = create<GameState>()(
 
       inputDigit: (digit) => {
         const s = get();
-        if (s.status === 'won') return;
+        if (s.status !== 'playing') return;
         const targets = targetCells(s);
         if (targets.length === 0) return;
 
@@ -194,6 +203,10 @@ export const useGame = create<GameState>()(
         const bans = s.bans.slice();
         const autoClean = useSettings.getState().autoCleanupNotes;
         let mistakes = s.mistakes;
+
+        // Arcade always validates entries (that's the mode); Good respects the
+        // auto-check setting.
+        const checking = s.autoCheck || s.mode === 'arcade';
 
         if (s.inputMode === 'normal') {
           for (const i of targets) {
@@ -209,7 +222,7 @@ export const useGame = create<GameState>()(
                   if (notes[p]) notes[p] = removeCandidate(notes[p], digit);
                 }
               }
-              if (s.autoCheck && values[i] !== s.solution[i]) mistakes++;
+              if (checking && values[i] !== s.solution[i]) mistakes++;
             }
           }
         } else {
@@ -223,7 +236,19 @@ export const useGame = create<GameState>()(
           }
         }
 
+        const lost = s.mode === 'arcade' && mistakes >= ARCADE_LIVES;
         const won = isWin(values, s.solution);
+        const score =
+          won || lost
+            ? computeScore({
+                difficulty: s.difficulty,
+                mode: s.mode,
+                timeMs: s.elapsedMs,
+                mistakes,
+                hints: s.hints,
+                won,
+              })
+            : 0;
         set({
           values,
           notes,
@@ -233,13 +258,14 @@ export const useGame = create<GameState>()(
           future: [],
           hint: null,
           mistakes,
-          status: won ? 'won' : 'playing',
+          score,
+          status: lost ? 'lost' : won ? 'won' : 'playing',
         });
       },
 
       erase: () => {
         const s = get();
-        if (s.status === 'won') return;
+        if (s.status !== 'playing') return;
         const targets = targetCells(s);
         const dirty = targets.filter(
           (i) => s.values[i] || s.notes[i] || s.notesAlt[i] || s.bans[i],
@@ -297,7 +323,7 @@ export const useGame = create<GameState>()(
 
       requestHint: () => {
         const s = get();
-        if (s.status === 'won') return;
+        if (s.status !== 'playing') return;
 
         const wrongCells: number[] = [];
         for (let i = 0; i < CELL_COUNT; i++) {
@@ -360,6 +386,16 @@ export const useGame = create<GameState>()(
           }
         }
         const won = isWin(values, s.solution);
+        const score = won
+          ? computeScore({
+              difficulty: s.difficulty,
+              mode: s.mode,
+              timeMs: s.elapsedMs,
+              mistakes: s.mistakes,
+              hints: s.hints,
+              won: true,
+            })
+          : 0;
         set({
           values,
           notes,
@@ -368,6 +404,7 @@ export const useGame = create<GameState>()(
           past,
           future: [],
           hint: null,
+          score,
           status: won ? 'won' : 'playing',
         });
       },
@@ -398,6 +435,7 @@ export const useGame = create<GameState>()(
         elapsedMs: s.elapsedMs,
         mistakes: s.mistakes,
         hints: s.hints,
+        score: s.score,
         autoCheck: s.autoCheck,
         past: s.past,
         future: s.future,

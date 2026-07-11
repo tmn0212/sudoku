@@ -271,6 +271,149 @@ const xWingOriented = (
   return null;
 };
 
+/** Hidden triple: three digits confined to the same three cells in a unit. */
+const hiddenTriple = ({ grid, candidates }: SolveState): Step | null => {
+  for (const unit of UNITS) {
+    const empties = unit.filter((c) => grid[c] === 0);
+    if (empties.length < 3) continue;
+    for (let a = 1; a <= 7; a++) {
+      for (let b = a + 1; b <= 8; b++) {
+        for (let d = b + 1; d <= 9; d++) {
+          const digits = [a, b, d];
+          const cells = empties.filter((c) =>
+            digits.some((n) => hasCandidate(candidates[c], n)),
+          );
+          if (cells.length !== 3) continue;
+          const eachAppears = digits.every(
+            (n) => cells.filter((c) => hasCandidate(candidates[c], n)).length >= 2,
+          );
+          if (!eachAppears) continue;
+          const keep = (1 << a) | (1 << b) | (1 << d);
+          const eliminations = cells.flatMap((c) =>
+            candidatesToArray(candidates[c] & ~keep).map((n) => ({ cell: c, value: n })),
+          );
+          if (eliminations.length > 0) {
+            return {
+              technique: 'hidden-triple',
+              placements: [],
+              eliminations,
+              highlights: cells,
+              reason: `${a}, ${b} and ${d} are confined to ${cells
+                .map(cellName)
+                .join(', ')}, so other candidates there can be removed.`,
+            };
+          }
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/** Swordfish: an X-Wing generalized to three base lines for a single digit. */
+const swordfish = (state: SolveState): Step | null =>
+  swordfishOriented(state, 'row') ?? swordfishOriented(state, 'col');
+
+const swordfishOriented = (
+  { grid, candidates }: SolveState,
+  orientation: 'row' | 'col',
+): Step | null => {
+  const lines = orientation === 'row' ? ROW_UNITS : COL_UNITS;
+  for (let n = 1; n <= 9; n++) {
+    const info = lines
+      .map((line) => {
+        const cells = line.filter(
+          (c) => grid[c] === 0 && hasCandidate(candidates[c], n),
+        );
+        const cross = cells.map((c) => (orientation === 'row' ? colOf(c) : rowOf(c)));
+        return { cells, cross };
+      })
+      .filter((x) => x.cells.length >= 2 && x.cells.length <= 3);
+
+    for (const combo of combinations(info, 3)) {
+      const cross = new Set<number>();
+      combo.forEach((x) => x.cross.forEach((c) => cross.add(c)));
+      if (cross.size !== 3) continue;
+      const baseCells = new Set(combo.flatMap((x) => x.cells));
+      const crossUnits = [...cross].map((ci) =>
+        orientation === 'row' ? COL_UNITS[ci] : ROW_UNITS[ci],
+      );
+      const eliminations = crossUnits
+        .flat()
+        .filter((c) => !baseCells.has(c) && grid[c] === 0 && hasCandidate(candidates[c], n))
+        .map((c) => ({ cell: c, value: n }));
+      if (eliminations.length > 0) {
+        return {
+          technique: 'swordfish',
+          placements: [],
+          eliminations,
+          highlights: [...baseCells],
+          reason: `Swordfish on ${n} across three ${
+            orientation === 'row' ? 'rows' : 'columns'
+          } removes ${n} from the crossing ${
+            orientation === 'row' ? 'columns' : 'rows'
+          }.`,
+        };
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * XY-Wing: a pivot cell {X,Y} with two bivalue "wing" peers {X,Z} and {Y,Z}.
+ * Any cell seeing both wings cannot be Z.
+ */
+const xyWing = ({ grid, candidates }: SolveState): Step | null => {
+  const bivalue: number[] = [];
+  for (let i = 0; i < grid.length; i++) {
+    if (grid[i] === 0 && popcount(candidates[i]) === 2) bivalue.push(i);
+  }
+
+  for (const pivot of bivalue) {
+    const [x, y] = candidatesToArray(candidates[pivot]);
+    const wings = bivalue.filter((c) => c !== pivot && PEERS[pivot].includes(c));
+    for (let a = 0; a < wings.length; a++) {
+      for (let b = a + 1; b < wings.length; b++) {
+        const wa = wings[a];
+        const wb = wings[b];
+        const ca = candidatesToArray(candidates[wa]);
+        const cb = candidatesToArray(candidates[wb]);
+        for (const [p1, p2] of [
+          [x, y],
+          [y, x],
+        ]) {
+          if (!ca.includes(p1)) continue;
+          const z = ca.find((v) => v !== p1);
+          if (z == null || z === p2) continue;
+          if (!cb.includes(p2) || !cb.includes(z)) continue;
+          const targets = PEERS[wa].filter(
+            (c) =>
+              c !== pivot &&
+              c !== wa &&
+              c !== wb &&
+              PEERS[wb].includes(c) &&
+              grid[c] === 0 &&
+              hasCandidate(candidates[c], z),
+          );
+          if (targets.length > 0) {
+            return {
+              technique: 'xy-wing',
+              placements: [],
+              eliminations: targets.map((c) => ({ cell: c, value: z })),
+              highlights: [pivot, wa, wb],
+              reason: `XY-Wing with pivot ${cellName(
+                pivot,
+              )} removes ${z} from cells that see both wings.`,
+            };
+          }
+        }
+      }
+    }
+  }
+  return null;
+};
+
 // --- combinatorics helper ---------------------------------------------------
 
 const combinations = <T>(items: T[], size: number): T[][] => {
@@ -307,7 +450,10 @@ export const TECHNIQUES: TechniqueEntry[] = [
   { name: 'naked-pair', rank: 3, run: (s) => nakedSubset(s, 2, 'naked-pair') },
   { name: 'hidden-pair', rank: 3, run: hiddenPair },
   { name: 'naked-triple', rank: 4, run: (s) => nakedSubset(s, 3, 'naked-triple') },
+  { name: 'hidden-triple', rank: 4, run: hiddenTriple },
   { name: 'x-wing', rank: 5, run: xWing },
+  { name: 'swordfish', rank: 6, run: swordfish },
+  { name: 'xy-wing', rank: 6, run: xyWing },
 ];
 
 const TECHNIQUE_RANK: Record<TechniqueName, number> = Object.fromEntries(

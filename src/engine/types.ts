@@ -7,9 +7,15 @@
 
 export type Grid = number[];
 
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'pro' | 'impossible';
 
-export const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+export const DIFFICULTIES: Difficulty[] = [
+  'easy',
+  'medium',
+  'hard',
+  'pro',
+  'impossible',
+];
 
 /**
  * A candidate set represented as a bitmask. Bit `n` (1 << n) is set when digit
@@ -23,9 +29,12 @@ export type TechniqueName =
   | 'pointing'
   | 'claiming'
   | 'naked-pair'
-  | 'naked-triple'
   | 'hidden-pair'
-  | 'x-wing';
+  | 'naked-triple'
+  | 'hidden-triple'
+  | 'x-wing'
+  | 'swordfish'
+  | 'xy-wing';
 
 /** A single deductive step produced by the logical solver / hint engine. */
 export interface Step {

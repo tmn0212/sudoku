@@ -21,6 +21,7 @@ export const Board = () => {
   const selection = useGame((s) => s.selection);
   const selected = useGame((s) => s.selected);
   const autoCheck = useGame((s) => s.autoCheck);
+  const mode = useGame((s) => s.mode);
   const hint = useGame((s) => s.hint);
   const setSelection = useGame((s) => s.setSelection);
   const addToSelection = useGame((s) => s.addToSelection);
@@ -41,6 +42,7 @@ export const Board = () => {
   );
   const hintCells = useMemo(() => new Set(hint?.cells ?? []), [hint]);
   const selectedValue = selected == null || !highlightSame ? 0 : values[selected];
+  const checking = autoCheck || mode === 'arcade';
 
   const onPointerDown = (e: React.PointerEvent) => {
     const idx = cellIndexFromPoint(e.clientX, e.clientY);
@@ -90,7 +92,7 @@ export const Board = () => {
           peer={peerSet.has(i)}
           same={selectedValue !== 0 && values[i] === selectedValue}
           conflict={conflicts.has(i)}
-          wrong={autoCheck && !given[i] && values[i] !== 0 && values[i] !== solution[i]}
+          wrong={checking && !given[i] && values[i] !== 0 && values[i] !== solution[i]}
           hint={hintCells.has(i)}
         />
       ))}

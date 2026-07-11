@@ -9,8 +9,9 @@ import type { Mode } from '../db/idb';
 const DIFFICULTY_META: Record<Difficulty, { label: string; blurb: string }> = {
   easy: { label: 'Easy', blurb: 'Singles only' },
   medium: { label: 'Medium', blurb: 'Locked candidates, pairs' },
-  hard: { label: 'Hard', blurb: 'Triples, hidden pairs' },
-  expert: { label: 'Expert', blurb: 'Minimal clues, advanced' },
+  hard: { label: 'Hard', blurb: 'Triples, X-Wing' },
+  pro: { label: 'Pro', blurb: 'Swordfish, XY-Wing' },
+  impossible: { label: 'Impossible', blurb: 'Chains & deep logic' },
 };
 
 const MODES: { id: Mode; label: string; blurb: string }[] = [

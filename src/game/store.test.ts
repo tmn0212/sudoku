@@ -135,5 +135,24 @@ describe('game store', () => {
     }
     expect(useGame.getState().status).toBe('won');
     expect(useGame.getState().mistakes).toBe(0);
+    expect(useGame.getState().score).toBeGreaterThan(0);
+  });
+
+  it('arcade mode ends after too many mistakes', () => {
+    useGame.getState().newGame('easy', 'arcade');
+    const { solution, given } = useGame.getState();
+    const empties = given.map((g, i) => (g ? -1 : i)).filter((i) => i >= 0).slice(0, 3);
+    for (const i of empties) {
+      const wrong = solution[i] === 1 ? 2 : 1;
+      useGame.getState().selectCell(i);
+      useGame.getState().inputDigit(wrong);
+    }
+    expect(useGame.getState().status).toBe('lost');
+    expect(useGame.getState().score).toBe(0);
+    // No further input once the game is over.
+    const before = useGame.getState().values.slice();
+    useGame.getState().selectCell(empties[0]);
+    useGame.getState().inputDigit(5);
+    expect(useGame.getState().values).toEqual(before);
   });
 });

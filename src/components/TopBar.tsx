@@ -1,11 +1,12 @@
-import { useGame } from '../game/store';
+import { useGame, ARCADE_LIVES } from '../game/store';
 import { formatTime } from '../utils/format';
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Easy',
   medium: 'Medium',
   hard: 'Hard',
-  expert: 'Expert',
+  pro: 'Pro',
+  impossible: 'Impossible',
 };
 
 interface TopBarProps {
@@ -23,7 +24,9 @@ export const TopBar = ({ onNewGame, onHome }: TopBarProps) => {
   const difficulty = useGame((s) => s.difficulty);
   const elapsedMs = useGame((s) => s.elapsedMs);
   const mistakes = useGame((s) => s.mistakes);
+  const mode = useGame((s) => s.mode);
   const autoCheck = useGame((s) => s.autoCheck);
+  const livesLeft = Math.max(0, ARCADE_LIVES - mistakes);
 
   return (
     <header className="topbar">
@@ -32,10 +35,17 @@ export const TopBar = ({ onNewGame, onHome }: TopBarProps) => {
       </button>
       <div className="topbar__meta">
         <span className="topbar__difficulty">{DIFFICULTY_LABEL[difficulty]}</span>
-        {autoCheck && (
-          <span className="topbar__mistakes" aria-label={`${mistakes} mistakes`}>
-            Mistakes: {mistakes}
+        {mode === 'arcade' ? (
+          <span className="topbar__lives" aria-label={`${livesLeft} lives left`}>
+            {'❤'.repeat(livesLeft)}
+            {'♡'.repeat(ARCADE_LIVES - livesLeft)}
           </span>
+        ) : (
+          autoCheck && (
+            <span className="topbar__mistakes" aria-label={`${mistakes} mistakes`}>
+              Mistakes: {mistakes}
+            </span>
+          )
         )}
       </div>
       <div className="topbar__timer" role="timer" aria-label="Elapsed time">

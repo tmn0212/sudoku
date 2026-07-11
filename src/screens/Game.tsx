@@ -9,6 +9,7 @@ import { WinOverlay } from '../components/WinOverlay';
 import { NewGameSheet } from '../components/NewGameSheet';
 import { useGameTimer } from '../hooks/useGameTimer';
 import { useKeyboard } from '../hooks/useKeyboard';
+import { useRecordGame } from '../hooks/useRecordGame';
 import { useUi } from '../state/uiStore';
 
 export const Game = () => {
@@ -16,6 +17,7 @@ export const Game = () => {
   const reset = useUi((s) => s.reset);
   useGameTimer();
   useKeyboard();
+  useRecordGame();
 
   const goHome = () => reset('home');
 

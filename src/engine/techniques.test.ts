@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseGrid, stringifyGrid } from './board';
 import { solve } from './solver';
-import { findStep, solveLogically } from './techniques';
+import { findStep, solveLogically, TECHNIQUES } from './techniques';
 
 const CLASSIC =
   '53..7....' +
@@ -95,5 +95,20 @@ describe('solveLogically', () => {
     const result = solveLogically(parseGrid('.'.repeat(81)));
     expect(result.solved).toBe(false);
     expect(result.steps.length).toBe(0);
+  });
+});
+
+describe('technique registry', () => {
+  it('includes the advanced techniques', () => {
+    const names = TECHNIQUES.map((t) => t.name);
+    expect(names).toContain('hidden-triple');
+    expect(names).toContain('swordfish');
+    expect(names).toContain('xy-wing');
+  });
+
+  it('is ordered from easiest to hardest', () => {
+    for (let i = 1; i < TECHNIQUES.length; i++) {
+      expect(TECHNIQUES[i].rank).toBeGreaterThanOrEqual(TECHNIQUES[i - 1].rank);
+    }
   });
 });

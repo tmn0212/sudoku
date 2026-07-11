@@ -900,3 +900,32 @@
   bottom: 5px;
   font-size: 0.62rem;
 }
+
+/* ============================================================
+   Phase C: arcade lives + score
+   ============================================================ */
+.topbar__lives {
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  color: var(--ban);
+}
+.overlay__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: -6px 0 18px;
+}
+.overlay__score-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.overlay__score-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 2px;
+}

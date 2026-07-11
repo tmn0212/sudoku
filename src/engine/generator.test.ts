@@ -77,9 +77,18 @@ describe('generatePuzzle', () => {
     }
   });
 
-  it('fewer clues trend harder (easy has more givens than expert)', () => {
+  it('fewer clues trend harder (easy has more givens than impossible)', () => {
     const easy = generatePuzzle('easy', { seed: 555 });
-    const expert = generatePuzzle('expert', { seed: 555 });
-    expect(easy.givens).toBeGreaterThan(expert.givens);
+    const impossible = generatePuzzle('impossible', { seed: 555 });
+    expect(easy.givens).toBeGreaterThan(impossible.givens);
+  });
+
+  it('grades to valid tiers; the full technique stack never diverges', () => {
+    for (const d of DIFFICULTIES) {
+      const { puzzle, solution } = generatePuzzle(d, { seed: 4242 });
+      expect(DIFFICULTIES).toContain(gradeDifficulty(puzzle));
+      const r = solveLogically(puzzle);
+      if (r.solved) expect(stringifyGrid(r.grid)).toBe(stringifyGrid(solution));
+    }
   });
 });

@@ -16,22 +16,17 @@ import type { Difficulty, Grid, Puzzle } from './types';
 /**
  * Grade a puzzle by the hardest technique required to solve it logically.
  * A puzzle that can't be solved by our technique set (needs guessing / more
- * advanced chains) is graded `expert`.
+ * advanced chains) is graded `impossible`.
  */
 export const gradeDifficulty = (puzzle: Grid): Difficulty => {
   const result = solveLogically(puzzle);
-  if (!result.solved) return 'expert';
-  switch (result.hardestRank) {
-    case 0:
-    case 1:
-      return 'easy';
-    case 2:
-      return 'medium';
-    case 3:
-      return 'hard';
-    default:
-      return 'expert';
-  }
+  // Not solvable with our technique set → needs guessing / chains.
+  if (!result.solved) return 'impossible';
+  const r = result.hardestRank;
+  if (r <= 1) return 'easy'; // singles only
+  if (r <= 3) return 'medium'; // locked candidates, pairs
+  if (r <= 5) return 'hard'; // triples, X-Wing
+  return 'pro'; // swordfish, XY-Wing
 };
 
 /**
@@ -42,8 +37,9 @@ export const gradeDifficulty = (puzzle: Grid): Difficulty => {
 const MIN_GIVENS: Record<Difficulty, number> = {
   easy: 44,
   medium: 36,
-  hard: 30,
-  expert: 25,
+  hard: 32,
+  pro: 28,
+  impossible: 24,
 };
 
 /**
@@ -94,7 +90,13 @@ export interface GenerateOptions {
   maxAttempts?: number;
 }
 
-const DIFFICULTY_ORDER: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+const DIFFICULTY_ORDER: Difficulty[] = [
+  'easy',
+  'medium',
+  'hard',
+  'pro',
+  'impossible',
+];
 const gradeDistance = (a: Difficulty, b: Difficulty): number =>
   Math.abs(DIFFICULTY_ORDER.indexOf(a) - DIFFICULTY_ORDER.indexOf(b));
 
