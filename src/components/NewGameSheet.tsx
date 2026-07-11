@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { DIFFICULTIES, type Difficulty } from '../engine/types';
 import { useGame } from '../game/store';
+import { generatePuzzleAsync } from '../workers/client';
 
 interface NewGameSheetProps {
   open: boolean;
@@ -15,15 +17,24 @@ const DESCRIPTIONS: Record<Difficulty, string> = {
 };
 
 export const NewGameSheet = ({ open, onClose }: NewGameSheetProps) => {
-  const newGame = useGame((s) => s.newGame);
   const mode = useGame((s) => s.mode);
   const current = useGame((s) => s.difficulty);
+  const [busy, setBusy] = useState<Difficulty | null>(null);
 
   if (!open) return null;
 
-  const start = (difficulty: Difficulty) => {
-    newGame(difficulty, mode);
-    onClose();
+  // Generate off the main thread so slow tiers (pro/impossible) never freeze
+  // the UI while the sheet is open.
+  const start = async (difficulty: Difficulty) => {
+    if (busy) return;
+    setBusy(difficulty);
+    try {
+      const puzzle = await generatePuzzleAsync(difficulty);
+      useGame.getState().startGame(puzzle, mode);
+      onClose();
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
@@ -43,13 +54,16 @@ export const NewGameSheet = ({ open, onClose }: NewGameSheetProps) => {
               key={difficulty}
               className={`sheet__option ${difficulty === current ? 'sheet__option--current' : ''}`}
               onClick={() => start(difficulty)}
+              disabled={busy !== null}
             >
               <span className="sheet__option-name">{difficulty}</span>
-              <span className="sheet__option-desc">{DESCRIPTIONS[difficulty]}</span>
+              <span className="sheet__option-desc">
+                {busy === difficulty ? 'Generating…' : DESCRIPTIONS[difficulty]}
+              </span>
             </button>
           ))}
         </div>
-        <button className="sheet__cancel" onClick={onClose}>
+        <button className="sheet__cancel" onClick={onClose} disabled={busy !== null}>
           Cancel
         </button>
       </div>
