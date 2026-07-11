@@ -11,11 +11,13 @@ import { useGameTimer } from '../hooks/useGameTimer';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useRecordGame } from '../hooks/useRecordGame';
 import { useGameFeedback } from '../hooks/useGameFeedback';
+import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 
 export const Game = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const reset = useUi((s) => s.reset);
+  const inputMode = useGame((s) => s.inputMode);
   useGameTimer();
   useKeyboard();
   useRecordGame();
@@ -24,7 +26,7 @@ export const Game = () => {
   const goHome = () => reset('home');
 
   return (
-    <div className="app">
+    <div className="app" data-mode={inputMode}>
       <TopBar onNewGame={() => setSheetOpen(true)} onHome={goHome} />
       <main className="app__main">
         <Board />

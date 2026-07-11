@@ -128,7 +128,11 @@
   background: var(--same);
 }
 .cell--selected {
-  background: var(--sel);
+  /* Selection is tinted + ringed by the active input mode so you always know
+     whether a tap will place a digit, a note, or a ban (--m-accent is set on
+     .app[data-mode]). */
+  background: color-mix(in srgb, var(--m-accent, var(--primary)) 22%, transparent);
+  box-shadow: inset 0 0 0 2px var(--m-accent, var(--primary));
 }
 .cell--error {
   background: var(--error-bg);
@@ -1389,9 +1393,10 @@
   touch-action: none;
 }
 
-/* Note-layer colors in the 3x3 mini-grid. */
+/* Note-layer colors in the 3x3 mini-grid. Primary notes are violet (not the
+   brand blue) to stay distinct from placed digits — see the mode-identity block. */
 .cell__note--blue {
-  color: var(--note);
+  color: #7c5cff;
   font-weight: 600;
 }
 .cell__note--grey {
@@ -1450,7 +1455,7 @@
   border-radius: 50%;
 }
 .dot--blue {
-  background: var(--note);
+  background: #7c5cff;
 }
 .dot--grey {
   background: var(--note-alt);
@@ -1589,9 +1594,60 @@
   padding: 9px 4px;
   background: var(--bg);
 }
-.mode-bar__btn--active {
-  background: var(--sel);
-}
 .control {
   padding: 9px 4px;
+}
+
+/* ---------- Input-mode colour identity ----------
+   Each mode owns a distinct accent so the selection, the active mode button,
+   and the number pad all agree on "what a tap does right now". The primary
+   note layer is violet (not the brand blue) because --primary and --note are
+   the same blue in several themes, which made digit vs note indistinguishable. */
+.app {
+  --m-accent: var(--primary); /* Digit */
+}
+.app[data-mode='note'] {
+  --m-accent: #7c5cff; /* Notes */
+}
+.app[data-mode='noteAlt'] {
+  --m-accent: var(--note-alt); /* Notes 2 (grey) */
+}
+.app[data-mode='ban'] {
+  --m-accent: var(--ban); /* Ban (red) */
+}
+
+/* Active mode button fills with its own accent. */
+.mode-bar__btn--active {
+  color: #fff;
+  border-color: transparent;
+  box-shadow: none;
+}
+.mode-bar__btn--active[data-mode='normal'] {
+  background: var(--primary);
+}
+.mode-bar__btn--active[data-mode='note'] {
+  background: #7c5cff;
+}
+.mode-bar__btn--active[data-mode='noteAlt'] {
+  background: var(--note-alt);
+}
+.mode-bar__btn--active[data-mode='ban'] {
+  background: var(--ban);
+}
+.mode-bar__btn--active .dot {
+  background: #fff;
+}
+.mode-bar__btn--active .mode-bar__icon {
+  color: #fff;
+}
+
+/* The pad digits preview the colour the tap will produce. */
+.app[data-mode='note'] .numberpad__digit {
+  color: #7c5cff;
+}
+.app[data-mode='noteAlt'] .numberpad__digit {
+  color: var(--note-alt);
+}
+.app[data-mode='ban'] .numberpad__digit {
+  color: var(--ban);
 }
