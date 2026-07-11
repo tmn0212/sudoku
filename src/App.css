@@ -5,19 +5,21 @@
   height: 100%;
   max-width: 520px;
   margin: 0 auto;
-  /* Respect the iOS safe area (notch + home indicator). */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Respect the iOS safe area (notch + sides). The bottom inset is handled by
+     the docked control tray so it can bleed to the screen edge. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0
+    env(safe-area-inset-left);
 }
 
 .app__main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 2.5vh, 20px);
-  padding: 12px clamp(10px, 3vw, 18px) 16px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vh, 16px);
+  padding: 10px clamp(10px, 3vw, 18px);
   min-height: 0;
-  justify-content: space-between;
 }
 
 /* ---------- Top bar ---------- */
@@ -1451,4 +1453,81 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================
+   Phase I: docked control tray + touch-friendly number pad
+   ============================================================ */
+
+/* The board centres in the space above; the controls dock at the bottom as a
+   single cohesive tray (kills the large empty gap on tall phones). */
+.app__pad {
+  gap: clamp(8px, 1.4vh, 12px);
+  padding: clamp(10px, 1.8vh, 15px) clamp(10px, 3.5vw, 18px)
+    calc(clamp(10px, 1.6vh, 14px) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--grid-thin);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.07);
+}
+
+/* A 3x3 dial-pad grid: big, wide, easy-to-hit keys (1-2-3 / 4-5-6 / 7-8-9). */
+.numberpad {
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(6px, 1.8vw, 10px);
+}
+.numberpad__key {
+  aspect-ratio: auto;
+  height: clamp(44px, 6vh, 60px);
+  min-height: 0;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 13px;
+  background: var(--bg);
+  box-shadow: none;
+  color: var(--primary);
+}
+.numberpad__key:active:not(:disabled) {
+  transform: scale(0.96);
+  background: var(--sel);
+  border-color: var(--primary);
+}
+.numberpad__digit {
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  font-weight: 700;
+  line-height: 1;
+}
+.numberpad__count {
+  top: auto;
+  bottom: 6px;
+  right: 9px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+/* On shorter screens, cap the board by height and tighten the tray so the 3x3
+   pad always fits without clipping the board. */
+@media (max-height: 760px) {
+  .board {
+    width: min(100%, 42vh);
+  }
+  .app__pad {
+    gap: 7px;
+    padding-top: 9px;
+  }
+  .numberpad__key {
+    height: clamp(40px, 5.4vh, 52px);
+  }
+}
+
+/* Mode bar + controls share the tray; slightly taller for easy tapping. */
+.mode-bar__btn {
+  padding: 9px 4px;
+  background: var(--bg);
+}
+.mode-bar__btn--active {
+  background: var(--sel);
+}
+.control {
+  padding: 9px 4px;
 }

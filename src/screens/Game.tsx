@@ -29,12 +29,12 @@ export const Game = () => {
       <main className="app__main">
         <Board />
         <HintBanner />
-        <div className="app__pad">
-          <InputModeBar />
-          <NumberPad />
-          <Controls />
-        </div>
       </main>
+      <div className="app__pad">
+        <InputModeBar />
+        <NumberPad />
+        <Controls />
+      </div>
       <NewGameSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
       <WinOverlay onNewGame={goHome} />
     </div>
