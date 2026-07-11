@@ -45,10 +45,10 @@ describe('game store', () => {
     expect(useGame.getState().mistakes).toBe(1);
   });
 
-  it('toggles pencil notes in notes mode', () => {
+  it('toggles blue pencil notes in note mode', () => {
     const cell = firstEmptyCell();
     useGame.getState().selectCell(cell);
-    useGame.getState().setNotesMode(true);
+    useGame.getState().setInputMode('note');
     useGame.getState().inputDigit(3);
     useGame.getState().inputDigit(7);
     const notes = useGame.getState().notes[cell];
@@ -57,6 +57,42 @@ describe('game store', () => {
     // Toggling again removes it.
     useGame.getState().inputDigit(3);
     expect(useGame.getState().notes[cell] & (1 << 3)).toBeFalsy();
+  });
+
+  it('keeps grey notes and red bans in separate layers', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().setInputMode('noteAlt');
+    useGame.getState().inputDigit(4);
+    useGame.getState().setInputMode('ban');
+    useGame.getState().inputDigit(9);
+    const s = useGame.getState();
+    expect(s.notesAlt[cell] & (1 << 4)).toBeTruthy();
+    expect(s.bans[cell] & (1 << 9)).toBeTruthy();
+    expect(s.notes[cell]).toBe(0); // blue layer untouched
+  });
+
+  it('applies notes to every cell of a multi-selection', () => {
+    const empties = useGame
+      .getState()
+      .given.map((g, i) => (g ? -1 : i))
+      .filter((i) => i >= 0)
+      .slice(0, 3);
+    useGame.getState().setSelection(empties);
+    useGame.getState().setInputMode('note');
+    useGame.getState().inputDigit(5);
+    const notes = useGame.getState().notes;
+    for (const i of empties) expect(notes[i] & (1 << 5)).toBeTruthy();
+  });
+
+  it('placing a digit clears that cell\'s notes and bans', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().setInputMode('note');
+    useGame.getState().inputDigit(2);
+    useGame.getState().setInputMode('normal');
+    useGame.getState().inputDigit(useGame.getState().solution[cell]);
+    expect(useGame.getState().notes[cell]).toBe(0);
   });
 
   it('supports undo and redo', () => {

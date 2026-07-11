@@ -1,6 +1,12 @@
 /**
  * Game state, powered by Zustand with localStorage persistence so an in-progress
  * game survives reloads and app relaunches (essential for an offline PWA).
+ *
+ * Per-cell state is kept as parallel flat arrays (cheap to clone/diff):
+ *   values   — placed digit (0 = empty)
+ *   notes    — blue pencil marks (candidate bitmask)
+ *   notesAlt — grey pencil marks (a second candidate set)
+ *   bans     — red "cannot be" marks (negative candidates)
  */
 
 import { create } from 'zustand';
@@ -14,20 +20,24 @@ import {
 } from '../engine/board';
 import { findStep } from '../engine/techniques';
 import { generatePuzzle } from '../engine/generator';
+import { useSettings } from '../state/settingsStore';
 import type { Difficulty, Grid, Puzzle, Step } from '../engine/types';
 import type { Mode } from '../db/idb';
 
+/** What a digit press does to the selected cells. */
+export type InputMode = 'normal' | 'note' | 'noteAlt' | 'ban';
+
 export interface HintState {
   message: string;
-  /** Cells to highlight while the hint is shown. */
   cells: number[];
-  /** The deduction, if it places a digit (so the user can apply it). */
   step: Step | null;
 }
 
 interface Snapshot {
   values: Grid;
   notes: number[];
+  notesAlt: number[];
+  bans: number[];
 }
 
 export interface GameState {
@@ -40,10 +50,14 @@ export interface GameState {
 
   // --- player state ---
   values: Grid;
-  /** Pencil marks per cell, as a candidate bitmask. */
   notes: number[];
+  notesAlt: number[];
+  bans: number[];
+  /** Selected cells (supports drag multi-select); last entry is the anchor. */
+  selection: number[];
+  /** Convenience anchor = last selected cell (or null). */
   selected: number | null;
-  notesMode: boolean;
+  inputMode: InputMode;
 
   // --- meta ---
   status: 'playing' | 'won';
@@ -61,10 +75,12 @@ export interface GameState {
   newGame: (difficulty: Difficulty, mode?: Mode) => void;
   startGame: (puzzle: Puzzle, mode?: Mode) => void;
   selectCell: (index: number | null) => void;
+  setSelection: (cells: number[]) => void;
+  addToSelection: (index: number) => void;
   inputDigit: (digit: number) => void;
   erase: () => void;
-  toggleNotesMode: () => void;
-  setNotesMode: (on: boolean) => void;
+  setInputMode: (mode: InputMode) => void;
+  cycleInputMode: () => void;
   undo: () => void;
   redo: () => void;
   requestHint: () => void;
@@ -75,10 +91,13 @@ export interface GameState {
 }
 
 const MAX_HISTORY = 200;
+const zeros = (): number[] => new Array(CELL_COUNT).fill(0);
 
 const snapshot = (s: GameState): Snapshot => ({
   values: s.values.slice(),
   notes: s.notes.slice(),
+  notesAlt: s.notesAlt.slice(),
+  bans: s.bans.slice(),
 });
 
 const isWin = (values: Grid, solution: Grid): boolean =>
@@ -91,17 +110,30 @@ const buildGame = ({ puzzle, solution, difficulty }: Puzzle, mode: Mode) => ({
   difficulty,
   mode,
   values: puzzle.slice(),
-  notes: new Array(CELL_COUNT).fill(0),
+  notes: zeros(),
+  notesAlt: zeros(),
+  bans: zeros(),
+  selection: [] as number[],
   selected: null as number | null,
-  notesMode: false,
+  inputMode: 'normal' as InputMode,
   status: 'playing' as const,
   elapsedMs: 0,
   mistakes: 0,
   hints: 0,
-  hint: null,
+  hint: null as HintState | null,
   past: [] as Snapshot[],
   future: [] as Snapshot[],
 });
+
+/** Cells a digit/erase acts on: the multi-selection, or the single anchor. */
+const targetCells = (s: GameState): number[] => {
+  const cells = s.selection.length
+    ? s.selection
+    : s.selected != null
+      ? [s.selected]
+      : [];
+  return cells.filter((i) => !s.given[i]);
+};
 
 export const useGame = create<GameState>()(
   persist(
@@ -118,55 +150,85 @@ export const useGame = create<GameState>()(
       startGame: (puzzle, mode = 'good') =>
         set((s) => ({ ...buildGame(puzzle, mode), autoCheck: s.autoCheck })),
 
-      selectCell: (index) => set({ selected: index, hint: null }),
+      selectCell: (index) =>
+        set({
+          selection: index == null ? [] : [index],
+          selected: index,
+          hint: null,
+        }),
 
-      toggleNotesMode: () => set((s) => ({ notesMode: !s.notesMode })),
-      setNotesMode: (on) => set({ notesMode: on }),
+      setSelection: (cells) =>
+        set({
+          selection: cells,
+          selected: cells.length ? cells[cells.length - 1] : null,
+          hint: null,
+        }),
+
+      addToSelection: (index) =>
+        set((s) => {
+          if (s.selection.includes(index)) return { selected: index };
+          return { selection: [...s.selection, index], selected: index };
+        }),
+
+      setInputMode: (mode) => set({ inputMode: mode }),
+      cycleInputMode: () =>
+        set((s) => {
+          const order: InputMode[] = ['normal', 'note', 'noteAlt', 'ban'];
+          const next = order[(order.indexOf(s.inputMode) + 1) % order.length];
+          return { inputMode: next };
+        }),
+
       setAutoCheck: (on) => set({ autoCheck: on }),
       clearHint: () => set({ hint: null }),
 
       inputDigit: (digit) => {
         const s = get();
-        const i = s.selected;
-        if (i == null || s.given[i] || s.status === 'won') return;
+        if (s.status === 'won') return;
+        const targets = targetCells(s);
+        if (targets.length === 0) return;
 
         const past = [...s.past, snapshot(s)].slice(-MAX_HISTORY);
-
-        if (s.notesMode) {
-          // Toggle a pencil mark; notes only make sense on an empty cell.
-          const notes = s.notes.slice();
-          const values = s.values.slice();
-          values[i] = 0;
-          notes[i] = hasCandidate(notes[i], digit)
-            ? removeCandidate(notes[i], digit)
-            : addCandidate(notes[i], digit);
-          set({ values, notes, past, future: [], hint: null });
-          return;
-        }
-
         const values = s.values.slice();
         const notes = s.notes.slice();
+        const notesAlt = s.notesAlt.slice();
+        const bans = s.bans.slice();
+        const autoClean = useSettings.getState().autoCleanupNotes;
+        let mistakes = s.mistakes;
 
-        if (values[i] === digit) {
-          // Tapping the same digit clears it.
-          values[i] = 0;
+        if (s.inputMode === 'normal') {
+          for (const i of targets) {
+            if (values[i] === digit && targets.length === 1) {
+              values[i] = 0; // tapping the same digit clears it
+            } else {
+              values[i] = digit;
+              notes[i] = 0;
+              notesAlt[i] = 0;
+              bans[i] = 0;
+              if (autoClean) {
+                for (const p of PEERS[i]) {
+                  if (notes[p]) notes[p] = removeCandidate(notes[p], digit);
+                }
+              }
+              if (s.autoCheck && values[i] !== s.solution[i]) mistakes++;
+            }
+          }
         } else {
-          values[i] = digit;
-          notes[i] = 0;
-          // Auto-clean: remove this digit from peers' pencil marks.
-          for (const p of PEERS[i]) {
-            if (notes[p]) notes[p] = removeCandidate(notes[p], digit);
+          const layer =
+            s.inputMode === 'note' ? notes : s.inputMode === 'noteAlt' ? notesAlt : bans;
+          for (const i of targets) {
+            if (values[i] !== 0) continue; // marks only make sense on empty cells
+            layer[i] = hasCandidate(layer[i], digit)
+              ? removeCandidate(layer[i], digit)
+              : addCandidate(layer[i], digit);
           }
         }
 
-        const wrong =
-          s.autoCheck && values[i] !== 0 && values[i] !== s.solution[i];
-        const mistakes = wrong ? s.mistakes + 1 : s.mistakes;
         const won = isWin(values, s.solution);
-
         set({
           values,
           notes,
+          notesAlt,
+          bans,
           past,
           future: [],
           hint: null,
@@ -177,15 +239,25 @@ export const useGame = create<GameState>()(
 
       erase: () => {
         const s = get();
-        const i = s.selected;
-        if (i == null || s.given[i] || s.status === 'won') return;
-        if (s.values[i] === 0 && s.notes[i] === 0) return;
+        if (s.status === 'won') return;
+        const targets = targetCells(s);
+        const dirty = targets.filter(
+          (i) => s.values[i] || s.notes[i] || s.notesAlt[i] || s.bans[i],
+        );
+        if (dirty.length === 0) return;
+
         const past = [...s.past, snapshot(s)].slice(-MAX_HISTORY);
         const values = s.values.slice();
         const notes = s.notes.slice();
-        values[i] = 0;
-        notes[i] = 0;
-        set({ values, notes, past, future: [], hint: null });
+        const notesAlt = s.notesAlt.slice();
+        const bans = s.bans.slice();
+        for (const i of dirty) {
+          values[i] = 0;
+          notes[i] = 0;
+          notesAlt[i] = 0;
+          bans[i] = 0;
+        }
+        set({ values, notes, notesAlt, bans, past, future: [], hint: null });
       },
 
       undo: () => {
@@ -193,8 +265,11 @@ export const useGame = create<GameState>()(
         if (s.past.length === 0) return;
         const previous = s.past[s.past.length - 1];
         set({
+          ...previous,
           values: previous.values.slice(),
           notes: previous.notes.slice(),
+          notesAlt: previous.notesAlt.slice(),
+          bans: previous.bans.slice(),
           past: s.past.slice(0, -1),
           future: [snapshot(s), ...s.future].slice(0, MAX_HISTORY),
           status: 'playing',
@@ -205,11 +280,14 @@ export const useGame = create<GameState>()(
       redo: () => {
         const s = get();
         if (s.future.length === 0) return;
-        const nextSnap = s.future[0];
-        const won = isWin(nextSnap.values, s.solution);
+        const next = s.future[0];
+        const won = isWin(next.values, s.solution);
         set({
-          values: nextSnap.values.slice(),
-          notes: nextSnap.notes.slice(),
+          ...next,
+          values: next.values.slice(),
+          notes: next.notes.slice(),
+          notesAlt: next.notesAlt.slice(),
+          bans: next.bans.slice(),
           past: [...s.past, snapshot(s)].slice(-MAX_HISTORY),
           future: s.future.slice(1),
           status: won ? 'won' : 'playing',
@@ -221,7 +299,6 @@ export const useGame = create<GameState>()(
         const s = get();
         if (s.status === 'won') return;
 
-        // First, surface any incorrect entry — a hint should catch mistakes.
         const wrongCells: number[] = [];
         for (let i = 0; i < CELL_COUNT; i++) {
           if (s.values[i] !== 0 && !s.given[i] && s.values[i] !== s.solution[i]) {
@@ -237,6 +314,7 @@ export const useGame = create<GameState>()(
               cells: wrongCells,
               step: null,
             },
+            selection: [wrongCells[0]],
             selected: wrongCells[0],
           });
           return;
@@ -257,6 +335,7 @@ export const useGame = create<GameState>()(
         const target = step.placements[0]?.cell ?? step.highlights[0];
         set({
           hint: { message: step.reason, cells: step.highlights, step },
+          selection: target != null ? [target] : s.selection,
           selected: target ?? s.selected,
           hints: s.hints + 1,
         });
@@ -269,9 +348,13 @@ export const useGame = create<GameState>()(
         const past = [...s.past, snapshot(s)].slice(-MAX_HISTORY);
         const values = s.values.slice();
         const notes = s.notes.slice();
+        const notesAlt = s.notesAlt.slice();
+        const bans = s.bans.slice();
         for (const { cell, value } of step.placements) {
           values[cell] = value;
           notes[cell] = 0;
+          notesAlt[cell] = 0;
+          bans[cell] = 0;
           for (const p of PEERS[cell]) {
             if (notes[p]) notes[p] = removeCandidate(notes[p], value);
           }
@@ -280,6 +363,8 @@ export const useGame = create<GameState>()(
         set({
           values,
           notes,
+          notesAlt,
+          bans,
           past,
           future: [],
           hint: null,
@@ -295,9 +380,9 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'sudoku-game',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
-      // Persist the game, not transient UI like the active hint.
+      // Persist the game, not transient UI (selection/hint).
       partialize: (s) => ({
         puzzle: s.puzzle,
         solution: s.solution,
@@ -306,6 +391,9 @@ export const useGame = create<GameState>()(
         mode: s.mode,
         values: s.values,
         notes: s.notes,
+        notesAlt: s.notesAlt,
+        bans: s.bans,
+        inputMode: s.inputMode,
         status: s.status,
         elapsedMs: s.elapsedMs,
         mistakes: s.mistakes,

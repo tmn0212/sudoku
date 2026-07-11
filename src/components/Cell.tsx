@@ -1,40 +1,49 @@
 import { memo } from 'react';
-import { candidatesToArray, colOf, rowOf } from '../engine/board';
+import { colOf, hasCandidate, rowOf } from '../engine/board';
 
 export interface CellProps {
   index: number;
   value: number;
   given: boolean;
+  /** Blue pencil marks (candidate bitmask). */
   notes: number;
+  /** Grey pencil marks. */
+  notesAlt: number;
+  /** Red "cannot be" marks. */
+  bans: number;
   selected: boolean;
-  /** In the same row, column, or box as the selected cell. */
   peer: boolean;
-  /** Same digit as the selected cell (highlighted like Good Sudoku). */
   same: boolean;
-  /** Duplicates a peer's digit. */
   conflict: boolean;
-  /** Auto-check flagged this entry as wrong. */
   wrong: boolean;
-  /** Part of the current hint. */
   hint: boolean;
-  onSelect: (index: number) => void;
 }
+
+const noteClass = (notes: number, notesAlt: number, bans: number, n: number): string => {
+  // Priority: a ban (you decided it's impossible) wins visually.
+  if (hasCandidate(bans, n)) return 'cell__note--ban';
+  if (hasCandidate(notes, n)) return 'cell__note--blue';
+  if (hasCandidate(notesAlt, n)) return 'cell__note--grey';
+  return '';
+};
 
 const CellComponent = ({
   index,
   value,
   given,
   notes,
+  notesAlt,
+  bans,
   selected,
   peer,
   same,
   conflict,
   wrong,
   hint,
-  onSelect,
 }: CellProps) => {
   const row = rowOf(index);
   const col = colOf(index);
+  const hasMarks = (notes | notesAlt | bans) !== 0;
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
@@ -47,25 +56,28 @@ const CellComponent = ({
   if (row % 3 === 2 && row !== 8) classes.push('cell--box-bottom');
 
   return (
-    <button
-      type="button"
+    <div
       className={classes.join(' ')}
-      onClick={() => onSelect(index)}
-      aria-label={`Cell row ${row + 1} column ${col + 1}${value ? `, ${value}` : ', empty'}`}
+      role="gridcell"
+      data-index={index}
       data-testid={`cell-${index}`}
+      aria-label={`Row ${row + 1} column ${col + 1}${value ? `, ${value}` : ', empty'}`}
     >
       {value !== 0 ? (
         <span className="cell__value">{value}</span>
-      ) : notes !== 0 ? (
+      ) : hasMarks ? (
         <span className="cell__notes" aria-hidden="true">
-          {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
-            <span key={n} className="cell__note">
-              {candidatesToArray(notes).includes(n) ? n : ''}
-            </span>
-          ))}
+          {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
+            const cls = noteClass(notes, notesAlt, bans, n);
+            return (
+              <span key={n} className={`cell__note ${cls}`}>
+                {cls ? n : ''}
+              </span>
+            );
+          })}
         </span>
       ) : null}
-    </button>
+    </div>
   );
 };
 

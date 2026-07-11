@@ -18,15 +18,6 @@ const EraseIcon = () => (
   </svg>
 );
 
-const PencilIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <path
-      fill="currentColor"
-      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
-    />
-  </svg>
-);
-
 const HintIcon = () => (
   <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
     <path
@@ -49,9 +40,7 @@ export const Controls = () => {
   const undo = useGame((s) => s.undo);
   const redo = useGame((s) => s.redo);
   const erase = useGame((s) => s.erase);
-  const toggleNotesMode = useGame((s) => s.toggleNotesMode);
   const requestHint = useGame((s) => s.requestHint);
-  const notesMode = useGame((s) => s.notesMode);
   const canUndo = useGame((s) => s.past.length > 0);
   const canRedo = useGame((s) => s.future.length > 0);
   const won = useGame((s) => s.status === 'won');
@@ -69,15 +58,6 @@ export const Controls = () => {
       <button className="control" onClick={erase} disabled={won}>
         <EraseIcon />
         <span>Erase</span>
-      </button>
-      <button
-        className={`control ${notesMode ? 'control--active' : ''}`}
-        onClick={toggleNotesMode}
-        disabled={won}
-        aria-pressed={notesMode}
-      >
-        <PencilIcon />
-        <span>Notes{notesMode ? ' · On' : ''}</span>
       </button>
       <button className="control" onClick={requestHint} disabled={won}>
         <HintIcon />

@@ -802,3 +802,101 @@
 .topbar__icon:active {
   background: var(--peer);
 }
+
+/* ============================================================
+   Phase B: note layers, input-mode bar, bigger number pad
+   ============================================================ */
+
+/* Prevent the page from scrolling while drag-selecting on the board. */
+.board {
+  touch-action: none;
+}
+
+/* Note-layer colors in the 3x3 mini-grid. */
+.cell__note--blue {
+  color: var(--note);
+  font-weight: 600;
+}
+.cell__note--grey {
+  color: var(--note-alt);
+}
+.cell__note--ban {
+  color: var(--ban);
+  text-decoration: line-through;
+  font-weight: 600;
+}
+
+/* Group the mode bar + pad + controls at the bottom. */
+.app__pad {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.8vh, 14px);
+}
+
+/* ---------- Input mode bar ---------- */
+.mode-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(4px, 1.5vw, 8px);
+}
+.mode-bar__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 1.5px solid var(--grid-thin);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition: border-color 0.15s ease, transform 0.07s ease;
+}
+.mode-bar__btn:active {
+  transform: scale(0.95);
+}
+.mode-bar__btn--active {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+.mode-bar__icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.mode-bar__label {
+  line-height: 1;
+}
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+.dot--blue {
+  background: var(--note);
+}
+.dot--grey {
+  background: var(--note-alt);
+}
+.dot--red {
+  background: var(--ban);
+}
+
+/* ---------- Bigger, touch-friendly number pad ---------- */
+.numberpad {
+  gap: clamp(3px, 1vw, 6px);
+}
+.numberpad__key {
+  aspect-ratio: 5 / 7;
+  min-height: 54px;
+  min-width: 0;
+  border-radius: 14px;
+}
+.numberpad__digit {
+  font-size: clamp(1.5rem, 7.5vw, 2.2rem);
+  font-weight: 700;
+}
+.numberpad__count {
+  bottom: 5px;
+  font-size: 0.62rem;
+}

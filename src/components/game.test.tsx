@@ -5,12 +5,14 @@ import userEvent from '@testing-library/user-event';
 import { Board } from './Board';
 import { NumberPad } from './NumberPad';
 import { Controls } from './Controls';
+import { InputModeBar } from './InputModeBar';
 import { useGame } from '../game/store';
 
 const renderGame = () =>
   render(
     <>
       <Board />
+      <InputModeBar />
       <NumberPad />
       <Controls />
     </>,
@@ -30,35 +32,32 @@ describe('<Board> interaction', () => {
     expect(screen.getByLabelText('Sudoku board').querySelectorAll('.cell')).toHaveLength(81);
   });
 
-  it('selects a cell on tap and enters a digit from the number pad', async () => {
+  it('enters a digit from the number pad into the selected cell', async () => {
     const user = userEvent.setup();
     renderGame();
     const cell = firstEmptyCell();
-
-    await user.click(screen.getByTestId(`cell-${cell}`));
-    expect(useGame.getState().selected).toBe(cell);
+    useGame.getState().selectCell(cell);
 
     await user.click(screen.getByRole('button', { name: /Enter 6/ }));
     expect(useGame.getState().values[cell]).toBe(6);
     expect(screen.getByTestId(`cell-${cell}`)).toHaveTextContent('6');
   });
 
-  it('writes pencil marks when Notes mode is on', async () => {
+  it('writes blue pencil marks when Notes mode is on', async () => {
     const user = userEvent.setup();
     renderGame();
     const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
 
-    await user.click(screen.getByRole('button', { name: /Notes/ }));
-    await user.click(screen.getByTestId(`cell-${cell}`));
+    // Switch to the blue "Notes" mode via the mode bar (second button).
+    await user.click(screen.getAllByRole('button', { name: /Notes/ })[0]);
     await user.click(screen.getByRole('button', { name: /Enter 2/ }));
 
     expect(useGame.getState().notes[cell] & (1 << 2)).toBeTruthy();
-    // The cell shows the pencil mark, not a big value.
     expect(useGame.getState().values[cell]).toBe(0);
   });
 
   it('disables a number pad key once all nine are placed', () => {
-    // Fill every 7 from the solution, then the "7" key should be disabled.
     const { solution, given } = useGame.getState();
     for (let i = 0; i < 81; i++) {
       if (given[i] || solution[i] !== 7) continue;

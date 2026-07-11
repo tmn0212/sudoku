@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Board } from '../components/Board';
 import { NumberPad } from '../components/NumberPad';
 import { Controls } from '../components/Controls';
+import { InputModeBar } from '../components/InputModeBar';
 import { TopBar } from '../components/TopBar';
 import { HintBanner } from '../components/HintBanner';
 import { WinOverlay } from '../components/WinOverlay';
@@ -24,8 +25,11 @@ export const Game = () => {
       <main className="app__main">
         <Board />
         <HintBanner />
-        <NumberPad />
-        <Controls />
+        <div className="app__pad">
+          <InputModeBar />
+          <NumberPad />
+          <Controls />
+        </div>
       </main>
       <NewGameSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
       <WinOverlay onNewGame={goHome} />

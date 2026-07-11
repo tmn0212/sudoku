@@ -20,7 +20,7 @@ export const useKeyboard = (): void => {
         return;
       }
       if (e.key === 'n' || e.key === 'N') {
-        state.toggleNotesMode();
+        state.cycleInputMode();
         return;
       }
       if (e.key === 'h' || e.key === 'H') {
