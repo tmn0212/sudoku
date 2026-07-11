@@ -10,6 +10,7 @@ import { NewGameSheet } from '../components/NewGameSheet';
 import { useGameTimer } from '../hooks/useGameTimer';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useRecordGame } from '../hooks/useRecordGame';
+import { useGameFeedback } from '../hooks/useGameFeedback';
 import { useUi } from '../state/uiStore';
 
 export const Game = () => {
@@ -18,6 +19,7 @@ export const Game = () => {
   useGameTimer();
   useKeyboard();
   useRecordGame();
+  useGameFeedback();
 
   const goHome = () => reset('home');
 

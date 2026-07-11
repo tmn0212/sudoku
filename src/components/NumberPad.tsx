@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGame } from '../game/store';
 import { useSettings } from '../state/settingsStore';
+import { haptics } from '../utils/haptics';
 
 export const NumberPad = () => {
   const values = useGame((s) => s.values);
@@ -24,8 +25,11 @@ export const NumberPad = () => {
             key={n}
             type="button"
             className="numberpad__key"
-            disabled={done || status === 'won'}
-            onClick={() => inputDigit(n)}
+            disabled={done || status !== 'playing'}
+            onClick={() => {
+              haptics.tap();
+              inputDigit(n);
+            }}
             aria-label={`Enter ${n}, ${Math.max(remaining[n], 0)} remaining`}
           >
             <span className="numberpad__digit">{n}</span>

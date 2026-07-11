@@ -281,6 +281,7 @@
   backdrop-filter: blur(4px);
   z-index: 50;
   padding: 24px;
+  animation: fade 0.2s ease;
 }
 .overlay__card {
   background: var(--surface);
@@ -1438,4 +1439,16 @@
   letter-spacing: 0.06em;
   color: var(--muted);
   margin-top: 2px;
+}
+
+/* ---------- Accessibility: honour reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
