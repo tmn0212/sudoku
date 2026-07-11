@@ -1,14 +1,28 @@
-import { useEffect, type ComponentType } from 'react';
+import { useEffect, lazy, Suspense, type ComponentType } from 'react';
 import { useUi, type Screen } from './state/uiStore';
 import { Home } from './screens/Home';
 import { Game } from './screens/Game';
-import { Settings } from './screens/Settings';
-import { Stats } from './screens/Stats';
-import { Learn } from './screens/Learn';
-import { Challenges } from './screens/Challenges';
 import { ReloadPrompt } from './components/ReloadPrompt';
 import { requestPersistentStorage } from './db/idb';
 import './App.css';
+
+// Core screens load eagerly; everything else is a separate lazy chunk so the
+// initial bundle stays lean (challenge packs and lesson data ride along).
+const Settings = lazy(() =>
+  import('./screens/Settings').then((m) => ({ default: m.Settings })),
+);
+const Stats = lazy(() =>
+  import('./screens/Stats').then((m) => ({ default: m.Stats })),
+);
+const Learn = lazy(() =>
+  import('./screens/Learn').then((m) => ({ default: m.Learn })),
+);
+const LessonDetail = lazy(() =>
+  import('./screens/LessonDetail').then((m) => ({ default: m.LessonDetail })),
+);
+const Challenges = lazy(() =>
+  import('./screens/Challenges').then((m) => ({ default: m.Challenges })),
+);
 
 const SCREENS: Record<Screen, ComponentType> = {
   home: Home,
@@ -16,9 +30,8 @@ const SCREENS: Record<Screen, ComponentType> = {
   settings: Settings,
   stats: Stats,
   learn: Learn,
+  lesson: LessonDetail,
   challenges: Challenges,
-  // Filled in by later phases; fall back to their parent screens for now.
-  lesson: Learn,
 };
 
 function App() {
@@ -33,7 +46,15 @@ function App() {
 
   return (
     <>
-      <Screen />
+      <Suspense
+        fallback={
+          <div className="screen-loading" role="status">
+            <div className="spinner" aria-hidden="true" />
+          </div>
+        }
+      >
+        <Screen />
+      </Suspense>
       <ReloadPrompt />
     </>
   );
