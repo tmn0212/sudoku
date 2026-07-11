@@ -5,6 +5,7 @@ import { Game } from './screens/Game';
 import { Settings } from './screens/Settings';
 import { Stats } from './screens/Stats';
 import { Learn } from './screens/Learn';
+import { Challenges } from './screens/Challenges';
 import { ReloadPrompt } from './components/ReloadPrompt';
 import { requestPersistentStorage } from './db/idb';
 import './App.css';
@@ -15,9 +16,9 @@ const SCREENS: Record<Screen, ComponentType> = {
   settings: Settings,
   stats: Stats,
   learn: Learn,
+  challenges: Challenges,
   // Filled in by later phases; fall back to their parent screens for now.
   lesson: Learn,
-  challenges: Home,
 };
 
 function App() {

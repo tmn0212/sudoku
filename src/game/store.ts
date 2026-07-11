@@ -39,6 +39,12 @@ export interface HintState {
   step: Step | null;
 }
 
+/** Identifies which challenge-bank puzzle is being played (null for free play). */
+export interface ChallengeRef {
+  difficulty: Difficulty;
+  index: number;
+}
+
 interface Snapshot {
   values: Grid;
   notes: number[];
@@ -53,6 +59,8 @@ export interface GameState {
   given: boolean[];
   difficulty: Difficulty;
   mode: Mode;
+  /** Set when playing a challenge-bank puzzle; null for free play. */
+  challenge: ChallengeRef | null;
 
   // --- player state ---
   values: Grid;
@@ -82,6 +90,7 @@ export interface GameState {
   // --- actions ---
   newGame: (difficulty: Difficulty, mode?: Mode) => void;
   startGame: (puzzle: Puzzle, mode?: Mode) => void;
+  startChallenge: (puzzle: Puzzle, ref: ChallengeRef, mode?: Mode) => void;
   selectCell: (index: number | null) => void;
   setSelection: (cells: number[]) => void;
   addToSelection: (index: number) => void;
@@ -117,6 +126,7 @@ const buildGame = ({ puzzle, solution, difficulty }: Puzzle, mode: Mode) => ({
   given: puzzle.map((v) => v !== 0),
   difficulty,
   mode,
+  challenge: null as ChallengeRef | null,
   values: puzzle.slice(),
   notes: zeros(),
   notesAlt: zeros(),
@@ -158,6 +168,13 @@ export const useGame = create<GameState>()(
 
       startGame: (puzzle, mode = 'good') =>
         set((s) => ({ ...buildGame(puzzle, mode), autoCheck: s.autoCheck })),
+
+      startChallenge: (puzzle, ref, mode = 'good') =>
+        set((s) => ({
+          ...buildGame(puzzle, mode),
+          challenge: ref,
+          autoCheck: s.autoCheck,
+        })),
 
       selectCell: (index) =>
         set({
@@ -426,6 +443,7 @@ export const useGame = create<GameState>()(
         given: s.given,
         difficulty: s.difficulty,
         mode: s.mode,
+        challenge: s.challenge,
         values: s.values,
         notes: s.notes,
         notesAlt: s.notesAlt,

@@ -87,6 +87,16 @@ export const Home = () => {
         ))}
       </div>
 
+      <button className="home__challenges" onClick={() => navigate('challenges')}>
+        <div>
+          <span className="home__challenges-label">Challenges</span>
+          <span className="home__challenges-blurb">
+            240 graded puzzles · beat your best score
+          </span>
+        </div>
+        <span className="home__continue-go" aria-hidden="true">▶</span>
+      </button>
+
       <nav className="home__nav">
         <button onClick={() => navigate('learn')}>Learn</button>
         <button onClick={() => navigate('stats')}>Stats</button>

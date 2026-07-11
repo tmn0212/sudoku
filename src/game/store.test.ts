@@ -138,6 +138,21 @@ describe('game store', () => {
     expect(useGame.getState().score).toBeGreaterThan(0);
   });
 
+  it('startChallenge tags the game with its challenge ref', () => {
+    const { puzzle, solution, given } = useGame.getState();
+    useGame.getState().startChallenge(
+      { puzzle, solution, difficulty: 'hard', givens: given.filter(Boolean).length },
+      { difficulty: 'hard', index: 7 },
+    );
+    const s = useGame.getState();
+    expect(s.challenge).toEqual({ difficulty: 'hard', index: 7 });
+    expect(s.difficulty).toBe('hard');
+    expect(s.status).toBe('playing');
+    // Starting a plain game clears the challenge tag.
+    useGame.getState().newGame('easy');
+    expect(useGame.getState().challenge).toBeNull();
+  });
+
   it('arcade mode ends after too many mistakes', () => {
     useGame.getState().newGame('easy', 'arcade');
     const { solution, given } = useGame.getState();

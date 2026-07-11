@@ -577,6 +577,33 @@
   font-size: 1.2rem;
 }
 
+.home__challenges {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  transition: transform 0.07s ease;
+}
+.home__challenges:active {
+  transform: scale(0.98);
+}
+.home__challenges-label {
+  display: block;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.home__challenges-blurb {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .home__modes {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -685,6 +712,102 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ---------- Challenges ---------- */
+.chal-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.chal-tabs::-webkit-scrollbar {
+  display: none;
+}
+.chal-tab {
+  flex: 0 0 auto;
+  border: none;
+  background: var(--peer);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.chal-tab--active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.chal-summary {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.chal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+}
+.chal-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  aspect-ratio: 1;
+  border: 1.5px solid var(--grid-thin);
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.07s ease;
+}
+.chal-cell:active {
+  transform: scale(0.95);
+}
+.chal-cell--solved {
+  border-color: var(--primary);
+  background: var(--peer);
+}
+.chal-cell__num {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.chal-cell__score {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+.chal-cell__try {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.chal-cell__check {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.chal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: var(--muted);
+}
+.chal-loading .spinner {
+  border-color: var(--grid-thin);
+  border-top-color: var(--primary);
 }
 
 /* ---------- Settings ---------- */
