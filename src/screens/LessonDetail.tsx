@@ -29,10 +29,12 @@ export const LessonDetail = () => {
     };
   }, [lesson]);
 
-  const { grid, step } = useMemo(() => {
-    if (!lesson) return { grid: [], step: null };
-    const g = parseGrid(lesson.example);
-    return { grid: g, step: findStep(g) };
+  const example = useMemo(() => {
+    if (!lesson?.example) return null;
+    const grid = parseGrid(lesson.example.values);
+    const candidateMasks = lesson.example.candidates;
+    const step = findStep(grid, candidateMasks);
+    return { grid, candidateMasks, step };
   }, [lesson]);
 
   if (!lesson) {
@@ -57,6 +59,7 @@ export const LessonDetail = () => {
   };
 
   const practice = () => {
+    if (!lesson.practice) return;
     const puzzle = parseGrid(lesson.practice);
     const solution = solve(puzzle);
     if (!solution) return;
@@ -86,34 +89,41 @@ export const LessonDetail = () => {
           ))}
         </div>
 
-        <h2 className="lesson-heading">See it on the board</h2>
-        <LessonBoard
-          grid={grid}
-          highlights={step?.highlights ?? []}
-          placements={step?.placements ?? []}
-          eliminations={step?.eliminations ?? []}
-          revealed={revealed}
-        />
+        {example && (
+          <>
+            <h2 className="lesson-heading">See it on the board</h2>
+            <LessonBoard
+              grid={example.grid}
+              candidateMasks={example.candidateMasks}
+              highlights={example.step?.highlights ?? []}
+              placements={example.step?.placements ?? []}
+              eliminations={example.step?.eliminations ?? []}
+              revealed={revealed}
+            />
 
-        {step && (
-          <div className={`lesson-reveal ${revealed ? 'lesson-reveal--open' : ''}`}>
-            {revealed ? (
-              <p className="lesson-reveal__text">{step.reason}</p>
-            ) : (
-              <button
-                className="lesson-reveal__button"
-                onClick={() => setRevealed(true)}
-              >
-                Reveal the move
-              </button>
+            {example.step && (
+              <div className={`lesson-reveal ${revealed ? 'lesson-reveal--open' : ''}`}>
+                {revealed ? (
+                  <p className="lesson-reveal__text">{example.step.reason}</p>
+                ) : (
+                  <button
+                    className="lesson-reveal__button"
+                    onClick={() => setRevealed(true)}
+                  >
+                    Reveal the move
+                  </button>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
 
         <div className="lesson-actions">
-          <button className="lesson-actions__practice" onClick={practice}>
-            Practice this technique
-          </button>
+          {lesson.practice && (
+            <button className="lesson-actions__practice" onClick={practice}>
+              Practice this technique
+            </button>
+          )}
           <button
             className={`lesson-actions__learn ${isLearned ? 'lesson-actions__learn--done' : ''}`}
             onClick={toggleLearned}

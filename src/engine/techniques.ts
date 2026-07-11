@@ -12,6 +12,7 @@ import {
   UNITS,
   boxOf,
   candidatesToArray,
+  cellIndex,
   cloneGrid,
   colOf,
   computeCandidates,
@@ -153,10 +154,12 @@ const claiming = ({ grid, candidates }: SolveState): Step | null => {
   return null;
 };
 
-/** Naked subset (pair or triple) within any unit. */
+const SUBSET_WORD: Record<number, string> = { 2: 'pair', 3: 'triple', 4: 'quad' };
+
+/** Naked subset (pair, triple, or quad) within any unit. */
 const nakedSubset = (
   { grid, candidates }: SolveState,
-  size: 2 | 3,
+  size: 2 | 3 | 4,
   technique: TechniqueName,
 ): Step | null => {
   for (const unit of UNITS) {
@@ -182,8 +185,46 @@ const nakedSubset = (
           eliminations,
           highlights: combo,
           reason: `${combo.map(cellName).join(', ')} form a naked ${
-            size === 2 ? 'pair' : 'triple'
+            SUBSET_WORD[size]
           } on {${digits.join(', ')}}, removing those digits from the rest of the unit.`,
+        };
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Hidden subset (used here for quads): `size` digits confined to exactly `size`
+ * cells in a unit, letting all other candidates be cleared from those cells.
+ */
+const hiddenSubset = (
+  { grid, candidates }: SolveState,
+  size: 3 | 4,
+  technique: TechniqueName,
+): Step | null => {
+  const digitsList = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  for (const unit of UNITS) {
+    const empties = unit.filter((c) => grid[c] === 0);
+    if (empties.length <= size) continue;
+    for (const combo of combinations(digitsList, size)) {
+      const keep = combo.reduce((m, n) => m | (1 << n), 0);
+      const cells = empties.filter((c) => (candidates[c] & keep) !== 0);
+      if (cells.length !== size) continue;
+      // Every chosen digit must actually appear among these cells.
+      if (!combo.every((n) => cells.some((c) => hasCandidate(candidates[c], n)))) continue;
+      const eliminations = cells.flatMap((c) =>
+        candidatesToArray(candidates[c] & ~keep).map((n) => ({ cell: c, value: n })),
+      );
+      if (eliminations.length > 0) {
+        return {
+          technique,
+          placements: [],
+          eliminations,
+          highlights: cells,
+          reason: `${combo.join(', ')} are confined to ${cells
+            .map(cellName)
+            .join(', ')}, so other candidates there can be removed.`,
         };
       }
     }
@@ -360,6 +401,54 @@ const swordfishOriented = (
   return null;
 };
 
+/** Jellyfish: a fish generalized to four base lines for a single digit. */
+const jellyfish = (state: SolveState): Step | null =>
+  fishOriented(state, 'row', 4, 'jellyfish') ?? fishOriented(state, 'col', 4, 'jellyfish');
+
+const fishOriented = (
+  { grid, candidates }: SolveState,
+  orientation: 'row' | 'col',
+  size: number,
+  technique: TechniqueName,
+): Step | null => {
+  const lines = orientation === 'row' ? ROW_UNITS : COL_UNITS;
+  for (let n = 1; n <= 9; n++) {
+    const info = lines
+      .map((line) => {
+        const cells = line.filter((c) => grid[c] === 0 && hasCandidate(candidates[c], n));
+        const cross = cells.map((c) => (orientation === 'row' ? colOf(c) : rowOf(c)));
+        return { cells, cross };
+      })
+      .filter((x) => x.cells.length >= 2 && x.cells.length <= size);
+
+    for (const combo of combinations(info, size)) {
+      const cross = new Set<number>();
+      combo.forEach((x) => x.cross.forEach((c) => cross.add(c)));
+      if (cross.size !== size) continue;
+      const baseCells = new Set(combo.flatMap((x) => x.cells));
+      const crossUnits = [...cross].map((ci) =>
+        orientation === 'row' ? COL_UNITS[ci] : ROW_UNITS[ci],
+      );
+      const eliminations = crossUnits
+        .flat()
+        .filter((c) => !baseCells.has(c) && grid[c] === 0 && hasCandidate(candidates[c], n))
+        .map((c) => ({ cell: c, value: n }));
+      if (eliminations.length > 0) {
+        return {
+          technique,
+          placements: [],
+          eliminations,
+          highlights: [...baseCells],
+          reason: `Jellyfish on ${n} across four ${
+            orientation === 'row' ? 'rows' : 'columns'
+          } removes ${n} from the crossing ${orientation === 'row' ? 'columns' : 'rows'}.`,
+        };
+      }
+    }
+  }
+  return null;
+};
+
 /**
  * XY-Wing: a pivot cell {X,Y} with two bivalue "wing" peers {X,Z} and {Y,Z}.
  * Any cell seeing both wings cannot be Z.
@@ -414,6 +503,364 @@ const xyWing = ({ grid, candidates }: SolveState): Step | null => {
   return null;
 };
 
+/**
+ * XYZ-Wing: like an XY-Wing but the pivot is trivalue {X,Y,Z}. With bivalue
+ * wings {X,Z} and {Y,Z}, any cell seeing the pivot AND both wings can't be Z.
+ */
+const xyzWing = ({ grid, candidates }: SolveState): Step | null => {
+  for (let pivot = 0; pivot < grid.length; pivot++) {
+    if (grid[pivot] !== 0 || popcount(candidates[pivot]) !== 3) continue;
+    const wings = PEERS[pivot].filter(
+      (c) =>
+        grid[c] === 0 &&
+        popcount(candidates[c]) === 2 &&
+        (candidates[c] & candidates[pivot]) === candidates[c],
+    );
+    for (let a = 0; a < wings.length; a++) {
+      for (let b = a + 1; b < wings.length; b++) {
+        const wa = wings[a];
+        const wb = wings[b];
+        if ((candidates[wa] | candidates[wb]) !== candidates[pivot]) continue;
+        const common = candidates[wa] & candidates[wb];
+        if (popcount(common) !== 1) continue;
+        const z = singleValue(common);
+        const targets = PEERS[pivot].filter(
+          (c) =>
+            c !== wa &&
+            c !== wb &&
+            PEERS[wa].includes(c) &&
+            PEERS[wb].includes(c) &&
+            grid[c] === 0 &&
+            hasCandidate(candidates[c], z),
+        );
+        if (targets.length > 0) {
+          return {
+            technique: 'xyz-wing',
+            placements: [],
+            eliminations: targets.map((c) => ({ cell: c, value: z })),
+            highlights: [pivot, wa, wb],
+            reason: `XYZ-Wing with pivot ${cellName(
+              pivot,
+            )} removes ${z} from cells that see the pivot and both wings.`,
+          };
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * W-Wing: two non-seeing bivalue cells with the same pair {X,Y}, joined by a
+ * strong link on X. Then Y is eliminated from cells that see both.
+ */
+const wWing = ({ grid, candidates }: SolveState): Step | null => {
+  const bivalue: number[] = [];
+  for (let i = 0; i < grid.length; i++)
+    if (grid[i] === 0 && popcount(candidates[i]) === 2) bivalue.push(i);
+
+  for (let a = 0; a < bivalue.length; a++) {
+    for (let b = a + 1; b < bivalue.length; b++) {
+      const wa = bivalue[a];
+      const wb = bivalue[b];
+      if (candidates[wa] !== candidates[wb]) continue;
+      if (PEERS[wa].includes(wb)) continue;
+      const [d1, d2] = candidatesToArray(candidates[wa]);
+      for (const [linkDigit, elimDigit] of [
+        [d1, d2],
+        [d2, d1],
+      ]) {
+        let linkCells: number[] | null = null;
+        for (const unit of UNITS) {
+          const cells = unit.filter(
+            (c) => grid[c] === 0 && hasCandidate(candidates[c], linkDigit),
+          );
+          if (cells.length !== 2) continue;
+          const [p, q] = cells;
+          if (p === wa || p === wb || q === wa || q === wb) continue;
+          if (
+            (PEERS[wa].includes(p) && PEERS[wb].includes(q)) ||
+            (PEERS[wa].includes(q) && PEERS[wb].includes(p))
+          ) {
+            linkCells = cells;
+            break;
+          }
+        }
+        if (!linkCells) continue;
+        const targets = PEERS[wa].filter(
+          (c) =>
+            c !== wb &&
+            PEERS[wb].includes(c) &&
+            grid[c] === 0 &&
+            hasCandidate(candidates[c], elimDigit),
+        );
+        if (targets.length > 0) {
+          return {
+            technique: 'w-wing',
+            placements: [],
+            eliminations: targets.map((c) => ({ cell: c, value: elimDigit })),
+            highlights: [wa, wb, ...linkCells],
+            reason: `W-Wing on {${d1}, ${d2}}: ${cellName(wa)} and ${cellName(
+              wb,
+            )} are joined by a strong link on ${linkDigit}, so ${elimDigit} is removed from cells seeing both.`,
+          };
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/** Skyscraper: two single-digit strong links sharing a base line. */
+const skyscraper = (state: SolveState): Step | null =>
+  skyscraperOriented(state, 'row') ?? skyscraperOriented(state, 'col');
+
+const skyscraperOriented = (
+  { grid, candidates }: SolveState,
+  orientation: 'row' | 'col',
+): Step | null => {
+  const lines = orientation === 'row' ? ROW_UNITS : COL_UNITS;
+  const crossOf = (c: number) => (orientation === 'row' ? colOf(c) : rowOf(c));
+  for (let n = 1; n <= 9; n++) {
+    const strong = lines
+      .map((line) => line.filter((c) => grid[c] === 0 && hasCandidate(candidates[c], n)))
+      .filter((cells) => cells.length === 2);
+    for (let i = 0; i < strong.length; i++) {
+      for (let j = i + 1; j < strong.length; j++) {
+        const ci = strong[i].map(crossOf);
+        const cj = strong[j].map(crossOf);
+        const base = ci.find((x) => cj.includes(x));
+        if (base === undefined) continue;
+        const roofI = strong[i][ci[0] === base ? 1 : 0];
+        const roofJ = strong[j][cj[0] === base ? 1 : 0];
+        if (crossOf(roofI) === crossOf(roofJ)) continue; // X-Wing, not skyscraper
+        const pattern = [...strong[i], ...strong[j]];
+        const targets = PEERS[roofI].filter(
+          (c) =>
+            !pattern.includes(c) &&
+            PEERS[roofJ].includes(c) &&
+            grid[c] === 0 &&
+            hasCandidate(candidates[c], n),
+        );
+        if (targets.length > 0) {
+          return {
+            technique: 'skyscraper',
+            placements: [],
+            eliminations: targets.map((c) => ({ cell: c, value: n })),
+            highlights: pattern,
+            reason: `Skyscraper on ${n}: two ${
+              orientation === 'row' ? 'rows' : 'columns'
+            } share a base, so ${n} is removed from cells seeing both roof cells.`,
+          };
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/** Two-String Kite: a row string and a column string linked through a box. */
+const twoStringKite = ({ grid, candidates }: SolveState): Step | null => {
+  for (let n = 1; n <= 9; n++) {
+    const rowStrings = ROW_UNITS.map((line) =>
+      line.filter((c) => grid[c] === 0 && hasCandidate(candidates[c], n)),
+    ).filter((cells) => cells.length === 2);
+    const colStrings = COL_UNITS.map((line) =>
+      line.filter((c) => grid[c] === 0 && hasCandidate(candidates[c], n)),
+    ).filter((cells) => cells.length === 2);
+
+    for (const rs of rowStrings) {
+      for (const cs of colStrings) {
+        if (rs.some((c) => cs.includes(c))) continue;
+        for (const rConn of rs) {
+          for (const cConn of cs) {
+            if (boxOf(rConn) !== boxOf(cConn)) continue;
+            const rFree = rs[0] === rConn ? rs[1] : rs[0];
+            const cFree = cs[0] === cConn ? cs[1] : cs[0];
+            const target = cellIndex(rowOf(rFree), colOf(cFree));
+            if (rs.includes(target) || cs.includes(target)) continue;
+            if (grid[target] === 0 && hasCandidate(candidates[target], n)) {
+              return {
+                technique: 'two-string-kite',
+                placements: [],
+                eliminations: [{ cell: target, value: n }],
+                highlights: [...rs, ...cs],
+                reason: `Two-String Kite on ${n}: a row and a column of ${n}s meet in box ${
+                  boxOf(rConn) + 1
+                }, so ${n} is removed from ${cellName(target)}.`,
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Simple colouring: colour a single digit's conjugate-pair chain, then apply
+ * the colour-trap (a cell seeing both colours) and colour-wrap (two same-colour
+ * cells in one unit) rules.
+ */
+const simpleColoring = ({ grid, candidates }: SolveState): Step | null => {
+  for (let n = 1; n <= 9; n++) {
+    const adj = new Map<number, number[]>();
+    const addEdge = (a: number, b: number) => {
+      (adj.get(a) ?? adj.set(a, []).get(a)!).push(b);
+      (adj.get(b) ?? adj.set(b, []).get(b)!).push(a);
+    };
+    for (const unit of UNITS) {
+      const cells = unit.filter((c) => grid[c] === 0 && hasCandidate(candidates[c], n));
+      if (cells.length === 2) addEdge(cells[0], cells[1]);
+    }
+    if (adj.size === 0) continue;
+
+    const seen = new Set<number>();
+    for (const start of adj.keys()) {
+      if (seen.has(start)) continue;
+      const color = new Map<number, 0 | 1>([[start, 0]]);
+      seen.add(start);
+      const queue = [start];
+      while (queue.length) {
+        const c = queue.shift()!;
+        for (const nb of adj.get(c) ?? []) {
+          if (!color.has(nb)) {
+            color.set(nb, color.get(c) === 0 ? 1 : 0);
+            seen.add(nb);
+            queue.push(nb);
+          }
+        }
+      }
+      const buckets: [number[], number[]] = [[], []];
+      for (const [cell, col] of color) buckets[col].push(cell);
+      const all = [...buckets[0], ...buckets[1]];
+
+      // Colour wrap: two same-colour cells sharing a unit ⇒ that colour is false.
+      for (const col of [0, 1] as const) {
+        const cells = buckets[col];
+        const clash = cells.some((a, i) =>
+          cells.slice(i + 1).some((b) => PEERS[a].includes(b)),
+        );
+        if (clash) {
+          return {
+            technique: 'simple-coloring',
+            placements: [],
+            eliminations: cells.map((c) => ({ cell: c, value: n })),
+            highlights: all,
+            reason: `Simple colouring on ${n}: two same-colour cells share a unit, so that colour is impossible and ${n} is removed from all of them.`,
+          };
+        }
+      }
+
+      // Colour trap: an outside cell seeing both colours can't be n.
+      const inChain = new Set(color.keys());
+      const targets: { cell: number; value: number }[] = [];
+      for (let c = 0; c < grid.length; c++) {
+        if (grid[c] !== 0 || inChain.has(c) || !hasCandidate(candidates[c], n)) continue;
+        const seesA = buckets[0].some((x) => PEERS[c].includes(x));
+        const seesB = buckets[1].some((x) => PEERS[c].includes(x));
+        if (seesA && seesB) targets.push({ cell: c, value: n });
+      }
+      if (targets.length > 0) {
+        return {
+          technique: 'simple-coloring',
+          placements: [],
+          eliminations: targets,
+          highlights: all,
+          reason: `Simple colouring on ${n}: these cells see both colours of the chain, so ${n} can be removed.`,
+        };
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Unique Rectangle (Type 1): three corners of a two-box rectangle share a
+ * bivalue pair; to avoid two solutions the fourth corner can't be that pair.
+ */
+const uniqueRectangle = ({ grid, candidates }: SolveState): Step | null => {
+  for (let r1 = 0; r1 < 9; r1++) {
+    for (let r2 = r1 + 1; r2 < 9; r2++) {
+      for (let c1 = 0; c1 < 9; c1++) {
+        for (let c2 = c1 + 1; c2 < 9; c2++) {
+          const sameBand = Math.floor(r1 / 3) === Math.floor(r2 / 3);
+          const sameStack = Math.floor(c1 / 3) === Math.floor(c2 / 3);
+          if (sameBand === sameStack) continue; // must span exactly two boxes
+          const corners = [
+            cellIndex(r1, c1),
+            cellIndex(r1, c2),
+            cellIndex(r2, c1),
+            cellIndex(r2, c2),
+          ];
+          if (corners.some((c) => grid[c] !== 0)) continue;
+          const biv = corners.filter((c) => popcount(candidates[c]) === 2);
+          if (biv.length !== 3) continue;
+          const pair = candidates[biv[0]];
+          if (!biv.every((c) => candidates[c] === pair)) continue;
+          const roof = corners.find((c) => !biv.includes(c))!;
+          if ((candidates[roof] & pair) !== pair || popcount(candidates[roof]) <= 2) continue;
+          const digits = candidatesToArray(pair);
+          return {
+            technique: 'unique-rectangle',
+            placements: [],
+            eliminations: digits.map((n) => ({ cell: roof, value: n })),
+            highlights: corners,
+            reason: `Unique Rectangle: three corners share {${digits.join(
+              ', ',
+            )}}; to keep the solution unique, ${cellName(
+              roof,
+            )} can't be either, so both are removed.`,
+          };
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * BUG+1: if every unsolved cell is bivalue except one trivalue cell, the digit
+ * in that cell appearing three times in a unit must be the answer.
+ */
+const bug = ({ grid, candidates }: SolveState): Step | null => {
+  let tri = -1;
+  for (let c = 0; c < grid.length; c++) {
+    if (grid[c] !== 0) continue;
+    const pc = popcount(candidates[c]);
+    if (pc === 2) continue;
+    if (pc === 3 && tri === -1) {
+      tri = c;
+      continue;
+    }
+    return null; // a second non-bivalue cell ⇒ not a BUG+1 position
+  }
+  if (tri === -1) return null;
+
+  for (const d of candidatesToArray(candidates[tri])) {
+    const units = [ROW_UNITS[rowOf(tri)], COL_UNITS[colOf(tri)], BOX_UNITS[boxOf(tri)]];
+    const tripled = units.some(
+      (unit) =>
+        unit.filter((c) => grid[c] === 0 && hasCandidate(candidates[c], d)).length === 3,
+    );
+    if (tripled) {
+      return {
+        technique: 'bug',
+        placements: [{ cell: tri, value: d }],
+        eliminations: [],
+        highlights: [tri],
+        reason: `BUG+1: every cell but ${cellName(
+          tri,
+        )} is down to two candidates, so to keep the grid uniquely solvable ${cellName(
+          tri,
+        )} must be ${d}.`,
+      };
+    }
+  }
+  return null;
+};
+
 // --- combinatorics helper ---------------------------------------------------
 
 const combinations = <T>(items: T[], size: number): T[][] => {
@@ -451,9 +898,19 @@ export const TECHNIQUES: TechniqueEntry[] = [
   { name: 'hidden-pair', rank: 3, run: hiddenPair },
   { name: 'naked-triple', rank: 4, run: (s) => nakedSubset(s, 3, 'naked-triple') },
   { name: 'hidden-triple', rank: 4, run: hiddenTriple },
+  { name: 'naked-quad', rank: 5, run: (s) => nakedSubset(s, 4, 'naked-quad') },
+  { name: 'hidden-quad', rank: 5, run: (s) => hiddenSubset(s, 4, 'hidden-quad') },
   { name: 'x-wing', rank: 5, run: xWing },
+  { name: 'skyscraper', rank: 6, run: skyscraper },
+  { name: 'two-string-kite', rank: 6, run: twoStringKite },
   { name: 'swordfish', rank: 6, run: swordfish },
   { name: 'xy-wing', rank: 6, run: xyWing },
+  { name: 'xyz-wing', rank: 6, run: xyzWing },
+  { name: 'w-wing', rank: 6, run: wWing },
+  { name: 'jellyfish', rank: 7, run: jellyfish },
+  { name: 'simple-coloring', rank: 7, run: simpleColoring },
+  { name: 'unique-rectangle', rank: 7, run: uniqueRectangle },
+  { name: 'bug', rank: 7, run: bug },
 ];
 
 const TECHNIQUE_RANK: Record<TechniqueName, number> = Object.fromEntries(
@@ -475,14 +932,34 @@ const applyStep = (state: SolveState, step: Step): void => {
   }
 };
 
-/** Find the easiest applicable next step, or null if none of the techniques fire. */
-export const findStep = (grid: Grid): Step | null => {
-  const state: SolveState = { grid: cloneGrid(grid), candidates: computeCandidates(grid) };
+/**
+ * Find the easiest applicable next step, or null if none of the techniques fire.
+ * An explicit candidate state may be supplied (e.g. a mid-solve pencil-mark state
+ * for a lesson); otherwise candidates are derived from the grid values.
+ */
+export const findStep = (
+  grid: Grid,
+  candidates?: CandidateMask[],
+): Step | null => {
+  const state: SolveState = {
+    grid: cloneGrid(grid),
+    candidates: candidates ? candidates.slice() : computeCandidates(grid),
+  };
   for (const technique of TECHNIQUES) {
     const step = technique.run(state);
     if (step) return step;
   }
   return null;
+};
+
+/** Apply a step's placements and eliminations to a solver state (exported for
+ * build-time lesson harvesting). */
+export const applyStepToState = (
+  grid: Grid,
+  candidates: CandidateMask[],
+  step: Step,
+): void => {
+  applyStep({ grid, candidates }, step);
 };
 
 export interface LogicalSolveResult {

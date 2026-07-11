@@ -5,7 +5,7 @@ import {
   rowOf,
   colOf,
 } from '../engine/board';
-import type { Grid } from '../engine/types';
+import type { CandidateMask, Grid } from '../engine/types';
 
 export interface CellMark {
   cell: number;
@@ -13,8 +13,10 @@ export interface CellMark {
 }
 
 interface LessonBoardProps {
-  /** Values-only board (0 = empty). Candidates are computed for empty cells. */
+  /** Values-only board (0 = empty). */
   grid: Grid;
+  /** Explicit pencil-mark state; falls back to computed candidates if omitted. */
+  candidateMasks?: CandidateMask[];
   /** Cells to emphasise as part of the deduction. */
   highlights?: number[];
   /** Placements to reveal (shown as a bold accent digit). */
@@ -28,12 +30,16 @@ interface LessonBoardProps {
 /** A static, read-only board for teaching — not wired to the game store. */
 export const LessonBoard = ({
   grid,
+  candidateMasks,
   highlights = [],
   placements = [],
   eliminations = [],
   revealed = false,
 }: LessonBoardProps) => {
-  const candidates = useMemo(() => computeCandidates(grid), [grid]);
+  const candidates = useMemo(
+    () => candidateMasks ?? computeCandidates(grid),
+    [candidateMasks, grid],
+  );
   const highlightSet = useMemo(() => new Set(highlights), [highlights]);
   const placeMap = useMemo(
     () => new Map(placements.map((p) => [p.cell, p.value])),

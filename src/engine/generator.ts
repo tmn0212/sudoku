@@ -20,13 +20,14 @@ import type { Difficulty, Grid, Puzzle } from './types';
  */
 export const gradeDifficulty = (puzzle: Grid): Difficulty => {
   const result = solveLogically(puzzle);
-  // Not solvable with our technique set → needs guessing / chains.
+  // Not solvable with our technique set → needs chains/ALS beyond it.
   if (!result.solved) return 'impossible';
   const r = result.hardestRank;
   if (r <= 1) return 'easy'; // singles only
   if (r <= 3) return 'medium'; // locked candidates, pairs
-  if (r <= 5) return 'hard'; // triples, X-Wing
-  return 'pro'; // swordfish, XY-Wing
+  if (r <= 5) return 'hard'; // triples, quads, X-Wing
+  if (r <= 6) return 'pro'; // swordfish, wings, skyscraper, kite
+  return 'impossible'; // rank 7: jellyfish, colouring, unique rect, BUG (or unsolvable)
 };
 
 /**

@@ -32,9 +32,19 @@ export type TechniqueName =
   | 'hidden-pair'
   | 'naked-triple'
   | 'hidden-triple'
+  | 'naked-quad'
+  | 'hidden-quad'
   | 'x-wing'
   | 'swordfish'
-  | 'xy-wing';
+  | 'jellyfish'
+  | 'skyscraper'
+  | 'two-string-kite'
+  | 'xy-wing'
+  | 'xyz-wing'
+  | 'w-wing'
+  | 'simple-coloring'
+  | 'unique-rectangle'
+  | 'bug';
 
 /** A single deductive step produced by the logical solver / hint engine. */
 export interface Step {

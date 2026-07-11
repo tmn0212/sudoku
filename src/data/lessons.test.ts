@@ -5,8 +5,8 @@ import { solve } from '../engine/solver';
 import { findStep, solveLogically } from '../engine/techniques';
 
 describe('lesson catalog', () => {
-  it('ships all nine lessons with complete prose', () => {
-    expect(LESSONS.length).toBe(9);
+  it('covers all 21 techniques with complete prose', () => {
+    expect(LESSONS.length).toBe(21);
     for (const l of LESSONS) {
       expect(l.title.length).toBeGreaterThan(0);
       expect(l.summary.length).toBeGreaterThan(0);
@@ -15,21 +15,35 @@ describe('lesson catalog', () => {
     }
   });
 
+  it('provides an interactive example for nearly every technique', () => {
+    const withExample = LESSONS.filter((l) => l.example).length;
+    expect(withExample).toBeGreaterThanOrEqual(18);
+  });
+
   for (const lesson of LESSONS) {
     describe(lesson.id, () => {
-      it('example board exhibits the technique via findStep', () => {
-        const step = findStep(parseGrid(lesson.example));
-        expect(step).not.toBeNull();
-        expect(step!.technique).toBe(lesson.id);
+      it('has teaching prose', () => {
+        expect(lesson.steps.every((s) => s.length > 0)).toBe(true);
       });
 
-      it('practice puzzle is uniquely solvable and needs the technique', () => {
-        const grid = parseGrid(lesson.practice);
-        expect(solve(grid)).not.toBeNull();
-        const res = solveLogically(grid);
-        expect(res.solved).toBe(true);
-        expect(res.techniquesUsed.has(lesson.id)).toBe(true);
-      });
+      if (lesson.example) {
+        it('example state makes findStep return this technique', () => {
+          const grid = parseGrid(lesson.example!.values);
+          const step = findStep(grid, lesson.example!.candidates);
+          expect(step).not.toBeNull();
+          expect(step!.technique).toBe(lesson.id);
+        });
+      }
+
+      if (lesson.practice) {
+        it('practice puzzle is uniquely solvable and needs the technique', () => {
+          const grid = parseGrid(lesson.practice!);
+          expect(solve(grid)).not.toBeNull();
+          const res = solveLogically(grid);
+          expect(res.solved).toBe(true);
+          expect(res.techniquesUsed.has(lesson.id)).toBe(true);
+        });
+      }
     });
   }
 });
