@@ -1,0 +1,103 @@
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useGame } from './store';
+
+const firstEmptyCell = () => {
+  const { given } = useGame.getState();
+  return given.findIndex((g) => !g);
+};
+
+describe('game store', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useGame.getState().newGame('easy');
+  });
+
+  it('starts a game with a valid puzzle and given mask', () => {
+    const s = useGame.getState();
+    expect(s.values).toHaveLength(81);
+    expect(s.given.filter(Boolean).length).toBe(s.puzzle.filter((v) => v !== 0).length);
+    expect(s.status).toBe('playing');
+    expect(s.selected).toBeNull();
+  });
+
+  it('places a digit in the selected empty cell', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(5);
+    expect(useGame.getState().values[cell]).toBe(5);
+  });
+
+  it('does not modify given cells', () => {
+    const givenCell = useGame.getState().given.findIndex(Boolean);
+    const original = useGame.getState().values[givenCell];
+    useGame.getState().selectCell(givenCell);
+    useGame.getState().inputDigit(original === 9 ? 1 : 9);
+    expect(useGame.getState().values[givenCell]).toBe(original);
+  });
+
+  it('counts a mistake when auto-check is on and the entry is wrong', () => {
+    const cell = firstEmptyCell();
+    const correct = useGame.getState().solution[cell];
+    const wrong = correct === 1 ? 2 : 1;
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(wrong);
+    expect(useGame.getState().mistakes).toBe(1);
+  });
+
+  it('toggles pencil notes in notes mode', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().setNotesMode(true);
+    useGame.getState().inputDigit(3);
+    useGame.getState().inputDigit(7);
+    const notes = useGame.getState().notes[cell];
+    expect(notes & (1 << 3)).toBeTruthy();
+    expect(notes & (1 << 7)).toBeTruthy();
+    // Toggling again removes it.
+    useGame.getState().inputDigit(3);
+    expect(useGame.getState().notes[cell] & (1 << 3)).toBeFalsy();
+  });
+
+  it('supports undo and redo', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(4);
+    expect(useGame.getState().values[cell]).toBe(4);
+    useGame.getState().undo();
+    expect(useGame.getState().values[cell]).toBe(0);
+    useGame.getState().redo();
+    expect(useGame.getState().values[cell]).toBe(4);
+  });
+
+  it('erases a filled cell', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(4);
+    useGame.getState().erase();
+    expect(useGame.getState().values[cell]).toBe(0);
+  });
+
+  it('produces a correct, applicable hint', () => {
+    useGame.getState().requestHint();
+    const hint = useGame.getState().hint;
+    expect(hint).not.toBeNull();
+    if (hint?.step && hint.step.placements.length > 0) {
+      const { cell, value } = hint.step.placements[0];
+      expect(value).toBe(useGame.getState().solution[cell]);
+      useGame.getState().applyHint();
+      expect(useGame.getState().values[cell]).toBe(value);
+    }
+  });
+
+  it('detects a win when the grid is completed correctly', () => {
+    const { solution, given } = useGame.getState();
+    for (let i = 0; i < 81; i++) {
+      if (given[i]) continue;
+      useGame.getState().selectCell(i);
+      useGame.getState().inputDigit(solution[i]);
+    }
+    expect(useGame.getState().status).toBe('won');
+    expect(useGame.getState().mistakes).toBe(0);
+  });
+});
