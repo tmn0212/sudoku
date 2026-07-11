@@ -21,6 +21,12 @@
   --hint-bg: #fde9a9;
   --hint-fg: #92670a;
 
+  /* Note layers: blue (primary), grey (secondary), red (ban / cannot-be). */
+  --note: #1f6feb;
+  --note-alt: #6b7280;
+  --ban: #d93438;
+  --ban-bg: #ffe3e3;
+
   --shadow: 0 6px 24px rgba(20, 25, 40, 0.12);
   --radius: 14px;
 
@@ -53,6 +59,11 @@
     --error-fg: #ff6b6f;
     --hint-bg: #4d3c12;
     --hint-fg: #ffd873;
+
+    --note: #6ea8ff;
+    --note-alt: #94a3b8;
+    --ban: #ff6b6f;
+    --ban-bg: #3a2023;
 
     --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   }

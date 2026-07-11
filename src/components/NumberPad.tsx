@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import { useGame } from '../game/store';
+import { useSettings } from '../state/settingsStore';
 
 export const NumberPad = () => {
   const values = useGame((s) => s.values);
   const inputDigit = useGame((s) => s.inputDigit);
   const status = useGame((s) => s.status);
+  const showRemaining = useSettings((s) => s.showRemaining);
 
   // How many of each digit remain to be placed (9 of each in a full grid).
   const remaining = useMemo(() => {
@@ -27,7 +29,9 @@ export const NumberPad = () => {
             aria-label={`Enter ${n}, ${Math.max(remaining[n], 0)} remaining`}
           >
             <span className="numberpad__digit">{n}</span>
-            <span className="numberpad__count">{done ? '' : remaining[n]}</span>
+            {showRemaining && (
+              <span className="numberpad__count">{done ? '' : remaining[n]}</span>
+            )}
           </button>
         );
       })}

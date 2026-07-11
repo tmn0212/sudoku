@@ -14,7 +14,8 @@ import {
 } from '../engine/board';
 import { findStep } from '../engine/techniques';
 import { generatePuzzle } from '../engine/generator';
-import type { Difficulty, Grid, Step } from '../engine/types';
+import type { Difficulty, Grid, Puzzle, Step } from '../engine/types';
+import type { Mode } from '../db/idb';
 
 export interface HintState {
   message: string;
@@ -35,6 +36,7 @@ export interface GameState {
   solution: Grid;
   given: boolean[];
   difficulty: Difficulty;
+  mode: Mode;
 
   // --- player state ---
   values: Grid;
@@ -47,6 +49,7 @@ export interface GameState {
   status: 'playing' | 'won';
   elapsedMs: number;
   mistakes: number;
+  hints: number;
   autoCheck: boolean;
   hint: HintState | null;
 
@@ -55,7 +58,8 @@ export interface GameState {
   future: Snapshot[];
 
   // --- actions ---
-  newGame: (difficulty: Difficulty) => void;
+  newGame: (difficulty: Difficulty, mode?: Mode) => void;
+  startGame: (puzzle: Puzzle, mode?: Mode) => void;
   selectCell: (index: number | null) => void;
   inputDigit: (digit: number) => void;
   erase: () => void;
@@ -80,34 +84,39 @@ const snapshot = (s: GameState): Snapshot => ({
 const isWin = (values: Grid, solution: Grid): boolean =>
   values.every((v, i) => v === solution[i]);
 
-const buildGame = (difficulty: Difficulty) => {
-  const { puzzle, solution } = generatePuzzle(difficulty);
-  return {
-    puzzle,
-    solution,
-    given: puzzle.map((v) => v !== 0),
-    difficulty,
-    values: puzzle.slice(),
-    notes: new Array(CELL_COUNT).fill(0),
-    selected: null as number | null,
-    notesMode: false,
-    status: 'playing' as const,
-    elapsedMs: 0,
-    mistakes: 0,
-    hint: null,
-    past: [] as Snapshot[],
-    future: [] as Snapshot[],
-  };
-};
+const buildGame = ({ puzzle, solution, difficulty }: Puzzle, mode: Mode) => ({
+  puzzle,
+  solution,
+  given: puzzle.map((v) => v !== 0),
+  difficulty,
+  mode,
+  values: puzzle.slice(),
+  notes: new Array(CELL_COUNT).fill(0),
+  selected: null as number | null,
+  notesMode: false,
+  status: 'playing' as const,
+  elapsedMs: 0,
+  mistakes: 0,
+  hints: 0,
+  hint: null,
+  past: [] as Snapshot[],
+  future: [] as Snapshot[],
+});
 
 export const useGame = create<GameState>()(
   persist(
     (set, get) => ({
-      ...buildGame('easy'),
+      ...buildGame(generatePuzzle('easy'), 'good'),
       autoCheck: true,
 
-      newGame: (difficulty) =>
-        set((s) => ({ ...buildGame(difficulty), autoCheck: s.autoCheck })),
+      newGame: (difficulty, mode = 'good') =>
+        set((s) => ({
+          ...buildGame(generatePuzzle(difficulty), mode),
+          autoCheck: s.autoCheck,
+        })),
+
+      startGame: (puzzle, mode = 'good') =>
+        set((s) => ({ ...buildGame(puzzle, mode), autoCheck: s.autoCheck })),
 
       selectCell: (index) => set({ selected: index, hint: null }),
 
@@ -249,6 +258,7 @@ export const useGame = create<GameState>()(
         set({
           hint: { message: step.reason, cells: step.highlights, step },
           selected: target ?? s.selected,
+          hints: s.hints + 1,
         });
       },
 
@@ -293,11 +303,13 @@ export const useGame = create<GameState>()(
         solution: s.solution,
         given: s.given,
         difficulty: s.difficulty,
+        mode: s.mode,
         values: s.values,
         notes: s.notes,
         status: s.status,
         elapsedMs: s.elapsedMs,
         mistakes: s.mistakes,
+        hints: s.hints,
         autoCheck: s.autoCheck,
         past: s.past,
         future: s.future,

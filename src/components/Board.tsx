@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { CELL_COUNT, PEERS, findConflicts } from '../engine/board';
 import { useGame } from '../game/store';
+import { useSettings } from '../state/settingsStore';
 import { Cell } from './Cell';
 
 export const Board = () => {
@@ -12,15 +13,20 @@ export const Board = () => {
   const autoCheck = useGame((s) => s.autoCheck);
   const hint = useGame((s) => s.hint);
   const selectCell = useGame((s) => s.selectCell);
+  const highlightPeers = useSettings((s) => s.highlightPeers);
+  const highlightSame = useSettings((s) => s.highlightSame);
 
   const conflicts = useMemo(() => findConflicts(values), [values]);
   const peerSet = useMemo(
-    () => (selected == null ? new Set<number>() : new Set(PEERS[selected])),
-    [selected],
+    () =>
+      selected == null || !highlightPeers
+        ? new Set<number>()
+        : new Set(PEERS[selected]),
+    [selected, highlightPeers],
   );
   const hintCells = useMemo(() => new Set(hint?.cells ?? []), [hint]);
 
-  const selectedValue = selected == null ? 0 : values[selected];
+  const selectedValue = selected == null || !highlightSame ? 0 : values[selected];
 
   return (
     <div className="board" role="grid" aria-label="Sudoku board">

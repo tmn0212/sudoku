@@ -1,0 +1,107 @@
+import { ScreenHeader } from '../components/ScreenHeader';
+import { useSettings } from '../state/settingsStore';
+import { useGame } from '../game/store';
+import { THEMES } from '../theme/themes';
+
+interface ToggleRowProps {
+  label: string;
+  desc?: string;
+  checked: boolean;
+  onChange: () => void;
+}
+
+const ToggleRow = ({ label, desc, checked, onChange }: ToggleRowProps) => (
+  <button
+    className="setting-row"
+    role="switch"
+    aria-checked={checked}
+    onClick={onChange}
+  >
+    <span className="setting-row__text">
+      <span className="setting-row__label">{label}</span>
+      {desc && <span className="setting-row__desc">{desc}</span>}
+    </span>
+    <span className={`switch ${checked ? 'switch--on' : ''}`} aria-hidden="true">
+      <span className="switch__knob" />
+    </span>
+  </button>
+);
+
+export const Settings = () => {
+  const theme = useSettings((s) => s.theme);
+  const setTheme = useSettings((s) => s.setTheme);
+  const highlightPeers = useSettings((s) => s.highlightPeers);
+  const highlightSame = useSettings((s) => s.highlightSame);
+  const autoCleanupNotes = useSettings((s) => s.autoCleanupNotes);
+  const showRemaining = useSettings((s) => s.showRemaining);
+  const toggle = useSettings((s) => s.toggle);
+
+  const autoCheck = useGame((s) => s.autoCheck);
+  const setAutoCheck = useGame((s) => s.setAutoCheck);
+
+  return (
+    <div className="screen">
+      <ScreenHeader title="Settings" />
+      <div className="screen__body">
+        <section className="settings-section">
+          <h2 className="settings-section__title">Theme</h2>
+          <div className="theme-grid">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                className={`theme-swatch ${theme === t.id ? 'theme-swatch--active' : ''}`}
+                onClick={() => setTheme(t.id)}
+                aria-pressed={theme === t.id}
+              >
+                <span
+                  className="theme-swatch__preview"
+                  style={{ background: t.swatch[0] }}
+                >
+                  <span
+                    className="theme-swatch__dot"
+                    style={{ background: t.swatch[1] }}
+                  />
+                </span>
+                <span className="theme-swatch__label">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h2 className="settings-section__title">Assists</h2>
+          <ToggleRow
+            label="Check mistakes"
+            desc="Flag entries that don't match the solution"
+            checked={autoCheck}
+            onChange={() => setAutoCheck(!autoCheck)}
+          />
+          <ToggleRow
+            label="Highlight peers"
+            desc="Shade the row, column, and box of the selected cell"
+            checked={highlightPeers}
+            onChange={() => toggle('highlightPeers')}
+          />
+          <ToggleRow
+            label="Highlight same number"
+            desc="Highlight every cell with the selected digit"
+            checked={highlightSame}
+            onChange={() => toggle('highlightSame')}
+          />
+          <ToggleRow
+            label="Auto-clean notes"
+            desc="Remove a digit from peers' notes when you place it"
+            checked={autoCleanupNotes}
+            onChange={() => toggle('autoCleanupNotes')}
+          />
+          <ToggleRow
+            label="Show remaining counts"
+            desc="Show how many of each digit are left on the number pad"
+            checked={showRemaining}
+            onChange={() => toggle('showRemaining')}
+          />
+        </section>
+      </div>
+    </div>
+  );
+};

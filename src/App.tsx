@@ -1,34 +1,40 @@
-import { useState } from 'react';
-import { Board } from './components/Board';
-import { NumberPad } from './components/NumberPad';
-import { Controls } from './components/Controls';
-import { TopBar } from './components/TopBar';
-import { HintBanner } from './components/HintBanner';
-import { WinOverlay } from './components/WinOverlay';
-import { NewGameSheet } from './components/NewGameSheet';
+import { useEffect, type ComponentType } from 'react';
+import { useUi, type Screen } from './state/uiStore';
+import { Home } from './screens/Home';
+import { Game } from './screens/Game';
+import { Settings } from './screens/Settings';
+import { Stats } from './screens/Stats';
+import { Learn } from './screens/Learn';
 import { ReloadPrompt } from './components/ReloadPrompt';
-import { useGameTimer } from './hooks/useGameTimer';
-import { useKeyboard } from './hooks/useKeyboard';
+import { requestPersistentStorage } from './db/idb';
 import './App.css';
 
+const SCREENS: Record<Screen, ComponentType> = {
+  home: Home,
+  game: Game,
+  settings: Settings,
+  stats: Stats,
+  learn: Learn,
+  // Filled in by later phases; fall back to their parent screens for now.
+  lesson: Learn,
+  challenges: Home,
+};
+
 function App() {
-  const [sheetOpen, setSheetOpen] = useState(false);
-  useGameTimer();
-  useKeyboard();
+  const screen = useUi((s) => s.screen);
+
+  useEffect(() => {
+    // Best-effort: keep the user's records from being evicted.
+    requestPersistentStorage();
+  }, []);
+
+  const Screen = SCREENS[screen] ?? Home;
 
   return (
-    <div className="app">
-      <TopBar onNewGame={() => setSheetOpen(true)} />
-      <main className="app__main">
-        <Board />
-        <HintBanner />
-        <NumberPad />
-        <Controls />
-      </main>
-      <NewGameSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
-      <WinOverlay onNewGame={() => setSheetOpen(true)} />
+    <>
+      <Screen />
       <ReloadPrompt />
-    </div>
+    </>
   );
 }
 
