@@ -15,6 +15,7 @@ export const NumberPad = () => {
   const status = useGame((s) => s.status);
   const autoCheck = useGame((s) => s.autoCheck);
   const mode = useGame((s) => s.mode);
+  const inputMode = useGame((s) => s.inputMode);
   const showRemaining = useSettings((s) => s.showRemaining);
 
   const checking = autoCheck || mode === 'arcade';
@@ -51,12 +52,15 @@ export const NumberPad = () => {
         const done = remaining[n] <= 0;
         const fixedOut = fixedDigit !== 0 && n !== fixedDigit;
         const banned = hasCandidate(bannedMask, n);
+        // A banned digit greys out so the same wrong entry can't be repeated —
+        // except in Ban mode, where tapping it is how you lift the ban.
+        const bannedOut = banned && inputMode !== 'ban';
         return (
           <button
             key={n}
             type="button"
             className={`numberpad__key${banned ? ' numberpad__key--banned' : ''}`}
-            disabled={done || fixedOut || status !== 'playing'}
+            disabled={done || fixedOut || bannedOut || status !== 'playing'}
             onClick={() => {
               haptics.tap();
               requestDigit(n);

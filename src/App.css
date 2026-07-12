@@ -1918,14 +1918,14 @@
 .cell__note--ban {
   color: var(--ban);
   font-weight: 600;
-  /* A diagonal slash across the digit (bottom-left to top-right) reads as
-     "ruled out" far more clearly than a red colour or flat strikethrough. */
+  /* A thin diagonal slash across the digit (bottom-left to top-right) reads as
+     "ruled out" while keeping the number itself legible. */
   background-image: linear-gradient(
     to top right,
-    transparent calc(50% - 0.7px),
-    currentColor calc(50% - 0.7px),
-    currentColor calc(50% + 0.7px),
-    transparent calc(50% + 0.7px)
+    transparent calc(50% - 0.45px),
+    currentColor calc(50% - 0.45px),
+    currentColor calc(50% + 0.45px),
+    transparent calc(50% + 0.45px)
   );
 }
 /* When a filled digit is selected, its matching pencil mark lights up inside
@@ -2174,21 +2174,30 @@
 .app[data-mode='ban'] .numberpad__digit {
   color: var(--ban);
 }
-/* In note modes the pad keys also take a dashed outline, so the whole tray reads
-   as "pencilling" — not only a colour change. */
+/* Each marking mode restyles the whole pad so it's clear a tap won't place a
+   final digit: notes get a dashed outline, Ban a dotted red one. */
 .app[data-mode='note'] .numberpad__key:not(:disabled),
 .app[data-mode='noteAlt'] .numberpad__key:not(:disabled) {
   outline: 2px dashed var(--m-accent);
   outline-offset: -3px;
 }
+.app[data-mode='ban'] .numberpad__key:not(:disabled) {
+  outline: 2.5px dotted var(--ban);
+  outline-offset: -3px;
+}
 
-/* A digit banned in the selected cell is flagged red on the pad, with a subtle
-   red wash, so it's obvious before you tap it (a warning follows if you do). */
+/* A digit banned in the selected cell is flagged red and greyed out on the pad
+   (struck through) so the same wrong entry can't be repeated. */
 .numberpad__key--banned {
   background: var(--ban-bg);
 }
 .numberpad__key--banned .numberpad__digit {
   color: var(--ban);
+  text-decoration: line-through;
+}
+/* Keep banned keys clearly red rather than washed out like a plain disabled key. */
+.numberpad__key--banned:disabled {
+  opacity: 0.9;
 }
 
 /* ============================================================
@@ -2381,10 +2390,10 @@
   color: var(--ban);
   background-image: linear-gradient(
     to top right,
-    transparent calc(50% - 0.9px),
-    currentColor calc(50% - 0.9px),
-    currentColor calc(50% + 0.9px),
-    transparent calc(50% + 0.9px)
+    transparent calc(50% - 0.6px),
+    currentColor calc(50% - 0.6px),
+    currentColor calc(50% + 0.6px),
+    transparent calc(50% + 0.6px)
   );
 }
 

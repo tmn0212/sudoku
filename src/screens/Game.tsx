@@ -13,6 +13,8 @@ import { useKeyboard } from '../hooks/useKeyboard';
 import { useRecordGame } from '../hooks/useRecordGame';
 import { useGameFeedback } from '../hooks/useGameFeedback';
 import { useCompletionFx } from '../hooks/useCompletionFx';
+import { usePops } from '../hooks/usePops';
+import { useAutoBanWrong } from '../hooks/useAutoBanWrong';
 import { useSaveRoster } from '../hooks/useSaveRoster';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { PACK_SIZES } from '../data/challenges';
@@ -33,6 +35,8 @@ export const Game = () => {
   useRecordGame();
   useGameFeedback();
   useCompletionFx();
+  usePops();
+  useAutoBanWrong();
   useSaveRoster();
 
   const goHome = () => reset('home');

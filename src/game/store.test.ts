@@ -166,6 +166,32 @@ describe('game store', () => {
     useGame.getState().setAutoCheck(true);
   });
 
+  it('autoBanWrong pops a lingering wrong entry out and bans it', () => {
+    const cell = firstEmptyCell();
+    const correct = useGame.getState().solution[cell];
+    const wrong = correct === 1 ? 2 : 1;
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(wrong);
+    expect(useGame.getState().values[cell]).toBe(wrong);
+    useGame.getState().autoBanWrong(cell, wrong);
+    const s = useGame.getState();
+    expect(s.values[cell]).toBe(0); // popped out
+    expect(s.bans[cell] & (1 << wrong)).toBeTruthy(); // now banned
+  });
+
+  it('autoBanWrong is a no-op if the cell no longer holds that digit', () => {
+    const cell = firstEmptyCell();
+    const correct = useGame.getState().solution[cell];
+    const wrong = correct === 1 ? 2 : 1;
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(wrong);
+    useGame.getState().erase(); // player fixed it first
+    useGame.getState().autoBanWrong(cell, wrong); // stale timer fires
+    const s = useGame.getState();
+    expect(s.values[cell]).toBe(0);
+    expect(s.bans[cell] & (1 << wrong)).toBeFalsy(); // no phantom ban
+  });
+
   it('produces a correct, applicable hint', () => {
     useGame.getState().requestHint();
     const hint = useGame.getState().hint;

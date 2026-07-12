@@ -101,6 +101,8 @@ export interface GameState {
   setSelection: (cells: number[]) => void;
   addToSelection: (index: number) => void;
   inputDigit: (digit: number) => void;
+  /** Convert a lingering wrong entry into a ban (fired ~1s after it's placed). */
+  autoBanWrong: (cell: number, digit: number) => void;
   erase: () => void;
   setInputMode: (mode: InputMode) => void;
   cycleInputMode: () => void;
@@ -347,6 +349,20 @@ export const useGame = create<GameState>()(
           score,
           status: lost ? 'lost' : won ? 'won' : 'playing',
         });
+      },
+
+      autoBanWrong: (cell, digit) => {
+        const s = get();
+        if (s.status !== 'playing') return;
+        // Bail if it was changed, corrected, or cleared in the meantime.
+        if (s.given[cell] || s.values[cell] !== digit || digit === s.solution[cell]) {
+          return;
+        }
+        const values = s.values.slice();
+        const bans = s.bans.slice();
+        values[cell] = 0; // pops the wrong entry out
+        bans[cell] = addCandidate(bans[cell], digit); // ...and remembers it's banned
+        set({ values, bans, hint: null });
       },
 
       erase: () => {
