@@ -179,6 +179,10 @@
 .cell--same {
   background: var(--same);
 }
+/* Same-number cells stand out more than plain peers: bolder, tinted digit. */
+.cell--same .cell__value {
+  font-weight: 800;
+}
 .cell--selected {
   /* Selection is tinted + ringed by the active input mode so you always know
      whether a tap will place a digit, a note, or a ban (--m-accent is set on
@@ -1703,6 +1707,14 @@
   color: var(--ban);
   text-decoration: line-through;
   font-weight: 600;
+}
+/* When a filled digit is selected, its matching pencil mark lights up inside
+   every cell that notes it, so you can see where a number can still go. */
+.cell__note--match {
+  background: color-mix(in srgb, var(--primary) 32%, transparent);
+  border-radius: 4px;
+  font-weight: 800;
+  transform: scale(1.12);
 }
 
 /* Group the mode bar + pad + controls at the bottom. */

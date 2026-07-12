@@ -19,6 +19,8 @@ export interface CellProps {
   hint: boolean;
   /** Plays the "unit completed" celebration flash. */
   flash?: boolean;
+  /** When set, this digit's matching pencil mark is highlighted (0 = off). */
+  noteHighlight?: number;
 }
 
 const noteClass = (notes: number, notesAlt: number, bans: number, n: number): string => {
@@ -43,6 +45,7 @@ const CellComponent = ({
   wrong,
   hint,
   flash,
+  noteHighlight = 0,
 }: CellProps) => {
   const row = rowOf(index);
   const col = colOf(index);
@@ -79,8 +82,12 @@ const CellComponent = ({
         <span className="cell__notes" aria-hidden="true">
           {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
             const cls = noteClass(notes, notesAlt, bans, n);
+            const match = cls !== '' && n === noteHighlight;
             return (
-              <span key={n} className={`cell__note ${cls}`}>
+              <span
+                key={n}
+                className={`cell__note ${cls}${match ? ' cell__note--match' : ''}`}
+              >
                 {cls ? n : ''}
               </span>
             );

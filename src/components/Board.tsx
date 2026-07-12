@@ -28,6 +28,7 @@ export const Board = () => {
   const addToSelection = useGame((s) => s.addToSelection);
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
+  const highlightNotes = useSettings((s) => s.highlightNotes);
 
   const dragging = useRef(false);
   const lastIdx = useRef<number | null>(null);
@@ -44,7 +45,11 @@ export const Board = () => {
   const hintCells = useMemo(() => new Set(hint?.cells ?? []), [hint]);
   const flashCells = useFx((s) => s.flashCells);
   const flashSet = useMemo(() => new Set(flashCells), [flashCells]);
-  const selectedValue = selected == null || !highlightSame ? 0 : values[selected];
+  // The digit under the selected cell drives both the same-number highlight
+  // and the matching-note highlight (each gated by its own setting).
+  const selectedDigit = selected == null ? 0 : values[selected];
+  const selectedValue = highlightSame ? selectedDigit : 0;
+  const noteHighlight = highlightNotes ? selectedDigit : 0;
   const checking = autoCheck || mode === 'arcade';
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -98,6 +103,7 @@ export const Board = () => {
           wrong={checking && !given[i] && values[i] !== 0 && values[i] !== solution[i]}
           hint={hintCells.has(i)}
           flash={flashSet.has(i)}
+          noteHighlight={noteHighlight}
         />
       ))}
     </div>

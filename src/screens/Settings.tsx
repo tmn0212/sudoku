@@ -32,6 +32,7 @@ export const Settings = () => {
   const setTheme = useSettings((s) => s.setTheme);
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
+  const highlightNotes = useSettings((s) => s.highlightNotes);
   const autoCleanupNotes = useSettings((s) => s.autoCleanupNotes);
   const showRemaining = useSettings((s) => s.showRemaining);
   const toggle = useSettings((s) => s.toggle);
@@ -87,6 +88,12 @@ export const Settings = () => {
             desc="Highlight every cell with the selected digit"
             checked={highlightSame}
             onChange={() => toggle('highlightSame')}
+          />
+          <ToggleRow
+            label="Highlight matching notes"
+            desc="Highlight the selected digit inside other cells' pencil marks"
+            checked={highlightNotes}
+            onChange={() => toggle('highlightNotes')}
           />
           <ToggleRow
             label="Auto-clean notes"

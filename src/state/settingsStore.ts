@@ -13,6 +13,8 @@ export interface SettingsState {
   highlightPeers: boolean;
   /** Highlight all cells sharing the selected cell's digit. */
   highlightSame: boolean;
+  /** Highlight the matching pencil mark in cells that note the selected digit. */
+  highlightNotes: boolean;
   /** When placing a digit, remove it from peers' pencil marks. */
   autoCleanupNotes: boolean;
   /** Show the remaining-count badge under each number-pad key. */
@@ -25,6 +27,7 @@ export interface SettingsState {
 type BooleanSettingKey =
   | 'highlightPeers'
   | 'highlightSame'
+  | 'highlightNotes'
   | 'autoCleanupNotes'
   | 'showRemaining';
 
@@ -34,6 +37,7 @@ export const useSettings = create<SettingsState>()(
       theme: 'system',
       highlightPeers: true,
       highlightSame: true,
+      highlightNotes: true,
       autoCleanupNotes: true,
       showRemaining: true,
 
