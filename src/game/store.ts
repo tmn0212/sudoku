@@ -23,7 +23,7 @@ import { generatePuzzle } from '../engine/generator';
 import { useSettings } from '../state/settingsStore';
 import { computeScore } from '../scoring/score';
 import type { Difficulty, Grid, Puzzle, Step } from '../engine/types';
-import type { Mode } from '../db/idb';
+import type { Mode, SavedGame } from '../db/idb';
 
 /** What a digit press does to the selected cells. */
 export type InputMode = 'normal' | 'note' | 'noteAlt' | 'ban';
@@ -54,6 +54,8 @@ interface Snapshot {
 
 export interface GameState {
   // --- puzzle data ---
+  /** Stable id used to key this game in the saved-games roster. */
+  gameId: string;
   puzzle: Grid;
   solution: Grid;
   given: boolean[];
@@ -93,6 +95,8 @@ export interface GameState {
   startChallenge: (puzzle: Puzzle, ref: ChallengeRef, mode?: Mode) => void;
   /** Replay the current puzzle from scratch (same givens, mode, challenge). */
   restartGame: () => void;
+  /** Resume a previously-saved game from the roster. */
+  loadGame: (game: SavedGame) => void;
   selectCell: (index: number | null) => void;
   setSelection: (cells: number[]) => void;
   addToSelection: (index: number) => void;
@@ -112,6 +116,10 @@ export interface GameState {
 const MAX_HISTORY = 200;
 const zeros = (): number[] => new Array(CELL_COUNT).fill(0);
 
+/** A short, unique-enough id for a game slot. */
+const newId = (): string =>
+  Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
 const snapshot = (s: GameState): Snapshot => ({
   values: s.values.slice(),
   notes: s.notes.slice(),
@@ -126,6 +134,7 @@ const buildGame = (
   { puzzle, solution, difficulty }: Pick<Puzzle, 'puzzle' | 'solution' | 'difficulty'>,
   mode: Mode,
 ) => ({
+  gameId: newId(),
   puzzle,
   solution,
   given: puzzle.map((v) => v !== 0),
@@ -188,6 +197,33 @@ export const useGame = create<GameState>()(
             s.mode,
           ),
           challenge: s.challenge,
+          autoCheck: s.autoCheck,
+        })),
+
+      loadGame: (g) =>
+        set((s) => ({
+          gameId: g.id,
+          puzzle: g.puzzle,
+          solution: g.solution,
+          given: g.given,
+          difficulty: g.difficulty as Difficulty,
+          mode: g.mode,
+          challenge: g.challenge as ChallengeRef | null,
+          values: g.values.slice(),
+          notes: g.notes.slice(),
+          notesAlt: g.notesAlt.slice(),
+          bans: g.bans.slice(),
+          selection: [],
+          selected: null,
+          inputMode: g.inputMode as InputMode,
+          status: g.status as GameStatus,
+          elapsedMs: g.elapsedMs,
+          mistakes: g.mistakes,
+          hints: g.hints,
+          score: g.score,
+          hint: null,
+          past: [],
+          future: [],
           autoCheck: s.autoCheck,
         })),
 
@@ -449,10 +485,17 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'sudoku-game',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
+      // Older saves predate gameId; give them one so the roster can key them.
+      migrate: (persisted, version) => {
+        const p = persisted as Partial<GameState>;
+        if (version < 3 && !p.gameId) p.gameId = newId();
+        return p as GameState;
+      },
       // Persist the game, not transient UI (selection/hint).
       partialize: (s) => ({
+        gameId: s.gameId,
         puzzle: s.puzzle,
         solution: s.solution,
         given: s.given,

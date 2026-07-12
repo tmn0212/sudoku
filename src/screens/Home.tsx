@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { getChallengeProgress } from '../db/progress';
+import { listSavedGames } from '../db/savedGames';
 import { PACK_SIZES } from '../data/challenges';
 import { formatTime } from '../utils/format';
 import { IconGrid, IconBolt, IconChevronRight, IconDice } from '../components/icons';
 import { DIFFICULTIES, type Difficulty } from '../engine/types';
-import type { Mode } from '../db/idb';
+import type { Mode, SavedGame } from '../db/idb';
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   easy: 'Easy',
@@ -26,33 +27,97 @@ const MODES: { id: Mode; label: string; blurb: string; icon: ReactNode }[] = [
 const pick = <T,>(arr: readonly T[]): T =>
   arr[Math.floor(Math.random() * arr.length)];
 
+interface ResumeItem {
+  id: string;
+  label: string;
+  mode: Mode;
+  elapsedMs: number;
+  filled: number;
+  empties: number;
+  onResume: () => void;
+}
+
+const filledOf = (values: number[], given: boolean[]): number =>
+  values.reduce((n, v, i) => (v !== 0 && !given[i] ? n + 1 : n), 0);
+const emptiesOf = (given: boolean[]): number =>
+  given.reduce((n, g) => (g ? n : n + 1), 0);
+
+const gameLabel = (difficulty: string, challenge: { index: number } | null): string => {
+  const d = DIFFICULTY_LABEL[difficulty as Difficulty] ?? difficulty;
+  return challenge ? `${d} #${challenge.index + 1}` : d;
+};
+
 export const Home = () => {
   const navigate = useUi((s) => s.navigate);
   const { startChallenge } = useStartChallenge();
   const [rolling, setRolling] = useState(false);
+  const [saved, setSaved] = useState<SavedGame[]>([]);
 
+  // Live game (reactive) so the current game always shows the freshest progress
+  // even if its debounced roster write hasn't landed yet.
+  const gameId = useGame((s) => s.gameId);
   const status = useGame((s) => s.status);
   const difficulty = useGame((s) => s.difficulty);
+  const mode = useGame((s) => s.mode);
+  const challenge = useGame((s) => s.challenge);
   const elapsedMs = useGame((s) => s.elapsedMs);
   const values = useGame((s) => s.values);
   const given = useGame((s) => s.given);
-  const filled = values.filter((v, i) => v !== 0 && !given[i]).length;
-  const empties = given.filter((g) => !g).length;
-  const inProgress = status === 'playing' && filled > 0;
 
-  // Surprise: a random unsolved puzzle from a random mode + difficulty.
+  useEffect(() => {
+    let alive = true;
+    listSavedGames().then((rows) => alive && setSaved(rows));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const resumeSaved = (g: SavedGame) => {
+    useGame.getState().loadGame(g);
+    navigate('game');
+  };
+
+  // Merge the live game in (freshest wins) and cap at 10.
+  const liveFilled = filledOf(values, given);
+  const liveInProgress = status === 'playing' && liveFilled > 0;
+  const resumeList: ResumeItem[] = [];
+  if (liveInProgress) {
+    resumeList.push({
+      id: gameId,
+      label: gameLabel(difficulty, challenge),
+      mode,
+      elapsedMs,
+      filled: liveFilled,
+      empties: emptiesOf(given),
+      onResume: () => navigate('game'),
+    });
+  }
+  for (const g of saved) {
+    if (g.id === gameId) continue; // already shown from the live store
+    resumeList.push({
+      id: g.id,
+      label: gameLabel(g.difficulty, g.challenge),
+      mode: g.mode,
+      elapsedMs: g.elapsedMs,
+      filled: filledOf(g.values, g.given),
+      empties: emptiesOf(g.given),
+      onResume: () => resumeSaved(g),
+    });
+  }
+  const games = resumeList.slice(0, 10);
+
   const surprise = async () => {
     if (rolling) return;
     setRolling(true);
     try {
-      const mode = pick<Mode>(['good', 'arcade']);
+      const m = pick<Mode>(['good', 'arcade']);
       const diff = pick(DIFFICULTIES);
       const count = PACK_SIZES[diff];
-      const progress = await getChallengeProgress(mode, diff);
+      const progress = await getChallengeProgress(m, diff);
       const pool: number[] = [];
       for (let i = 0; i < count; i++) if (!progress.get(i)?.solved) pool.push(i);
       const index = pool.length ? pick(pool) : Math.floor(Math.random() * count);
-      await startChallenge(mode, diff, index);
+      await startChallenge(m, diff, index);
     } finally {
       setRolling(false);
     }
@@ -70,22 +135,29 @@ export const Home = () => {
         <p className="home__tagline">Play offline and learn the techniques</p>
       </div>
 
-      {inProgress && (
-        <button className="home__continue" onClick={() => navigate('game')}>
-          <div>
-            <span className="home__continue-label">Continue</span>
-            <span className="home__continue-meta">
-              <span>{DIFFICULTY_LABEL[difficulty]}</span>
-              <span>{formatTime(elapsedMs)}</span>
-              <span>
-                {filled}/{empties}
-              </span>
-            </span>
+      {games.length > 0 && (
+        <section className="home__resume">
+          <h2 className="home__resume-title">Continue</h2>
+          <div className="home__resume-list">
+            {games.map((g) => (
+              <button key={g.id} className="home__resume-card" onClick={g.onResume}>
+                <span className="home__resume-info">
+                  <span className="home__resume-label">{g.label}</span>
+                  <span className="home__resume-meta">
+                    <span>{g.mode === 'arcade' ? 'Arcade' : 'Good'}</span>
+                    <span>{formatTime(g.elapsedMs)}</span>
+                    <span>
+                      {g.filled}/{g.empties}
+                    </span>
+                  </span>
+                </span>
+                <span className="home__resume-go" aria-hidden="true">
+                  <IconChevronRight size={20} />
+                </span>
+              </button>
+            ))}
           </div>
-          <span className="home__continue-go" aria-hidden="true">
-            <IconChevronRight size={22} />
-          </span>
-        </button>
+        </section>
       )}
 
       <div className="home__modes">

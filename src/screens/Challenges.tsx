@@ -4,11 +4,12 @@ import { IconCheck, IconDice, IconClock } from '../components/icons';
 import { formatTime } from '../utils/format';
 import { loadChallengePack } from '../data/challenges';
 import { getChallengeProgress } from '../db/progress';
+import { listSavedGames } from '../db/savedGames';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 import type { Difficulty } from '../engine/types';
-import type { ChallengeProgress, Mode } from '../db/idb';
+import type { ChallengeProgress, Mode, SavedGame } from '../db/idb';
 
 const LABELS: Record<Difficulty, string> = {
   easy: 'Easy',
@@ -27,10 +28,12 @@ export const Challenges = () => {
   const [progress, setProgress] = useState<Map<number, ChallengeProgress>>(
     new Map(),
   );
+  // Saved in-progress games for this mode+difficulty, keyed by puzzle index.
+  const [roster, setRoster] = useState<Map<number, SavedGame>>(new Map());
   const [loading, setLoading] = useState(true);
   const { startChallenge } = useStartChallenge();
 
-  // Which challenge (if any) is the single in-progress game right now.
+  // The single live game (freshest) — may not have hit the roster yet.
   const gameStatus = useGame((s) => s.status);
   const gameMode = useGame((s) => s.mode);
   const gameChallenge = useGame((s) => s.challenge);
@@ -47,10 +50,18 @@ export const Challenges = () => {
     Promise.all([
       loadChallengePack(difficulty),
       getChallengeProgress(mode, difficulty),
-    ]).then(([pack, prog]) => {
+      listSavedGames(),
+    ]).then(([pack, prog, saved]) => {
       if (!alive) return;
       setCount(pack.puzzles.length);
       setProgress(prog);
+      const map = new Map<number, SavedGame>();
+      for (const g of saved) {
+        if (g.mode === mode && g.challenge?.difficulty === difficulty) {
+          map.set(g.challenge.index, g);
+        }
+      }
+      setRoster(map);
       setLoading(false);
     });
     return () => {
@@ -60,9 +71,18 @@ export const Challenges = () => {
 
   const solvedCount = [...progress.values()].filter((p) => p.solved).length;
 
+  const isActive = (index: number): boolean =>
+    index === activeIndex || roster.has(index);
+
   const open = (index: number) => {
-    if (index === activeIndex) navigate('game'); // resume, don't restart
-    else void startChallenge(mode, difficulty, index);
+    if (index === activeIndex) {
+      navigate('game'); // the live game — resume as-is
+    } else if (roster.has(index)) {
+      useGame.getState().loadGame(roster.get(index)!); // resume a saved game
+      navigate('game');
+    } else {
+      void startChallenge(mode, difficulty, index);
+    }
   };
 
   const randomUnsolved = () => {
@@ -111,7 +131,7 @@ export const Challenges = () => {
           <div className="chal-grid">
             {Array.from({ length: count }, (_, i) => {
               const p = progress.get(i);
-              const active = i === activeIndex;
+              const active = isActive(i);
               const state = active
                 ? 'active'
                 : p?.solved

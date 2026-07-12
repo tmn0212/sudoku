@@ -38,6 +38,32 @@ export interface LearnedTechnique {
   learnedAt: number;
 }
 
+/**
+ * A resumable in-progress game. We keep a small roster of these (see
+ * savedGames.ts) so several games can be continued, not just the last one.
+ * Board state is stored as plain arrays; the store re-hydrates it on resume.
+ */
+export interface SavedGame {
+  id: string;
+  mode: Mode;
+  difficulty: string;
+  challenge: { difficulty: string; index: number } | null;
+  puzzle: number[];
+  solution: number[];
+  given: boolean[];
+  values: number[];
+  notes: number[];
+  notesAlt: number[];
+  bans: number[];
+  inputMode: string;
+  status: string;
+  elapsedMs: number;
+  mistakes: number;
+  hints: number;
+  score: number;
+  updatedAt: number;
+}
+
 interface SudokuDB extends DBSchema {
   games: {
     key: number;
@@ -57,31 +83,42 @@ interface SudokuDB extends DBSchema {
     key: string;
     value: LearnedTechnique;
   };
+  savedGames: {
+    key: string;
+    value: SavedGame;
+    indexes: { 'by-updatedAt': number };
+  };
 }
 
 const DB_NAME = 'sudoku';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<SudokuDB>> | null = null;
 
 export const getDb = (): Promise<IDBPDatabase<SudokuDB>> => {
   if (!dbPromise) {
     dbPromise = openDB<SudokuDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const games = db.createObjectStore('games', {
-          keyPath: 'id',
-          autoIncrement: true,
-        });
-        games.createIndex('by-completedAt', 'completedAt');
-        games.createIndex('by-mode-difficulty', ['mode', 'difficulty']);
-        games.createIndex('by-score', 'score');
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const games = db.createObjectStore('games', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          games.createIndex('by-completedAt', 'completedAt');
+          games.createIndex('by-mode-difficulty', ['mode', 'difficulty']);
+          games.createIndex('by-score', 'score');
 
-        const progress = db.createObjectStore('challengeProgress', {
-          keyPath: 'key',
-        });
-        progress.createIndex('by-mode-difficulty', ['mode', 'difficulty']);
+          const progress = db.createObjectStore('challengeProgress', {
+            keyPath: 'key',
+          });
+          progress.createIndex('by-mode-difficulty', ['mode', 'difficulty']);
 
-        db.createObjectStore('learned', { keyPath: 'id' });
+          db.createObjectStore('learned', { keyPath: 'id' });
+        }
+        if (oldVersion < 2) {
+          const saved = db.createObjectStore('savedGames', { keyPath: 'id' });
+          saved.createIndex('by-updatedAt', 'updatedAt');
+        }
       },
     });
   }
