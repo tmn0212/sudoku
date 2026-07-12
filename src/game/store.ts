@@ -294,13 +294,19 @@ export const useGame = create<GameState>()(
             }
           }
         } else {
-          const layer =
-            s.inputMode === 'note' ? notes : s.inputMode === 'noteAlt' ? notesAlt : bans;
+          // note / noteAlt / ban share a digit exclusively: a mark lives in at
+          // most one layer, so switching mode and tapping the same digit MOVES
+          // it (e.g. a blue note becomes a grey note) instead of being hidden
+          // behind another layer.
           for (const i of targets) {
             if (values[i] !== 0) continue; // marks only make sense on empty cells
-            layer[i] = hasCandidate(layer[i], digit)
-              ? removeCandidate(layer[i], digit)
-              : addCandidate(layer[i], digit);
+            const current =
+              s.inputMode === 'note' ? notes : s.inputMode === 'noteAlt' ? notesAlt : bans;
+            const alreadyHere = hasCandidate(current[i], digit);
+            notes[i] = removeCandidate(notes[i], digit);
+            notesAlt[i] = removeCandidate(notesAlt[i], digit);
+            bans[i] = removeCandidate(bans[i], digit);
+            if (!alreadyHere) current[i] = addCandidate(current[i], digit);
           }
         }
 

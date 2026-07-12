@@ -72,6 +72,33 @@ describe('game store', () => {
     expect(s.notes[cell]).toBe(0); // blue layer untouched
   });
 
+  it('moves a mark between layers when the same digit is re-marked in another mode', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    // Pencil a blue note...
+    useGame.getState().setInputMode('note');
+    useGame.getState().inputDigit(6);
+    expect(useGame.getState().notes[cell] & (1 << 6)).toBeTruthy();
+    // ...then re-mark the same digit as a grey note: it should MOVE, not stack.
+    useGame.getState().setInputMode('noteAlt');
+    useGame.getState().inputDigit(6);
+    let s = useGame.getState();
+    expect(s.notesAlt[cell] & (1 << 6)).toBeTruthy();
+    expect(s.notes[cell] & (1 << 6)).toBeFalsy(); // left the blue layer
+    // ...and again as a ban.
+    useGame.getState().setInputMode('ban');
+    useGame.getState().inputDigit(6);
+    s = useGame.getState();
+    expect(s.bans[cell] & (1 << 6)).toBeTruthy();
+    expect(s.notesAlt[cell] & (1 << 6)).toBeFalsy(); // left the grey layer
+    // Re-marking in the same (ban) mode toggles it off entirely.
+    useGame.getState().inputDigit(6);
+    s = useGame.getState();
+    expect(s.bans[cell] & (1 << 6)).toBeFalsy();
+    expect(s.notes[cell] & (1 << 6)).toBeFalsy();
+    expect(s.notesAlt[cell] & (1 << 6)).toBeFalsy();
+  });
+
   it('applies notes to every cell of a multi-selection', () => {
     const empties = useGame
       .getState()
