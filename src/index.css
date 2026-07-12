@@ -86,9 +86,12 @@ body {
   /* Prevent iOS rubber-band scrolling and pull-to-refresh in the PWA. */
   overscroll-behavior: none;
   overflow: hidden;
-  /* Kill the tap highlight and text selection for a native feel. */
+  /* Kill the tap highlight and text selection for a native feel. iOS Safari only
+     honours the -webkit- prefixed property, so include it explicitly — without it
+     a press-and-drag on the board/pad triggers the text-selection highlight. */
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
 }
 

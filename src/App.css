@@ -12,7 +12,10 @@
 }
 
 .app__main {
-  flex: 1;
+  /* Grow to centre the board on tall screens, but never shrink below the board's
+     own (width-driven) size — so the board keeps a fixed size and the tray below
+     absorbs any shortfall instead. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -173,7 +176,12 @@
 /* ---------- Board ---------- */
 .board {
   container-type: inline-size;
-  width: min(100%, 78vh);
+  /* The board is the fixed anchor: it always fills the available width and stays
+     square, regardless of screen height. The docked tray below shrinks to fit
+     the remaining space (see .app__main / .app__pad), so the board never gets
+     squeezed or clipped on short screens. */
+  width: 100%;
+  max-width: 100%;
   aspect-ratio: 1;
   margin: 0 auto;
   display: grid;
@@ -321,12 +329,22 @@
   box-shadow: inset 0 0 0 2px var(--m-accent, var(--primary));
 }
 /* In the note modes the selection ring switches to a dashed outline, an
-   at-a-glance "this is pencil, not ink" cue. */
+   at-a-glance "this is pencil, not ink" cue. Drawn as an inset pseudo-element
+   border (not `outline`) so all four edges render — a negative outline-offset on
+   the aspect-ratio grid cell only painted the top and bottom edges. */
 .app[data-mode='note'] .cell--selected,
 .app[data-mode='noteAlt'] .cell--selected {
   box-shadow: none;
-  outline: 2.5px dashed var(--m-accent, var(--primary));
-  outline-offset: -3px;
+}
+.app[data-mode='note'] .cell--selected::after,
+.app[data-mode='noteAlt'] .cell--selected::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2.5px dashed var(--m-accent, var(--primary));
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 1;
 }
 .cell--error {
   background: var(--error-bg);
@@ -1965,6 +1983,21 @@
   touch-action: none;
 }
 
+/* Belt-and-braces against iOS text selection: a long press that drags across the
+   grid or the number pad must never start selecting the digits. Buttons can
+   re-enable user-select on iOS, so pin it off (prefixed) on these surfaces and
+   their contents. */
+.board,
+.board *,
+.numberpad,
+.numberpad *,
+.controls,
+.controls * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* Note-layer colors in the 3x3 mini-grid. Primary notes are violet (not the
    brand blue) to stay distinct from placed digits — see the mode-identity block. */
 .cell__note--blue {
@@ -2102,6 +2135,11 @@
 /* The board centres in the space above; the controls dock at the bottom as a
    single cohesive tray (kills the large empty gap on tall phones). */
 .app__pad {
+  /* The tray takes whatever vertical space is left under the fixed board and
+     shrinks its own contents (pad + controls) to fit — it never grows past its
+     natural size, so on tall screens it stays docked at the bottom. */
+  flex: 0 1 auto;
+  min-height: 0;
   gap: clamp(8px, 1.4vh, 12px);
   padding: clamp(10px, 1.8vh, 15px) clamp(10px, 3.5vw, 18px)
     calc(clamp(10px, 1.6vh, 14px) + env(safe-area-inset-bottom));
@@ -2145,18 +2183,13 @@
   opacity: 0.65;
 }
 
-/* On shorter screens, cap the board by height and tighten the tray so the 3x3
-   pad always fits without clipping the board. */
+/* On shorter screens, tighten the tray's own spacing a touch so the height-driven
+   pad has more room to breathe. The board keeps its full (width-driven) size — the
+   tray shrinks its contents to fit (see .app__main / .app__pad / .pad-row). */
 @media (max-height: 760px) {
-  .board {
-    width: min(100%, 42vh);
-  }
   .app__pad {
     gap: 7px;
     padding-top: 9px;
-  }
-  .numberpad__key {
-    height: clamp(40px, 5.4vh, 52px);
   }
 }
 
@@ -2264,13 +2297,19 @@
    left, a big square number pad filling the space to their right.
    Overrides the earlier single-column/grid pad rules.
    ============================================================ */
+/* The tray's main row gets a definite, height-aware, shrinkable size. Its basis
+   scales with the viewport height and shrinks further when space is tight, which
+   is what drives the number pad + mode buttons to shrink on short screens. */
 .pad-row {
   display: flex;
   gap: clamp(8px, 2.4vw, 12px);
   align-items: stretch;
+  flex: 1 1 clamp(140px, 32vh, 224px);
+  min-height: 0;
 }
 
-/* Digit / Notes / Notes 2 / Ban stacked vertically. */
+/* Digit / Notes / Notes 2 / Ban stacked vertically. Icon + label scale with the
+   available height so they never overflow their (shrinking) buttons. */
 .mode-bar {
   display: flex;
   flex-direction: column;
@@ -2281,73 +2320,77 @@
 .mode-bar__btn {
   flex: 1 1 0;
   min-height: 0;
-  gap: 5px;
-  font-size: 0.8rem;
+  /* Four stacked buttons are shorter than the pad's three rows, so keep the
+     icon + label compact enough to fit without clipping. */
+  gap: clamp(1px, 0.5vh, 3px);
+  padding: clamp(2px, 0.5vh, 5px) 4px;
+  font-size: clamp(0.55rem, 1.25vh, 0.7rem);
   font-weight: 700;
+  overflow: hidden;
+  /* Size container so the label can be dropped when the button is truly short. */
+  container-type: size;
 }
 .mode-bar__icon svg {
-  width: 24px;
-  height: 24px;
+  width: clamp(16px, 2.5vh, 20px);
+  height: clamp(16px, 2.5vh, 20px);
+}
+/* When a mode button is too short to hold both, keep the icon fully visible and
+   drop the label rather than clipping both (only bites on very short screens —
+   this measures the button's content box, which is a few px under its height). */
+@container (max-height: 33px) {
+  .mode-bar__label {
+    display: none;
+  }
 }
 
-/* Square, generously sized keys; the pad takes all remaining width. A max size
-   keeps the pad from growing so tall it would push the board off-screen. */
+/* The pad fills the width left of the mode column and stretches to the tray's
+   (shrinking) height. Its 3x3 cells therefore get shorter on short screens while
+   still using the full width, and each digit scales to its key so it never spills
+   or gets clipped — the board keeps its fixed size regardless. */
 .numberpad {
   flex: 1 1 auto;
+  min-height: 0;
+  align-self: stretch;
   grid-template-columns: repeat(3, 1fr);
-  gap: clamp(7px, 2vw, 11px);
-  justify-items: center;
+  grid-template-rows: repeat(3, 1fr);
+  gap: clamp(5px, 1.8vw, 11px);
 }
 .numberpad__key {
+  width: 100%;
+  height: 100%;
+  max-width: 108px;
   justify-self: center;
-  width: min(100%, clamp(58px, 20vw, 78px));
-  aspect-ratio: 1 / 1;
-  height: auto;
+  aspect-ratio: auto;
   min-height: 0;
+  min-width: 0;
+  container-type: size;
 }
-/* Big, easy-to-read digits and count badges on the pad. */
 .numberpad__digit {
-  font-size: clamp(2.4rem, 12vw, 3.4rem);
+  /* Cap by the key's smaller dimension so short keys shrink the digit to fit. */
+  font-size: min(2.9rem, 52cqmin);
   font-weight: 700;
+  line-height: 1;
 }
 .numberpad__count {
-  font-size: 0.78rem;
+  font-size: min(0.78rem, 22cqmin);
   bottom: 8px;
   right: 11px;
 }
 
-/* Larger control-tray content (Undo / Redo / Erase / Hint). */
+/* Controls dock at the bottom of the tray; their content scales with height too
+   so Undo / Redo / Erase / Hint stay legible without overflowing when short. */
+.controls {
+  flex: 0 0 auto;
+}
 .control {
-  gap: 5px;
-  font-size: 0.82rem;
+  gap: clamp(3px, 0.7vh, 5px);
+  padding: clamp(5px, 1vh, 9px) 4px;
+  font-size: clamp(0.64rem, 1.5vh, 0.82rem);
   font-weight: 600;
 }
 .control svg {
-  width: 26px;
-  height: 26px;
-}
-
-/* Short screens: fall back to shorter keys so the board keeps its size, and
-   scale the digit to the key height so it never overflows. */
-@media (max-height: 760px) {
-  .numberpad__key {
-    aspect-ratio: auto;
-    height: clamp(42px, 6.2vh, 58px);
-    width: min(100%, clamp(52px, 20vw, 74px));
-  }
-  .numberpad__digit {
-    font-size: clamp(1.7rem, 5vh, 2.4rem);
-  }
-  /* Keep the (short) mode buttons' icon + label contained, not spilling. */
-  .mode-bar__btn {
-    gap: 2px;
-    font-size: 0.64rem;
-    overflow: hidden;
-  }
-  .mode-bar__icon svg {
-    width: 20px;
-    height: 20px;
-  }
+  width: clamp(20px, 3.6vh, 26px);
+  height: clamp(20px, 3.6vh, 26px);
 }
 
 /* ============================================================
