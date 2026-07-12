@@ -35,8 +35,10 @@ export const Game = () => {
         <HintBanner />
       </main>
       <div className="app__pad">
-        <InputModeBar />
-        <NumberPad />
+        <div className="pad-row">
+          <InputModeBar />
+          <NumberPad />
+        </div>
         <Controls />
       </div>
       <NewGameSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />

@@ -59,25 +59,27 @@
   background: var(--peer);
 }
 
-.topbar__meta {
+/* Difficulty and lives sit inline (not stacked under the name). */
+.topbar__status {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
 }
 .topbar__difficulty {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 .topbar__mistakes {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--muted);
 }
 .topbar__lives {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px;
   color: var(--ban);
 }
 
@@ -1816,4 +1818,50 @@
 }
 .app[data-mode='ban'] .numberpad__digit {
   color: var(--ban);
+}
+
+/* ============================================================
+   Input tray layout: mode buttons stacked in a column on the
+   left, a big square number pad filling the space to their right.
+   Overrides the earlier single-column/grid pad rules.
+   ============================================================ */
+.pad-row {
+  display: flex;
+  gap: clamp(8px, 2.4vw, 12px);
+  align-items: stretch;
+}
+
+/* Digit / Notes / Notes 2 / Ban stacked vertically. */
+.mode-bar {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.3vh, 9px);
+  width: clamp(64px, 19vw, 82px);
+  flex: 0 0 auto;
+}
+.mode-bar__btn {
+  flex: 1 1 0;
+  min-height: 0;
+  gap: 3px;
+  font-size: 0.68rem;
+}
+
+/* Square, generously sized keys; the pad takes all remaining width. */
+.numberpad {
+  flex: 1 1 auto;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(7px, 2vw, 11px);
+}
+.numberpad__key {
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* Short screens: fall back to shorter keys so the board keeps its size. */
+@media (max-height: 760px) {
+  .numberpad__key {
+    aspect-ratio: auto;
+    height: clamp(42px, 6.2vh, 58px);
+  }
 }

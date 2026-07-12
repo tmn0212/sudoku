@@ -29,18 +29,19 @@ export const TopBar = ({ onNewGame, onHome }: TopBarProps) => {
         <button className="topbar__btn" onClick={onHome} aria-label="Home">
           <IconHome size={22} />
         </button>
-        <div className="topbar__meta">
+        <div className="topbar__status">
           <span className="topbar__difficulty">{DIFFICULTY_LABEL[difficulty]}</span>
           {mode === 'arcade' ? (
             <span className="topbar__lives" aria-label={`${livesLeft} lives left`}>
               {Array.from({ length: ARCADE_LIVES }, (_, i) => (
-                <IconHeart key={i} size={13} filled={i < livesLeft} />
+                <IconHeart key={i} size={19} filled={i < livesLeft} />
               ))}
             </span>
           ) : (
-            autoCheck && (
+            autoCheck &&
+            mistakes > 0 && (
               <span className="topbar__mistakes" aria-label={`${mistakes} mistakes`}>
-                Mistakes: {mistakes}
+                {mistakes} {mistakes === 1 ? 'mistake' : 'mistakes'}
               </span>
             )
           )}
