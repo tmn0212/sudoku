@@ -45,9 +45,9 @@ export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps
 
   return (
     <header className="topbar">
-      <button className="topbar__btn" onClick={onSettings} aria-label="Settings">
-        <IconSettings size={24} />
-      </button>
+      {/* Empty left cell keeps the clock centred now that settings moved into
+          the more-options menu on the right. */}
+      <div className="topbar__slot" aria-hidden="true" />
 
       {/* The clock is the anchored centrepiece; the puzzle's mode/difficulty/#
           sit above it and lives/mistakes right below, one central column. */}
@@ -97,6 +97,10 @@ export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps
               <button className="topbar__menu-item" role="menuitem" onClick={run(onRestart)}>
                 <IconRefresh size={19} />
                 Restart puzzle
+              </button>
+              <button className="topbar__menu-item" role="menuitem" onClick={run(onSettings)}>
+                <IconSettings size={19} />
+                Settings
               </button>
               <button className="topbar__menu-item" role="menuitem" onClick={run(onHome)}>
                 <IconHome size={19} />
