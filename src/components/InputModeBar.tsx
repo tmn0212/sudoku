@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { useGame, type InputMode } from '../game/store';
-import { IconPencil, IconNotes, IconBan } from './icons';
+import { IconPencil, IconNotes, IconNotesAlt, IconBan } from './icons';
 
 const MODES: { id: InputMode; label: string; icon: ReactNode }[] = [
   { id: 'normal', label: 'Digit', icon: <IconPencil size={20} /> },
   { id: 'note', label: 'Notes', icon: <IconNotes size={20} /> },
-  { id: 'noteAlt', label: 'Notes 2', icon: <IconNotes size={20} /> },
+  { id: 'noteAlt', label: 'Notes 2', icon: <IconNotesAlt size={20} /> },
   { id: 'ban', label: 'Ban', icon: <IconBan size={20} /> },
 ];
 

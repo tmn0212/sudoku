@@ -71,14 +71,37 @@ export const IconPencil = ({ size = 24, ...rest }: IconProps) => (
   </svg>
 );
 
-/** Pencil marks: the small 3x3 candidate grid — the "notes" tool. */
+/** A cell pencilled with candidate marks — the primary "notes" tool. */
 export const IconNotes = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>
-    {[6, 12, 18].map((y) =>
-      [6, 12, 18].map((x) => (
-        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" fill="currentColor" />
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" {...stroke} strokeWidth={1.6} />
+    {[7.7, 12, 16.3].map((y) =>
+      [7.7, 12, 16.3].map((x) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.15" fill="currentColor" />
       )),
     )}
+  </svg>
+);
+
+/** A second, independent set of pencil candidates — the "notes 2" tool. */
+export const IconNotesAlt = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" {...stroke} strokeWidth={1.6} />
+    {[9, 13].map((y) =>
+      [9, 13].map((x) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.05" fill="currentColor" />
+      )),
+    )}
+    <text
+      x="16.4"
+      y="19.2"
+      textAnchor="middle"
+      fontSize="8"
+      fontWeight="800"
+      fill="currentColor"
+    >
+      2
+    </text>
   </svg>
 );
 
@@ -187,12 +210,12 @@ export const IconHeartBroken = ({ size = 24, ...rest }: IconProps) => (
   </svg>
 );
 
+/** Symmetric 8-tooth cog (Material-style) for Settings. */
 export const IconSettings = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>
-    <circle cx="12" cy="12" r="3" {...stroke} />
     <path
-      {...stroke}
-      d="M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008.4 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 8.4a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.14.63.7 1.09 1.35 1.09H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"
+      fill="currentColor"
+      d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
     />
   </svg>
 );
