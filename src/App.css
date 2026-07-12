@@ -59,28 +59,35 @@
   background: var(--peer);
 }
 
-/* Difficulty and lives sit inline (not stacked under the name). */
-.topbar__status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
 .topbar__difficulty {
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.1;
 }
-.topbar__mistakes {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--muted);
+
+/* Status strip below the header: arcade lives or good-mode mistakes. Lives
+   live here (not in the top bar) so a long difficulty can't cause overflow. */
+.statusbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1px clamp(12px, 4vw, 20px) 0;
 }
-.topbar__lives {
+.statusbar__lives {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1.5px solid var(--grid-thin);
+  box-shadow: var(--shadow);
   color: var(--ban);
+}
+.statusbar__mistakes {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 /* Timer sits in a subtle pill so it feels like a labelled element, not stray
@@ -1958,27 +1965,72 @@
 .mode-bar__btn {
   flex: 1 1 0;
   min-height: 0;
-  gap: 3px;
-  font-size: 0.68rem;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.mode-bar__icon svg {
+  width: 24px;
+  height: 24px;
 }
 
-/* Square, generously sized keys; the pad takes all remaining width. */
+/* Square, generously sized keys; the pad takes all remaining width. A max size
+   keeps the pad from growing so tall it would push the board off-screen. */
 .numberpad {
   flex: 1 1 auto;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(7px, 2vw, 11px);
+  justify-items: center;
 }
 .numberpad__key {
+  justify-self: center;
+  width: min(100%, clamp(58px, 20vw, 78px));
   aspect-ratio: 1 / 1;
   height: auto;
   min-height: 0;
 }
+/* Big, easy-to-read digits and count badges on the pad. */
+.numberpad__digit {
+  font-size: clamp(2.4rem, 12vw, 3.4rem);
+  font-weight: 700;
+}
+.numberpad__count {
+  font-size: 0.78rem;
+  bottom: 8px;
+  right: 11px;
+}
 
-/* Short screens: fall back to shorter keys so the board keeps its size. */
+/* Larger control-tray content (Undo / Redo / Erase / Hint). */
+.control {
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.control svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Short screens: fall back to shorter keys so the board keeps its size, and
+   scale the digit to the key height so it never overflows. */
 @media (max-height: 760px) {
   .numberpad__key {
     aspect-ratio: auto;
     height: clamp(42px, 6.2vh, 58px);
+    width: min(100%, clamp(52px, 20vw, 74px));
+  }
+  .numberpad__digit {
+    font-size: clamp(1.7rem, 5vh, 2.4rem);
+  }
+  /* Keep the (short) mode buttons' icon + label contained, not spilling. */
+  .mode-bar__btn {
+    gap: 2px;
+    font-size: 0.64rem;
+    overflow: hidden;
+  }
+  .mode-bar__icon svg {
+    width: 20px;
+    height: 20px;
   }
 }
 

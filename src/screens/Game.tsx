@@ -4,6 +4,7 @@ import { NumberPad } from '../components/NumberPad';
 import { Controls } from '../components/Controls';
 import { InputModeBar } from '../components/InputModeBar';
 import { TopBar } from '../components/TopBar';
+import { StatusBar } from '../components/StatusBar';
 import { HintBanner } from '../components/HintBanner';
 import { WinOverlay } from '../components/WinOverlay';
 import { NewGameSheet } from '../components/NewGameSheet';
@@ -67,6 +68,7 @@ export const Game = () => {
   return (
     <div className="app" data-mode={inputMode}>
       <TopBar onNewGame={() => setSheetOpen(true)} onHome={goHome} />
+      <StatusBar />
       <main className="app__main">
         <Board />
         <HintBanner />
