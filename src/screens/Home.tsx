@@ -77,7 +77,9 @@ export const Home = () => {
     navigate('game');
   };
 
-  // Merge the live game in (freshest wins) and cap at 10.
+  // Merge the live game in (freshest wins). Home only surfaces the single most
+  // recent game; the rest of the (up to 10) saved games are reachable from the
+  // challenge listing, so we don't clutter the menu with a long roster here.
   const liveFilled = filledOf(values, given);
   const liveInProgress = status === 'playing' && liveFilled > 0;
   const resumeList: ResumeItem[] = [];
@@ -104,7 +106,7 @@ export const Home = () => {
       onResume: () => resumeSaved(g),
     });
   }
-  const games = resumeList.slice(0, 10);
+  const games = resumeList.slice(0, 1);
 
   const surprise = async () => {
     if (rolling) return;
