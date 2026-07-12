@@ -135,7 +135,7 @@ export const LessonDetail = () => {
           {frame?.step ? (
             <>
               <span className="walk__step">
-                {i === 0 ? lesson.title : 'Then'} · step {i + 1} of {moves}
+                {i === 0 ? lesson.title : 'Then'} (step {i + 1} of {moves})
               </span>
               <p className="walk__reason">{frame.step.reason}</p>
             </>

@@ -1560,8 +1560,15 @@
   font-variant-numeric: tabular-nums;
 }
 .stat-rank__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.78rem;
   color: var(--muted);
+}
+.stat-rank__meta > span:not(:first-child) {
+  padding-left: 8px;
+  border-left: 1px solid var(--grid-thin);
 }
 
 /* ---------- Settings ---------- */

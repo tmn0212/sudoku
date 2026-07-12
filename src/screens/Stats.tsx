@@ -140,7 +140,8 @@ export const Stats = () => {
                     {s.score.toLocaleString()} pts
                   </span>
                   <span className="stat-rank__meta">
-                    {DIFF_LABEL[s.difficulty]} · {formatTime(s.timeMs)}
+                    <span>{DIFF_LABEL[s.difficulty]}</span>
+                    <span>{formatTime(s.timeMs)}</span>
                   </span>
                 </li>
               ))}
