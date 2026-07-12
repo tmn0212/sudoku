@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { IconCheck, IconDice } from '../components/icons';
+import { IconCheck, IconDice, IconClock } from '../components/icons';
+import { formatTime } from '../utils/format';
 import { loadChallengePack } from '../data/challenges';
 import { getChallengeProgress } from '../db/progress';
 import { useStartChallenge } from '../hooks/useStartChallenge';
@@ -81,7 +82,6 @@ export const Challenges = () => {
         <div className="chal-top">
           <p className="chal-summary">
             {solvedCount} of {count || '…'} solved
-            <span className="chal-summary__mode"> · {mode === 'arcade' ? 'Arcade' : 'Good'}</span>
           </p>
           <button
             className="chal-random"
@@ -129,8 +129,16 @@ export const Challenges = () => {
                   {state === 'active' ? (
                     <span className="chal-cell__tag">Continue</span>
                   ) : state === 'solved' ? (
-                    <span className="chal-cell__score">
-                      {p!.bestScore.toLocaleString()}
+                    <span className="chal-cell__stats">
+                      <span className="chal-cell__score">
+                        {p!.bestScore.toLocaleString()}
+                      </span>
+                      {p!.bestTimeMs > 0 && (
+                        <span className="chal-cell__time">
+                          <IconClock size={9} />
+                          {formatTime(p!.bestTimeMs)}
+                        </span>
+                      )}
                     </span>
                   ) : state === 'retry' ? (
                     <span className="chal-cell__tag">Retry</span>
