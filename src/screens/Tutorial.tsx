@@ -233,7 +233,9 @@ export const Tutorial = () => {
           </span>
           <p className="walk__reason">{step.body}</p>
         </div>
+      </div>
 
+      <div className="screen__footer">
         <div className="walk__nav walk__nav--two">
           <button
             className="walk__btn"

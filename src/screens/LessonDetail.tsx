@@ -146,7 +146,9 @@ export const LessonDetail = () => {
             </p>
           )}
         </div>
+      </div>
 
+      <div className="screen__footer">
         <div className="walk__nav">
           <button
             className="walk__btn"
