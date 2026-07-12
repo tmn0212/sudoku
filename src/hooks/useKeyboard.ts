@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { SIZE } from '../engine/board';
 import { useGame } from '../game/store';
+import { requestDigit } from '../game/inputActions';
 
 /** Desktop keyboard controls: digits, erase, arrow navigation, notes toggle. */
 export const useKeyboard = (): void => {
@@ -10,7 +11,7 @@ export const useKeyboard = (): void => {
       const { selected } = state;
 
       if (e.key >= '1' && e.key <= '9') {
-        state.inputDigit(Number(e.key));
+        requestDigit(Number(e.key));
         e.preventDefault();
         return;
       }

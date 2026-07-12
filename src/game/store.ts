@@ -158,14 +158,26 @@ const buildGame = (
   future: [] as Snapshot[],
 });
 
-/** Cells a digit/erase acts on: the multi-selection, or the single anchor. */
-const targetCells = (s: GameState): number[] => {
+/**
+ * A correctly-filled cell locks once the game is validating entries (Arcade
+ * always, Good when auto-check is on): you can't overwrite or erase it, and the
+ * number pad greys out every other digit. Givens are handled separately.
+ */
+export const isCellLocked = (s: GameState, i: number): boolean =>
+  (s.autoCheck || s.mode === 'arcade') &&
+  !s.given[i] &&
+  s.values[i] !== 0 &&
+  s.values[i] === s.solution[i];
+
+/** Cells a digit/erase acts on: the multi-selection, or the single anchor.
+ *  Givens and locked-correct cells are never editable, so they're filtered out. */
+export const targetCells = (s: GameState): number[] => {
   const cells = s.selection.length
     ? s.selection
     : s.selected != null
       ? [s.selected]
       : [];
-  return cells.filter((i) => !s.given[i]);
+  return cells.filter((i) => !s.given[i] && !isCellLocked(s, i));
 };
 
 export const useGame = create<GameState>()(

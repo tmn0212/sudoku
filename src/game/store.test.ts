@@ -133,12 +133,37 @@ describe('game store', () => {
     expect(useGame.getState().values[cell]).toBe(4);
   });
 
-  it('erases a filled cell', () => {
+  it('erases a filled (incorrect, still-editable) cell', () => {
     const cell = firstEmptyCell();
+    const correct = useGame.getState().solution[cell];
+    const wrong = correct === 4 ? 5 : 4;
     useGame.getState().selectCell(cell);
-    useGame.getState().inputDigit(4);
+    useGame.getState().inputDigit(wrong);
     useGame.getState().erase();
     expect(useGame.getState().values[cell]).toBe(0);
+  });
+
+  it('locks a correctly filled cell against overwrite and erase', () => {
+    const cell = firstEmptyCell();
+    const correct = useGame.getState().solution[cell];
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(correct); // auto-check on by default -> locks
+    const other = correct === 9 ? 1 : correct + 1;
+    useGame.getState().inputDigit(other);
+    expect(useGame.getState().values[cell]).toBe(correct); // can't overwrite
+    useGame.getState().erase();
+    expect(useGame.getState().values[cell]).toBe(correct); // can't erase
+  });
+
+  it('does not lock correct cells when auto-check is off', () => {
+    useGame.getState().setAutoCheck(false);
+    const cell = firstEmptyCell();
+    const correct = useGame.getState().solution[cell];
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(correct);
+    useGame.getState().erase(); // no validation -> still editable
+    expect(useGame.getState().values[cell]).toBe(0);
+    useGame.getState().setAutoCheck(true);
   });
 
   it('produces a correct, applicable hint', () => {

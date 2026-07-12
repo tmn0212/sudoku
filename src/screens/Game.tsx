@@ -7,6 +7,7 @@ import { TopBar } from '../components/TopBar';
 import { HintBanner } from '../components/HintBanner';
 import { WinOverlay } from '../components/WinOverlay';
 import { NewGameSheet } from '../components/NewGameSheet';
+import { BanConfirm } from '../components/BanConfirm';
 import { useGameTimer } from '../hooks/useGameTimer';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useRecordGame } from '../hooks/useRecordGame';
@@ -79,6 +80,7 @@ export const Game = () => {
         <Controls />
       </div>
       <NewGameSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <BanConfirm />
       <WinOverlay
         onNext={nextPuzzle}
         onRetry={retry}
