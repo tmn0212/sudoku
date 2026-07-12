@@ -22,7 +22,9 @@
   min-height: 0;
 }
 
-/* ---------- Top bar ---------- */
+/* ---------- Top bar ----------
+   Two grouped clusters (home + status on the left, timer + New on the right)
+   so every element reads as a deliberate, tappable control on one baseline. */
 .topbar {
   display: flex;
   align-items: center;
@@ -30,39 +32,80 @@
   gap: 12px;
   padding: 10px clamp(12px, 4vw, 20px);
 }
+.topbar__left,
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* A real, bordered icon button (was a bare transparent glyph). */
+.topbar__btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+.topbar__btn:active {
+  transform: scale(0.94);
+  background: var(--peer);
+}
 
 .topbar__meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
-
 .topbar__difficulty {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  text-transform: capitalize;
+  line-height: 1.15;
 }
-
 .topbar__mistakes {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--muted);
 }
+.topbar__lives {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ban);
+}
 
+/* Timer sits in a subtle pill so it feels like a labelled element, not stray
+   text floating next to the button. */
 .topbar__timer {
-  font-variant-numeric: tabular-nums;
-  font-size: 1.1rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1.5px solid var(--grid-thin);
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.98rem;
+  font-weight: 600;
 }
-
 .topbar__new {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: none;
   background: var(--primary);
   color: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
-  padding: 9px 16px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 8px 15px 8px 11px;
   border-radius: 999px;
   transition: transform 0.08s ease, background 0.2s ease;
 }
@@ -1478,19 +1521,6 @@
   transform: translateX(18px);
 }
 
-/* ---------- TopBar icon button ---------- */
-.topbar__icon {
-  border: none;
-  background: transparent;
-  color: var(--text);
-  display: flex;
-  padding: 8px;
-  border-radius: 10px;
-}
-.topbar__icon:active {
-  background: var(--peer);
-}
-
 /* ============================================================
    Phase B: note layers, input-mode bar, bigger number pad
    ============================================================ */
@@ -1593,11 +1623,6 @@
 /* ============================================================
    Phase C: arcade lives + score
    ============================================================ */
-.topbar__lives {
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  color: var(--ban);
-}
 .overlay__score {
   display: flex;
   flex-direction: column;
