@@ -339,32 +339,45 @@
   box-shadow: inset 0 0 0 2px var(--hint-fg);
 }
 
-/* Completion flash: a row/column/box lights up green in a diagonal wave the
-   moment it's correctly filled. --flash-delay (set per cell) staggers it. */
+/* Completion flash: a finished row/column/box — or a digit that's now placed in
+   all nine of its cells — lights up green in a diagonal wave with a glowing ring
+   and a springy digit bounce. --flash-delay (set per cell) staggers the wave. */
 .cell--flash {
-  animation: cellFlash 0.55s ease var(--flash-delay, 0ms) both;
+  z-index: 3;
+  animation: cellFlash 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--flash-delay, 0ms) both;
 }
 .cell--flash .cell__value {
-  animation: cellPopValue 0.55s ease var(--flash-delay, 0ms) both;
+  animation: cellPopValue 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--flash-delay, 0ms) both;
 }
 @keyframes cellFlash {
   0% {
     background-color: transparent;
+    box-shadow: inset 0 0 0 0 transparent;
   }
-  30% {
-    background-color: color-mix(in srgb, #22c55e 60%, transparent);
+  22% {
+    background-color: color-mix(in srgb, #22c55e 72%, transparent);
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, #22c55e 90%, transparent),
+      0 0 16px 3px color-mix(in srgb, #22c55e 55%, transparent);
+  }
+  55% {
+    background-color: color-mix(in srgb, #22c55e 26%, transparent);
   }
   100% {
     background-color: transparent;
+    box-shadow: inset 0 0 0 0 transparent;
   }
 }
 @keyframes cellPopValue {
   0% {
     transform: scale(1);
   }
-  30% {
-    transform: scale(1.32);
-    color: #15a34a;
+  25% {
+    transform: scale(1.44);
+    color: #12a150;
+  }
+  55% {
+    transform: scale(0.93);
   }
   100% {
     transform: scale(1);
