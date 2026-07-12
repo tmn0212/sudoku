@@ -137,6 +137,75 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  position: relative;
+}
+
+/* Pop-out ghosts float above the grid, each sized to one cell (1/9 of board). */
+.board__ghosts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.board__ghost {
+  position: absolute;
+  width: calc(100% / 9);
+  height: calc(100% / 9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popOut 0.28s ease forwards;
+}
+.board__ghost--wrong {
+  color: var(--error-fg);
+}
+
+/* ---------- Radial mode picker (hold a cell to open) ---------- */
+.radial {
+  position: fixed;
+  z-index: 100;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation: fade 0.12s ease;
+}
+.radial__hub {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+}
+.radial__opt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--grid-thin);
+  box-shadow: var(--shadow);
+  font-size: 0.56rem;
+  font-weight: 700;
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+}
+.radial__opt--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.radial__label {
+  line-height: 1;
 }
 
 .cell {
@@ -182,6 +251,11 @@
    wash, so the empty cells where no line crosses stand out as candidates. */
 .cell--cross {
   background: color-mix(in srgb, #f5a524 20%, transparent);
+}
+/* A crossroad cell where you've already banned the selected digit turns red
+   instead of amber — a reminder it definitely can't go here. */
+.cell--cross-banned {
+  background: color-mix(in srgb, var(--ban) 22%, transparent);
 }
 .cell--peer {
   background: var(--peer);
@@ -253,6 +327,45 @@
 @media (prefers-reduced-motion: reduce) {
   .cell--flash,
   .cell--flash .cell__value {
+    animation: none;
+  }
+}
+
+/* Pop-in: freshly placed digits and marks spring into the cell. */
+.cell--pop .cell__value {
+  animation: popIn 0.26s ease;
+}
+.cell--pop .cell__notes {
+  animation: popIn 0.22s ease;
+}
+@keyframes popIn {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* Pop-out: a ghost of just-removed content shrinks away where the cell was. */
+@keyframes popOut {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell--pop .cell__value,
+  .cell--pop .cell__notes,
+  .board__ghost {
     animation: none;
   }
 }

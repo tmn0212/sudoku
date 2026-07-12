@@ -13,14 +13,18 @@ export interface CellProps {
   bans: number;
   selected: boolean;
   peer: boolean;
-  /** On a row/column that already holds the selected digit (crossroad scan). */
+  /** On a row/column/box that already holds the selected digit (crossroad scan). */
   cross: boolean;
+  /** A crossroad cell where the selected digit is banned — flag it red. */
+  crossBanned: boolean;
   same: boolean;
   conflict: boolean;
   wrong: boolean;
   hint: boolean;
   /** Plays the "unit completed" celebration flash. */
   flash?: boolean;
+  /** Plays the pop-in animation for freshly placed content. */
+  pop?: boolean;
   /** When set, this digit's matching pencil mark is highlighted (0 = off). */
   noteHighlight?: number;
 }
@@ -43,11 +47,13 @@ const CellComponent = ({
   selected,
   peer,
   cross,
+  crossBanned,
   same,
   conflict,
   wrong,
   hint,
   flash,
+  pop,
   noteHighlight = 0,
 }: CellProps) => {
   const row = rowOf(index);
@@ -56,14 +62,18 @@ const CellComponent = ({
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
-  // Background precedence: selected > same-number > peer > crossroad line.
+  // Background precedence: selected > same-number > banned-crossroad (a red
+  // "definitely not here" cue that beats the plain peer/line shading) > peer >
+  // crossroad line.
   if (selected) classes.push('cell--selected');
   else if (same) classes.push('cell--same');
+  else if (crossBanned) classes.push('cell--cross-banned');
   else if (peer) classes.push('cell--peer');
   else if (cross) classes.push('cell--cross');
   if (conflict || wrong) classes.push('cell--error');
   if (hint) classes.push('cell--hint');
   if (flash) classes.push('cell--flash');
+  if (pop) classes.push('cell--pop');
   if (col % 3 === 2 && col !== 8) classes.push('cell--box-right');
   if (row % 3 === 2 && row !== 8) classes.push('cell--box-bottom');
 
