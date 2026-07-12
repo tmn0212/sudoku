@@ -386,8 +386,17 @@
     opacity: 0;
   }
 }
-.overlay__emoji {
-  font-size: 3rem;
+.overlay__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.overlay__icon--win {
+  color: #eab308;
+}
+.overlay__icon--lose {
+  color: var(--ban);
 }
 .overlay__title {
   margin: 6px 0 18px;
@@ -662,7 +671,9 @@
   opacity: 0.85;
 }
 .home__continue-go {
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  color: #fff;
 }
 
 /* Mode picker — the top level of the drill-down (mode → difficulty → puzzle). */
@@ -718,8 +729,9 @@
 }
 .home__modecard-go {
   grid-area: go;
+  display: flex;
+  align-items: center;
   color: var(--muted);
-  font-size: 0.95rem;
 }
 
 .home__nav {
@@ -812,6 +824,9 @@
   gap: 10px;
 }
 .diffcard__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--muted);
@@ -821,8 +836,9 @@
   color: var(--primary);
 }
 .diffcard__go {
+  display: flex;
+  align-items: center;
   color: var(--muted);
-  font-size: 0.85rem;
 }
 
 /* ---------- Challenges (puzzle list for one mode+difficulty) ---------- */
@@ -843,11 +859,14 @@
 }
 .chal-random {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: none;
   background: var(--primary);
   color: #fff;
   border-radius: 999px;
-  padding: 9px 16px;
+  padding: 9px 15px;
   font-weight: 700;
   font-size: 0.85rem;
   transition: transform 0.07s ease, background 0.15s ease;
@@ -916,10 +935,10 @@
 }
 .chal-cell__check {
   position: absolute;
-  top: 4px;
+  top: 5px;
   right: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  display: flex;
+  line-height: 0;
   color: var(--primary);
 }
 .chal-cell__dot {
@@ -1031,8 +1050,10 @@
 }
 .learn-item__badge {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--muted);
-  font-size: 0.9rem;
 }
 .learn-item__badge--done {
   display: flex;
@@ -1204,6 +1225,10 @@
   margin-bottom: 20px;
 }
 .walk__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   border: 1.5px solid var(--grid-thin);
   background: var(--surface);
   color: var(--text);
@@ -1246,6 +1271,10 @@
   font-size: 1rem;
 }
 .lesson-actions__learn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1.5px solid var(--grid-thin);
   border-radius: 14px;
   padding: 14px;
@@ -1586,25 +1615,13 @@
   box-shadow: inset 0 0 0 1px var(--primary);
 }
 .mode-bar__icon {
-  font-size: 1.05rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
 }
 .mode-bar__label {
   line-height: 1;
-}
-.dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-}
-.dot--blue {
-  background: #7c5cff;
-}
-.dot--grey {
-  background: var(--note-alt);
-}
-.dot--red {
-  background: var(--ban);
 }
 
 /* ---------- Bigger, touch-friendly number pad ---------- */
@@ -1772,11 +1789,22 @@
 .mode-bar__btn--active[data-mode='ban'] {
   background: var(--ban);
 }
-.mode-bar__btn--active .dot {
-  background: #fff;
-}
 .mode-bar__btn--active .mode-bar__icon {
   color: #fff;
+}
+/* Inactive: each mode's icon carries its own accent, so the row shows at a
+   glance which tool a tap will use (digit / notes / notes-2 / ban). */
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='normal'] .mode-bar__icon {
+  color: var(--primary);
+}
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='note'] .mode-bar__icon {
+  color: #7c5cff;
+}
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='noteAlt'] .mode-bar__icon {
+  color: var(--note-alt);
+}
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='ban'] .mode-bar__icon {
+  color: var(--ban);
 }
 
 /* The pad digits preview the colour the tap will produce. */

@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 import { formatTime } from '../utils/format';
+import { IconGrid, IconBolt, IconChevronRight } from '../components/icons';
 import type { Difficulty } from '../engine/types';
 import type { Mode } from '../db/idb';
 
@@ -12,9 +14,9 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   impossible: 'Impossible',
 };
 
-const MODES: { id: Mode; label: string; blurb: string; icon: string }[] = [
-  { id: 'good', label: 'Good', blurb: 'Classic sudoku · take your time', icon: '♜' },
-  { id: 'arcade', label: 'Arcade', blurb: 'Race the clock · limited mistakes', icon: '⚡' },
+const MODES: { id: Mode; label: string; blurb: string; icon: ReactNode }[] = [
+  { id: 'good', label: 'Good', blurb: 'Classic sudoku · take your time', icon: <IconGrid size={24} /> },
+  { id: 'arcade', label: 'Arcade', blurb: 'Race the clock · limited mistakes', icon: <IconBolt size={24} /> },
 ];
 
 export const Home = () => {
@@ -50,7 +52,9 @@ export const Home = () => {
               {empties}
             </span>
           </div>
-          <span className="home__continue-go" aria-hidden="true">▶</span>
+          <span className="home__continue-go" aria-hidden="true">
+            <IconChevronRight size={22} />
+          </span>
         </button>
       )}
 
@@ -66,7 +70,9 @@ export const Home = () => {
             </span>
             <span className="home__modecard-label">{m.label}</span>
             <span className="home__modecard-blurb">{m.blurb}</span>
-            <span className="home__modecard-go" aria-hidden="true">▶</span>
+            <span className="home__modecard-go" aria-hidden="true">
+              <IconChevronRight size={20} />
+            </span>
           </button>
         ))}
       </div>

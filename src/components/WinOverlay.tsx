@@ -1,5 +1,6 @@
 import { useGame } from '../game/store';
 import { formatTime } from '../utils/format';
+import { IconTrophy, IconHeartBroken } from './icons';
 
 interface WinOverlayProps {
   onNewGame: () => void;
@@ -23,8 +24,11 @@ export const WinOverlay = ({ onNewGame }: WinOverlayProps) => {
       aria-label={won ? 'Puzzle solved' : 'Game over'}
     >
       <div className="overlay__card">
-        <div className="overlay__emoji" aria-hidden="true">
-          {won ? '🎉' : '💥'}
+        <div
+          className={`overlay__icon overlay__icon--${won ? 'win' : 'lose'}`}
+          aria-hidden="true"
+        >
+          {won ? <IconTrophy size={52} /> : <IconHeartBroken size={52} />}
         </div>
         <h2 className="overlay__title">{won ? 'Solved!' : 'Out of lives'}</h2>
         {won && (

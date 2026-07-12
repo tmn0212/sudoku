@@ -1,0 +1,158 @@
+/**
+ * Tiny inline-SVG icon set. Dependency-free and themeable: every icon draws in
+ * `currentColor`, so colour comes from the surrounding element. Kept in one
+ * module so screens share the same visual language (replaces scattered emoji).
+ */
+import type { SVGProps } from 'react';
+
+type IconProps = { size?: number } & SVGProps<SVGSVGElement>;
+
+const svg = (size: number, rest: SVGProps<SVGSVGElement>) => ({
+  width: size,
+  height: size,
+  viewBox: '0 0 24 24',
+  'aria-hidden': true,
+  focusable: false,
+  ...rest,
+});
+
+const stroke = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+};
+
+export const IconHome = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+  </svg>
+);
+
+export const IconChevronRight = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path {...stroke} d="M9 6l6 6-6 6" />
+  </svg>
+);
+
+export const IconChevronLeft = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path {...stroke} d="M15 6l-6 6 6 6" />
+  </svg>
+);
+
+export const IconCheck = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path {...stroke} strokeWidth={2.4} d="M20 6L9 17l-5-5" />
+  </svg>
+);
+
+export const IconPlus = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path {...stroke} d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+export const IconClock = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <circle cx="12" cy="12" r="9" {...stroke} />
+    <path {...stroke} d="M12 8v4l3 2" />
+  </svg>
+);
+
+/** Pen: places a final digit (the "ink" tool). */
+export const IconPencil = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path
+      fill="currentColor"
+      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+    />
+  </svg>
+);
+
+/** Pencil marks: the small 3x3 candidate grid — the "notes" tool. */
+export const IconNotes = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    {[6, 12, 18].map((y) =>
+      [6, 12, 18].map((x) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" fill="currentColor" />
+      )),
+    )}
+  </svg>
+);
+
+/** No-entry sign: this digit cannot go here (the "ban" tool). */
+export const IconBan = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path
+      fill="currentColor"
+      d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2c1.85 0 3.55.63 4.9 1.69L5.69 16.9A7.94 7.94 0 0 1 4 12c0-4.42 3.58-8 8-8zm0 16a7.94 7.94 0 0 1-4.9-1.69L18.31 7.1A7.94 7.94 0 0 1 20 12c0 4.42-3.58 8-8 8z"
+    />
+  </svg>
+);
+
+/** Sudoku grid — marks the untimed "Good" mode. */
+export const IconGrid = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <rect x="3" y="3" width="18" height="18" rx="3" {...stroke} />
+    <path {...stroke} strokeWidth={1.6} d="M9 3v18M15 3v18M3 9h18M3 15h18" />
+  </svg>
+);
+
+/** Lightning — marks the timed "Arcade" mode. */
+export const IconBolt = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path fill="currentColor" d="M13 2L3 14h6l-1 8 10-12h-6l1-8z" />
+  </svg>
+);
+
+export const IconDice = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <rect x="3" y="3" width="18" height="18" rx="4" {...stroke} />
+    {[
+      [8, 8],
+      [16, 8],
+      [12, 12],
+      [8, 16],
+      [16, 16],
+    ].map(([cx, cy]) => (
+      <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="1.6" fill="currentColor" />
+    ))}
+  </svg>
+);
+
+export const IconTrophy = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path
+      fill="currentColor"
+      d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"
+    />
+  </svg>
+);
+
+export const IconHeart = ({
+  size = 24,
+  filled = true,
+  ...rest
+}: IconProps & { filled?: boolean }) => (
+  <svg {...svg(size, rest)}>
+    <path
+      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth={filled ? 0 : 2}
+    />
+  </svg>
+);
+
+export const IconHeartBroken = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      fill="currentColor"
+      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12.9 6l-2.4 4.4h2.3L11 15.5l4.2-6.2h-2.5L14.4 6z"
+    />
+  </svg>
+);

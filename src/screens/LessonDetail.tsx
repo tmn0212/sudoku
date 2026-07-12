@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { LessonBoard } from '../components/LessonBoard';
+import { IconCheck, IconChevronLeft, IconChevronRight } from '../components/icons';
 import { lessonById } from '../data/lessons';
 import { parseGrid } from '../engine/board';
 import { solve } from '../engine/solver';
@@ -140,7 +141,7 @@ export const LessonDetail = () => {
             </>
           ) : (
             <p className="walk__reason walk__reason--done">
-              That’s the move — the puzzle opens up from here. Try it yourself
+              That’s the move. The puzzle opens up from here, so try it yourself
               below.
             </p>
           )}
@@ -152,7 +153,8 @@ export const LessonDetail = () => {
             onClick={() => setI((n) => Math.max(0, n - 1))}
             disabled={atStart}
           >
-            ‹ Back
+            <IconChevronLeft size={18} />
+            Back
           </button>
           <button
             className="walk__btn walk__btn--ghost"
@@ -166,7 +168,8 @@ export const LessonDetail = () => {
             onClick={() => setI((n) => Math.min(frames.length - 1, n + 1))}
             disabled={atEnd}
           >
-            Next ›
+            Next
+            <IconChevronRight size={18} />
           </button>
         </div>
 
@@ -180,7 +183,14 @@ export const LessonDetail = () => {
             className={`lesson-actions__learn ${isLearned ? 'lesson-actions__learn--done' : ''}`}
             onClick={toggleLearned}
           >
-            {isLearned ? '✓ Learned' : 'Mark as learned'}
+            {isLearned ? (
+              <>
+                <IconCheck size={17} />
+                Learned
+              </>
+            ) : (
+              'Mark as learned'
+            )}
           </button>
         </div>
       </div>

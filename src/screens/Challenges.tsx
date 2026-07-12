@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { IconCheck, IconDice } from '../components/icons';
 import { loadChallengePack } from '../data/challenges';
 import { getChallengeProgress } from '../db/progress';
 import { useStartChallenge } from '../hooks/useStartChallenge';
@@ -87,7 +88,17 @@ export const Challenges = () => {
             onClick={randomUnsolved}
             disabled={loading || allSolved}
           >
-            {allSolved ? 'All done 🎉' : '🎲 Random'}
+            {allSolved ? (
+              <>
+                <IconCheck size={16} />
+                All done
+              </>
+            ) : (
+              <>
+                <IconDice size={16} />
+                Random
+              </>
+            )}
           </button>
         </div>
 
@@ -125,7 +136,9 @@ export const Challenges = () => {
                     <span className="chal-cell__tag">Retry</span>
                   ) : null}
                   {state === 'solved' && (
-                    <span className="chal-cell__check" aria-hidden="true">✓</span>
+                    <span className="chal-cell__check" aria-hidden="true">
+                      <IconCheck size={13} />
+                    </span>
                   )}
                   {state === 'active' && (
                     <span className="chal-cell__dot" aria-hidden="true" />

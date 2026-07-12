@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { IconCheck, IconChevronRight } from '../components/icons';
 import { LESSONS, TIERS } from '../data/lessons';
 import { getLearned } from '../db/learned';
 import { useUi } from '../state/uiStore';
@@ -48,11 +49,11 @@ export const Learn = () => {
                         className="learn-item__badge learn-item__badge--done"
                         aria-label="Learned"
                       >
-                        ✓
+                        <IconCheck size={16} />
                       </span>
                     ) : (
                       <span className="learn-item__badge" aria-hidden="true">
-                        ▶
+                        <IconChevronRight size={18} />
                       </span>
                     )}
                   </button>

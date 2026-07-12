@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { IconCheck, IconChevronRight } from '../components/icons';
 import { PACK_SIZES } from '../data/challenges';
 import { getChallengeProgress } from '../db/progress';
 import { useUi } from '../state/uiStore';
@@ -63,9 +64,18 @@ export const Difficulties = () => {
                   <span
                     className={`diffcard__progress ${complete ? 'diffcard__progress--done' : ''}`}
                   >
-                    {complete ? '✓ all' : `${done}/${total}`}
+                    {complete ? (
+                      <>
+                        <IconCheck size={14} />
+                        all
+                      </>
+                    ) : (
+                      `${done}/${total}`
+                    )}
                   </span>
-                  <span className="diffcard__go" aria-hidden="true">▶</span>
+                  <span className="diffcard__go" aria-hidden="true">
+                    <IconChevronRight size={18} />
+                  </span>
                 </div>
               </button>
             );
