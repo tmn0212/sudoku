@@ -12,6 +12,7 @@ const hasProgress = (s: GameState): boolean =>
   s.notes.some(Boolean) ||
   s.notesAlt.some(Boolean) ||
   s.bans.some(Boolean) ||
+  s.lockedBans.some(Boolean) ||
   s.elapsedMs >= 3000;
 
 const serialize = (s: GameState): SavedGame => ({
@@ -26,6 +27,7 @@ const serialize = (s: GameState): SavedGame => ({
   notes: s.notes,
   notesAlt: s.notesAlt,
   bans: s.bans,
+  lockedBans: s.lockedBans,
   inputMode: s.inputMode,
   status: s.status,
   elapsedMs: s.elapsedMs,

@@ -30,6 +30,7 @@ export const Board = () => {
   const notes = useGame((s) => s.notes);
   const notesAlt = useGame((s) => s.notesAlt);
   const bans = useGame((s) => s.bans);
+  const lockedBans = useGame((s) => s.lockedBans);
   const given = useGame((s) => s.given);
   const solution = useGame((s) => s.solution);
   const selection = useGame((s) => s.selection);
@@ -223,12 +224,14 @@ export const Board = () => {
           given={given[i]}
           notes={notes[i]}
           notesAlt={notesAlt[i]}
-          bans={bans[i]}
+          bans={bans[i] | lockedBans[i]}
           selected={selectionSet.has(i)}
           peer={peerSet.has(i)}
           cross={crossSet.has(i)}
           crossBanned={
-            crossSet.has(i) && selectedDigit !== 0 && hasCandidate(bans[i], selectedDigit)
+            crossSet.has(i) &&
+            selectedDigit !== 0 &&
+            hasCandidate(bans[i] | lockedBans[i], selectedDigit)
           }
           same={selectedValue !== 0 && values[i] === selectedValue}
           conflict={conflicts.has(i)}

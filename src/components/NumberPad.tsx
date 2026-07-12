@@ -10,12 +10,12 @@ export const NumberPad = () => {
   const solution = useGame((s) => s.solution);
   const given = useGame((s) => s.given);
   const bans = useGame((s) => s.bans);
+  const lockedBans = useGame((s) => s.lockedBans);
   const selection = useGame((s) => s.selection);
   const selected = useGame((s) => s.selected);
   const status = useGame((s) => s.status);
   const autoCheck = useGame((s) => s.autoCheck);
   const mode = useGame((s) => s.mode);
-  const inputMode = useGame((s) => s.inputMode);
   const showRemaining = useSettings((s) => s.showRemaining);
 
   const checking = autoCheck || mode === 'arcade';
@@ -29,8 +29,11 @@ export const NumberPad = () => {
     return 0;
   });
 
-  // Digits the user has banned in the (single) selected cell show up in red.
-  const bannedMask = selection.length <= 1 && selected != null ? bans[selected] : 0;
+  // Bans of the single selected cell. User bans (red, still tappable with a
+  // confirm) are kept separate from locked bans (grey + disabled everywhere).
+  const single = selection.length <= 1 && selected != null;
+  const bannedMask = single ? bans[selected] : 0;
+  const lockedMask = single ? lockedBans[selected] : 0;
 
   // How many of each digit still need placing. While the game is validating, a
   // key only counts as "done" once all nine copies are placed *correctly*, so a
@@ -51,22 +54,27 @@ export const NumberPad = () => {
       {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
         const done = remaining[n] <= 0;
         const fixedOut = fixedDigit !== 0 && n !== fixedDigit;
-        const banned = hasCandidate(bannedMask, n);
-        // A banned digit greys out so the same wrong entry can't be repeated —
-        // except in Ban mode, where tapping it is how you lift the ban.
-        const bannedOut = banned && inputMode !== 'ban';
+        // Locked: a wrong-entry ban — greyed out and disabled in every mode.
+        // Banned: a user ban — red, still tappable (a confirm follows).
+        const locked = hasCandidate(lockedMask, n);
+        const banned = !locked && hasCandidate(bannedMask, n);
+        const cls = locked
+          ? ' numberpad__key--locked'
+          : banned
+            ? ' numberpad__key--banned'
+            : '';
         return (
           <button
             key={n}
             type="button"
-            className={`numberpad__key${banned ? ' numberpad__key--banned' : ''}`}
-            disabled={done || fixedOut || bannedOut || status !== 'playing'}
+            className={`numberpad__key${cls}`}
+            disabled={done || fixedOut || locked || status !== 'playing'}
             onClick={() => {
               haptics.tap();
               requestDigit(n);
             }}
             aria-label={`Enter ${n}, ${Math.max(remaining[n], 0)} remaining${
-              banned ? ' (banned in the selected cell)' : ''
+              locked ? ' (blocked for the selected cell)' : banned ? ' (banned in the selected cell)' : ''
             }`}
           >
             <span className="numberpad__digit">{n}</span>

@@ -55,6 +55,8 @@ export interface SavedGame {
   notes: number[];
   notesAlt: number[];
   bans: number[];
+  /** Optional for backward compat with saves made before wrong-entry locks. */
+  lockedBans?: number[];
   inputMode: string;
   status: string;
   elapsedMs: number;

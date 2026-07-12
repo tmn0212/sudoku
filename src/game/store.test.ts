@@ -166,7 +166,7 @@ describe('game store', () => {
     useGame.getState().setAutoCheck(true);
   });
 
-  it('autoBanWrong pops a lingering wrong entry out and bans it', () => {
+  it('autoBanWrong pops a wrong entry out into the permanent lock layer', () => {
     const cell = firstEmptyCell();
     const correct = useGame.getState().solution[cell];
     const wrong = correct === 1 ? 2 : 1;
@@ -176,20 +176,47 @@ describe('game store', () => {
     useGame.getState().autoBanWrong(cell, wrong);
     const s = useGame.getState();
     expect(s.values[cell]).toBe(0); // popped out
-    expect(s.bans[cell] & (1 << wrong)).toBeTruthy(); // now banned
+    expect(s.lockedBans[cell] & (1 << wrong)).toBeTruthy(); // permanently locked
+    expect(s.bans[cell] & (1 << wrong)).toBeFalsy(); // not a user ban
   });
 
-  it('autoBanWrong is a no-op if the cell no longer holds that digit', () => {
+  it('a locked ban survives undo and blocks re-entry of that digit', () => {
     const cell = firstEmptyCell();
     const correct = useGame.getState().solution[cell];
     const wrong = correct === 1 ? 2 : 1;
     useGame.getState().selectCell(cell);
     useGame.getState().inputDigit(wrong);
-    useGame.getState().erase(); // player fixed it first
-    useGame.getState().autoBanWrong(cell, wrong); // stale timer fires
-    const s = useGame.getState();
-    expect(s.values[cell]).toBe(0);
-    expect(s.bans[cell] & (1 << wrong)).toBeFalsy(); // no phantom ban
+    useGame.getState().autoBanWrong(cell, wrong);
+    useGame.getState().undo(); // undo the original placement
+    expect(useGame.getState().lockedBans[cell] & (1 << wrong)).toBeTruthy(); // still locked
+    // ...and the digit can't be entered there again.
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(wrong);
+    expect(useGame.getState().values[cell]).toBe(0);
+  });
+
+  it('restart clears locked bans', () => {
+    const cell = firstEmptyCell();
+    const wrong = useGame.getState().solution[cell] === 1 ? 2 : 1;
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(wrong);
+    useGame.getState().autoBanWrong(cell, wrong);
+    useGame.getState().restartGame();
+    expect(useGame.getState().lockedBans.some(Boolean)).toBe(false);
+  });
+
+  it('switching to Digit collapses a multi-selection to its first cell', () => {
+    const empties = useGame
+      .getState()
+      .given.map((g, i) => (g ? -1 : i))
+      .filter((i) => i >= 0)
+      .slice(0, 3);
+    useGame.getState().setSelection(empties);
+    useGame.getState().setInputMode('note');
+    expect(useGame.getState().selection).toHaveLength(3);
+    useGame.getState().setInputMode('normal');
+    expect(useGame.getState().selection).toEqual([empties[0]]);
+    expect(useGame.getState().selected).toBe(empties[0]);
   });
 
   it('produces a correct, applicable hint', () => {

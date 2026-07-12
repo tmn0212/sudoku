@@ -2186,18 +2186,18 @@
   outline-offset: -3px;
 }
 
-/* A digit banned in the selected cell is flagged red and greyed out on the pad
-   (struck through) so the same wrong entry can't be repeated. */
+/* A user-banned digit is flagged red but stays tappable — tapping it asks for
+   confirmation before overriding the ban. */
 .numberpad__key--banned {
   background: var(--ban-bg);
 }
 .numberpad__key--banned .numberpad__digit {
   color: var(--ban);
-  text-decoration: line-through;
 }
-/* Keep banned keys clearly red rather than washed out like a plain disabled key. */
-.numberpad__key--banned:disabled {
-  opacity: 0.9;
+/* A locked digit (a wrong entry that got auto-banned) is greyed out and disabled
+   in every mode, so the same mistake can't be made twice in that cell. */
+.numberpad__key--locked:disabled {
+  opacity: 0.4;
 }
 
 /* ============================================================

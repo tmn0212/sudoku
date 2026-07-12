@@ -68,7 +68,11 @@ export interface GameState {
   values: Grid;
   notes: number[];
   notesAlt: number[];
+  /** User "cannot be" marks (the Ban tool) — undoable, overridable with a prompt. */
   bans: number[];
+  /** Digits permanently blocked in a cell after a wrong attempt. Not undoable and
+   *  never overridable; only a restart/new game clears them. */
+  lockedBans: number[];
   /** Selected cells (supports drag multi-select); last entry is the anchor. */
   selection: number[];
   /** Convenience anchor = last selected cell (or null). */
@@ -147,6 +151,7 @@ const buildGame = (
   notes: zeros(),
   notesAlt: zeros(),
   bans: zeros(),
+  lockedBans: zeros(),
   selection: [] as number[],
   selected: null as number | null,
   inputMode: 'normal' as InputMode,
@@ -227,6 +232,7 @@ export const useGame = create<GameState>()(
           notes: g.notes.slice(),
           notesAlt: g.notesAlt.slice(),
           bans: g.bans.slice(),
+          lockedBans: g.lockedBans?.slice() ?? zeros(),
           selection: [],
           selected: null,
           inputMode: g.inputMode as InputMode,
@@ -261,12 +267,21 @@ export const useGame = create<GameState>()(
           return { selection: [...s.selection, index], selected: index };
         }),
 
-      setInputMode: (mode) => set({ inputMode: mode }),
+      // Switching to Digit collapses a multi-selection back to the cell the drag
+      // started from — you can't place one final digit across many cells.
+      setInputMode: (mode) =>
+        set((s) =>
+          mode === 'normal' && s.selection.length > 1
+            ? { inputMode: mode, selection: [s.selection[0]], selected: s.selection[0] }
+            : { inputMode: mode },
+        ),
       cycleInputMode: () =>
         set((s) => {
           const order: InputMode[] = ['normal', 'note', 'noteAlt', 'ban'];
           const next = order[(order.indexOf(s.inputMode) + 1) % order.length];
-          return { inputMode: next };
+          return next === 'normal' && s.selection.length > 1
+            ? { inputMode: next, selection: [s.selection[0]], selected: s.selection[0] }
+            : { inputMode: next };
         }),
 
       setAutoCheck: (on) => set({ autoCheck: on }),
@@ -292,6 +307,7 @@ export const useGame = create<GameState>()(
 
         if (s.inputMode === 'normal') {
           for (const i of targets) {
+            if (hasCandidate(s.lockedBans[i], digit)) continue; // permanently blocked
             if (values[i] === digit && targets.length === 1) {
               values[i] = 0; // tapping the same digit clears it
             } else {
@@ -314,6 +330,7 @@ export const useGame = create<GameState>()(
           // behind another layer.
           for (const i of targets) {
             if (values[i] !== 0) continue; // marks only make sense on empty cells
+            if (hasCandidate(s.lockedBans[i], digit)) continue; // permanently blocked
             const current =
               s.inputMode === 'note' ? notes : s.inputMode === 'noteAlt' ? notesAlt : bans;
             const alreadyHere = hasCandidate(current[i], digit);
@@ -359,10 +376,12 @@ export const useGame = create<GameState>()(
           return;
         }
         const values = s.values.slice();
-        const bans = s.bans.slice();
+        const lockedBans = s.lockedBans.slice();
         values[cell] = 0; // pops the wrong entry out
-        bans[cell] = addCandidate(bans[cell], digit); // ...and remembers it's banned
-        set({ values, bans, hint: null });
+        // Recorded in the permanent layer (survives undo) so the same wrong entry
+        // can never be repeated for this cell.
+        lockedBans[cell] = addCandidate(lockedBans[cell], digit);
+        set({ values, lockedBans, hint: null });
       },
 
       erase: () => {
@@ -519,12 +538,12 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'sudoku-game',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
-      // Older saves predate gameId; give them one so the roster can key them.
       migrate: (persisted, version) => {
         const p = persisted as Partial<GameState>;
-        if (version < 3 && !p.gameId) p.gameId = newId();
+        if (version < 3 && !p.gameId) p.gameId = newId(); // gameId added in v3
+        if (version < 4 && !p.lockedBans) p.lockedBans = new Array(CELL_COUNT).fill(0);
         return p as GameState;
       },
       // Persist the game, not transient UI (selection/hint).
@@ -540,6 +559,7 @@ export const useGame = create<GameState>()(
         notes: s.notes,
         notesAlt: s.notesAlt,
         bans: s.bans,
+        lockedBans: s.lockedBans,
         inputMode: s.inputMode,
         status: s.status,
         elapsedMs: s.elapsedMs,
