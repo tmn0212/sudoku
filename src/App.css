@@ -23,33 +23,37 @@
 }
 
 /* ---------- Top bar ----------
-   Home on the left, New on the right, and a centred stat column (difficulty →
-   timer → lives) that keeps the clock anchored dead-centre no matter how long
-   the difficulty label is. */
+   Home on the left, Settings + New on the right, and a centred stat column
+   (difficulty → timer → lives) that keeps the clock anchored dead-centre no
+   matter how long the difficulty label is. */
 .topbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  padding: 8px clamp(12px, 4vw, 20px) 6px;
+  padding: 10px clamp(12px, 4vw, 20px) 6px;
 }
 .topbar > .topbar__btn {
   justify-self: start;
 }
-.topbar > .topbar__new {
+.topbar__actions {
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* A real, bordered icon button (was a bare transparent glyph). */
+/* Big, bordered icon buttons — the top bar has plenty of room, so make them
+   comfortably tappable. */
 .topbar__btn {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border: 1.5px solid var(--grid-thin);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--surface);
   color: var(--text);
   transition: transform 0.08s ease, background 0.15s ease;
@@ -57,6 +61,15 @@
 .topbar__btn:active {
   transform: scale(0.94);
   background: var(--peer);
+}
+/* The New (+) button is the primary action. */
+.topbar__btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.topbar__btn--primary:active {
+  background: var(--primary-strong);
 }
 
 /* Centre stat column. */
@@ -109,23 +122,6 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
-}
-.topbar__new {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: none;
-  background: var(--primary);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.92rem;
-  padding: 8px 15px 8px 11px;
-  border-radius: 999px;
-  transition: transform 0.08s ease, background 0.2s ease;
-}
-.topbar__new:active {
-  transform: scale(0.95);
-  background: var(--primary-strong);
 }
 
 /* ---------- Board ---------- */

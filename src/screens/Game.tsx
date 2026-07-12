@@ -25,6 +25,7 @@ export const Game = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [overlayBusy, setOverlayBusy] = useState(false);
   const reset = useUi((s) => s.reset);
+  const navigate = useUi((s) => s.navigate);
   const inputMode = useGame((s) => s.inputMode);
   const { startChallenge } = useStartChallenge();
   useGameTimer();
@@ -67,7 +68,11 @@ export const Game = () => {
 
   return (
     <div className="app" data-mode={inputMode}>
-      <TopBar onNewGame={() => setSheetOpen(true)} onHome={goHome} />
+      <TopBar
+        onNewGame={() => setSheetOpen(true)}
+        onHome={goHome}
+        onSettings={() => navigate('settings')}
+      />
       <main className="app__main">
         <Board />
         <HintBanner />

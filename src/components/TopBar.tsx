@@ -1,6 +1,6 @@
 import { useGame, ARCADE_LIVES } from '../game/store';
 import { formatTime } from '../utils/format';
-import { IconHome, IconClock, IconPlus, IconHeart } from './icons';
+import { IconHome, IconClock, IconPlus, IconHeart, IconSettings } from './icons';
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Easy',
@@ -13,9 +13,10 @@ const DIFFICULTY_LABEL: Record<string, string> = {
 interface TopBarProps {
   onNewGame: () => void;
   onHome: () => void;
+  onSettings: () => void;
 }
 
-export const TopBar = ({ onNewGame, onHome }: TopBarProps) => {
+export const TopBar = ({ onNewGame, onHome, onSettings }: TopBarProps) => {
   const difficulty = useGame((s) => s.difficulty);
   const elapsedMs = useGame((s) => s.elapsedMs);
   const mode = useGame((s) => s.mode);
@@ -26,7 +27,7 @@ export const TopBar = ({ onNewGame, onHome }: TopBarProps) => {
   return (
     <header className="topbar">
       <button className="topbar__btn" onClick={onHome} aria-label="Home">
-        <IconHome size={22} />
+        <IconHome size={26} />
       </button>
 
       {/* The clock is the anchored centrepiece; lives/mistakes sit right under it
@@ -52,10 +53,18 @@ export const TopBar = ({ onNewGame, onHome }: TopBarProps) => {
         </span>
       </div>
 
-      <button className="topbar__new" onClick={onNewGame}>
-        <IconPlus size={16} />
-        New
-      </button>
+      <div className="topbar__actions">
+        <button className="topbar__btn" onClick={onSettings} aria-label="Settings">
+          <IconSettings size={24} />
+        </button>
+        <button
+          className="topbar__btn topbar__btn--primary"
+          onClick={onNewGame}
+          aria-label="New game"
+        >
+          <IconPlus size={26} />
+        </button>
+      </div>
     </header>
   );
 };
