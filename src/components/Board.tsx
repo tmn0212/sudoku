@@ -26,6 +26,7 @@ export const Board = () => {
   const hint = useGame((s) => s.hint);
   const setSelection = useGame((s) => s.setSelection);
   const addToSelection = useGame((s) => s.addToSelection);
+  const setInputMode = useGame((s) => s.setInputMode);
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
   const highlightNotes = useSettings((s) => s.highlightNotes);
@@ -93,6 +94,10 @@ export const Board = () => {
     const idx = cellIndexFromPoint(e.clientX, e.clientY);
     if (idx == null || idx === lastIdx.current) return;
     lastIdx.current = idx;
+    // Placing final digits across a drag makes no sense, but marking a run of
+    // cells does: a drag that starts in Digit mode auto-switches to Notes so the
+    // multi-selection is useful. Notes/Notes 2/Ban just keep accumulating.
+    if (useGame.getState().inputMode === 'normal') setInputMode('note');
     addToSelection(idx);
   };
 
