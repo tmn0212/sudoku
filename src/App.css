@@ -1070,32 +1070,38 @@
   font-weight: 700;
 }
 
+/* Mirrors the in-game board (.board) so lessons feel like the real thing:
+   the same thick 3x3 separators, thin inner lines, rounded frame and shadow.
+   (The old rules referenced an undefined --grid-bold, so the box structure
+   never rendered and the grid looked nothing like play.) */
 .lboard {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   aspect-ratio: 1;
   width: 100%;
   max-width: 420px;
-  margin: 0 auto;
-  border: 2px solid var(--grid-bold);
-  border-radius: 6px;
+  margin: 0 auto 4px;
+  border: 2.5px solid var(--grid-strong);
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--board-bg, var(--surface));
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 .lboard__cell {
   position: relative;
   aspect-ratio: 1;
-  border-top: 1px solid var(--grid-thin);
-  border-left: 1px solid var(--grid-thin);
+  border-right: 1px solid var(--grid-thin);
+  border-bottom: 1px solid var(--grid-thin);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.lboard__cell--top {
-  border-top: 2px solid var(--grid-bold);
-}
+/* Thick separators between 3x3 boxes, drawn on the leading edge of boxes 2/3. */
 .lboard__cell--left {
-  border-left: 2px solid var(--grid-bold);
+  border-left: 2.5px solid var(--grid-strong);
+}
+.lboard__cell--top {
+  border-top: 2.5px solid var(--grid-strong);
 }
 .lboard__cell--right {
   border-right: none;
@@ -1109,11 +1115,11 @@
 }
 .lboard__value {
   font-weight: 700;
-  font-size: clamp(0.9rem, 4.4vw, 1.4rem);
-  color: var(--text);
+  font-size: clamp(0.95rem, 4.6vw, 1.45rem);
+  color: var(--cell-given);
 }
 .lboard__value--place {
-  color: var(--correct, #1a7f37);
+  color: var(--correct, #15a34a);
 }
 .lboard__notes {
   display: grid;

@@ -57,8 +57,9 @@ export const LessonBoard = ({
         const c = colOf(i);
         const classes = ['lboard__cell'];
         if (highlightSet.has(i)) classes.push('lboard__cell--hl');
-        if (r % 3 === 0) classes.push('lboard__cell--top');
-        if (c % 3 === 0) classes.push('lboard__cell--left');
+        // Thick separators only between boxes (not against the outer frame).
+        if (r % 3 === 0 && r !== 0) classes.push('lboard__cell--top');
+        if (c % 3 === 0 && c !== 0) classes.push('lboard__cell--left');
         if (r === 8) classes.push('lboard__cell--bottom');
         if (c === 8) classes.push('lboard__cell--right');
 
