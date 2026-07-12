@@ -38,9 +38,52 @@
 }
 .topbar__actions {
   justify-self: end;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* In-game "more options" dropdown (New game / Restart / Home). */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+}
+.topbar__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 45;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--grid-thin);
+  box-shadow: var(--shadow);
+  animation: pop 0.14s ease;
+}
+.topbar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 600;
+  border-radius: 10px;
+  text-align: left;
+}
+.topbar__menu-item:active {
+  background: var(--peer);
+}
+.topbar__menu-item svg {
+  color: var(--muted);
+  flex: 0 0 auto;
 }
 
 /* Big, bordered icon buttons — the top bar has plenty of room, so make them
@@ -81,9 +124,12 @@
   min-width: 0;
 }
 .topbar__difficulty {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
   line-height: 1;

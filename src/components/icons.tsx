@@ -61,6 +61,21 @@ export const IconClock = ({ size = 24, ...rest }: IconProps) => (
   </svg>
 );
 
+/** Hamburger — opens the in-game "more options" menu. */
+export const IconMenu = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path {...stroke} d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);
+
+/** Circular arrow — restart the puzzle from scratch. */
+export const IconRefresh = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path {...stroke} d="M3 12a9 9 0 1 0 2.6-6.4" />
+    <path {...stroke} d="M3 4v5h5" />
+  </svg>
+);
+
 /** Pen: places a final digit (the "ink" tool). */
 export const IconPencil = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>

@@ -1,6 +1,15 @@
+import { useState } from 'react';
 import { useGame, ARCADE_LIVES } from '../game/store';
 import { formatTime } from '../utils/format';
-import { IconHome, IconClock, IconPlus, IconHeart, IconSettings } from './icons';
+import {
+  IconClock,
+  IconHeart,
+  IconHome,
+  IconMenu,
+  IconPlus,
+  IconRefresh,
+  IconSettings,
+} from './icons';
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Easy',
@@ -10,30 +19,44 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   impossible: 'Impossible',
 };
 
+const MODE_LABEL: Record<string, string> = { good: 'Good', arcade: 'Arcade' };
+
 interface TopBarProps {
   onNewGame: () => void;
   onHome: () => void;
   onSettings: () => void;
+  onRestart: () => void;
 }
 
-export const TopBar = ({ onNewGame, onHome, onSettings }: TopBarProps) => {
+export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps) => {
   const difficulty = useGame((s) => s.difficulty);
-  const elapsedMs = useGame((s) => s.elapsedMs);
   const mode = useGame((s) => s.mode);
+  const challenge = useGame((s) => s.challenge);
+  const elapsedMs = useGame((s) => s.elapsedMs);
   const mistakes = useGame((s) => s.mistakes);
   const autoCheck = useGame((s) => s.autoCheck);
   const livesLeft = Math.max(0, ARCADE_LIVES - mistakes);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const run = (fn: () => void) => () => {
+    setMenuOpen(false);
+    fn();
+  };
 
   return (
     <header className="topbar">
-      <button className="topbar__btn" onClick={onHome} aria-label="Home">
-        <IconHome size={26} />
+      <button className="topbar__btn" onClick={onSettings} aria-label="Settings">
+        <IconSettings size={24} />
       </button>
 
-      {/* The clock is the anchored centrepiece; lives/mistakes sit right under it
-          so the two most-glanced-at stats read as one central column. */}
+      {/* The clock is the anchored centrepiece; the puzzle's mode/difficulty/#
+          sit above it and lives/mistakes right below, one central column. */}
       <div className="topbar__center">
-        <span className="topbar__difficulty">{DIFFICULTY_LABEL[difficulty]}</span>
+        <span className="topbar__difficulty">
+          <span>{MODE_LABEL[mode] ?? mode}</span>
+          <span>{DIFFICULTY_LABEL[difficulty] ?? difficulty}</span>
+          {challenge && <span>#{challenge.index + 1}</span>}
+        </span>
         <span className="topbar__timer" role="timer" aria-label="Elapsed time">
           <IconClock size={20} />
           {formatTime(elapsedMs)}
@@ -54,16 +77,34 @@ export const TopBar = ({ onNewGame, onHome, onSettings }: TopBarProps) => {
       </div>
 
       <div className="topbar__actions">
-        <button className="topbar__btn" onClick={onSettings} aria-label="Settings">
-          <IconSettings size={24} />
-        </button>
         <button
-          className="topbar__btn topbar__btn--primary"
-          onClick={onNewGame}
-          aria-label="New game"
+          className="topbar__btn"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="More options"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
         >
-          <IconPlus size={26} />
+          <IconMenu size={26} />
         </button>
+        {menuOpen && (
+          <>
+            <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+            <div className="topbar__menu" role="menu">
+              <button className="topbar__menu-item" role="menuitem" onClick={run(onNewGame)}>
+                <IconPlus size={19} />
+                New game
+              </button>
+              <button className="topbar__menu-item" role="menuitem" onClick={run(onRestart)}>
+                <IconRefresh size={19} />
+                Restart puzzle
+              </button>
+              <button className="topbar__menu-item" role="menuitem" onClick={run(onHome)}>
+                <IconHome size={19} />
+                Home
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

@@ -26,6 +26,7 @@ import { useUi } from '../state/uiStore';
 export const Game = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [overlayBusy, setOverlayBusy] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
   const reset = useUi((s) => s.reset);
   const navigate = useUi((s) => s.navigate);
   const inputMode = useGame((s) => s.inputMode);
@@ -76,6 +77,7 @@ export const Game = () => {
         onNewGame={() => setSheetOpen(true)}
         onHome={goHome}
         onSettings={() => navigate('settings')}
+        onRestart={() => setConfirmRestart(true)}
       />
       <main className="app__main">
         <Board />
@@ -90,6 +92,37 @@ export const Game = () => {
       </div>
       <NewGameSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
       <BanConfirm />
+      {confirmRestart && (
+        <div
+          className="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Restart puzzle"
+          onClick={() => setConfirmRestart(false)}
+        >
+          <div className="modal__card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="modal__title">Restart this puzzle?</h2>
+            <p className="modal__body">
+              This clears every digit, note and ban you've entered and starts the
+              same puzzle fresh.
+            </p>
+            <div className="modal__actions">
+              <button className="modal__btn" onClick={() => setConfirmRestart(false)}>
+                Cancel
+              </button>
+              <button
+                className="modal__btn modal__btn--primary"
+                onClick={() => {
+                  useGame.getState().restartGame();
+                  setConfirmRestart(false);
+                }}
+              >
+                Restart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <WinOverlay
         onNext={nextPuzzle}
         onRetry={retry}
