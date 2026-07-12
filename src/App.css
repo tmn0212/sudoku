@@ -23,21 +23,21 @@
 }
 
 /* ---------- Top bar ----------
-   Two grouped clusters (home + status on the left, timer + New on the right)
-   so every element reads as a deliberate, tappable control on one baseline. */
+   Home on the left, New on the right, and a centred stat column (difficulty →
+   timer → lives) that keeps the clock anchored dead-centre no matter how long
+   the difficulty label is. */
 .topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 10px clamp(12px, 4vw, 20px);
+  padding: 8px clamp(12px, 4vw, 20px) 6px;
 }
-.topbar__left,
-.topbar__right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
+.topbar > .topbar__btn {
+  justify-self: start;
+}
+.topbar > .topbar__new {
+  justify-self: end;
 }
 
 /* A real, bordered icon button (was a bare transparent glyph). */
@@ -59,51 +59,56 @@
   background: var(--peer);
 }
 
-.topbar__difficulty {
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-/* Status strip below the header: arcade lives or good-mode mistakes. Lives
-   live here (not in the top bar) so a long difficulty can't cause overflow. */
-.statusbar {
+/* Centre stat column. */
+.topbar__center {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: 1px clamp(12px, 4vw, 20px) 0;
+  gap: 2px;
+  min-width: 0;
 }
-.statusbar__lives {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 14px;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1.5px solid var(--grid-thin);
-  box-shadow: var(--shadow);
-  color: var(--ban);
-}
-.statusbar__mistakes {
-  font-size: 0.85rem;
-  font-weight: 600;
+.topbar__difficulty {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
+  line-height: 1;
 }
 
-/* Timer sits in a subtle pill so it feels like a labelled element, not stray
-   text floating next to the button. */
+/* The clock is the headline element: big, bold, high-contrast. */
 .topbar__timer {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1.5px solid var(--grid-thin);
-  color: var(--muted);
+  gap: 6px;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
-  font-size: 0.98rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.topbar__timer svg {
+  color: var(--muted);
+}
+
+/* Reserve the lives/mistakes row so the timer never shifts when a mistake
+   appears mid-game. */
+.topbar__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+}
+.topbar__lives {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ban);
+}
+.topbar__mistakes {
+  font-size: 0.85rem;
   font-weight: 600;
+  color: var(--muted);
 }
 .topbar__new {
   display: inline-flex;
