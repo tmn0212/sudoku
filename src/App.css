@@ -175,9 +175,18 @@
 
 .cell--given {
   color: var(--cell-given);
-  font-weight: 700;
+}
+/* Givens are the puzzle's fixed clues: heaviest weight so they always read as
+   "not mine to change", clearly distinct from the lighter digits you fill in. */
+.cell--given .cell__value {
+  font-weight: 900;
 }
 
+/* Crossroad scan: rows/columns already holding the selected digit get a warm
+   wash, so the empty cells where no line crosses stand out as candidates. */
+.cell--cross {
+  background: color-mix(in srgb, #f5a524 20%, transparent);
+}
 .cell--peer {
   background: var(--peer);
 }
@@ -247,6 +256,8 @@
 .cell__value {
   font-size: 6.2cqw;
   line-height: 1;
+  /* Digits you place read lighter than the bold puzzle givens. */
+  font-weight: 500;
 }
 
 .cell__notes {
@@ -1728,8 +1739,16 @@
 }
 .cell__note--ban {
   color: var(--ban);
-  text-decoration: line-through;
   font-weight: 600;
+  /* A diagonal slash across the digit (bottom-left to top-right) reads as
+     "ruled out" far more clearly than a red colour or flat strikethrough. */
+  background-image: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.7px),
+    currentColor calc(50% - 0.7px),
+    currentColor calc(50% + 0.7px),
+    transparent calc(50% + 0.7px)
+  );
 }
 /* When a filled digit is selected, its matching pencil mark lights up inside
    every cell that notes it, so you can see where a number can still go. */
@@ -2166,7 +2185,13 @@
 }
 .tut-mini__note--ban {
   color: var(--ban);
-  text-decoration: line-through;
+  background-image: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.9px),
+    currentColor calc(50% - 0.9px),
+    currentColor calc(50% + 0.9px),
+    transparent calc(50% + 0.9px)
+  );
 }
 
 /* Modes reference: chip + example cell + description per row. */

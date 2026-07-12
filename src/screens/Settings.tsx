@@ -33,7 +33,9 @@ export const Settings = () => {
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
   const highlightNotes = useSettings((s) => s.highlightNotes);
+  const highlightCrosshatch = useSettings((s) => s.highlightCrosshatch);
   const autoCleanupNotes = useSettings((s) => s.autoCleanupNotes);
+  const warnOnBanned = useSettings((s) => s.warnOnBanned);
   const showRemaining = useSettings((s) => s.showRemaining);
   const toggle = useSettings((s) => s.toggle);
 
@@ -94,6 +96,18 @@ export const Settings = () => {
             desc="Highlight the selected digit inside other cells' pencil marks"
             checked={highlightNotes}
             onChange={() => toggle('highlightNotes')}
+          />
+          <ToggleRow
+            label="Crossroad scan"
+            desc="Shade the rows and columns through every copy of the selected digit"
+            checked={highlightCrosshatch}
+            onChange={() => toggle('highlightCrosshatch')}
+          />
+          <ToggleRow
+            label="Warn on banned digit"
+            desc="Confirm before placing a digit you've banned in that cell"
+            checked={warnOnBanned}
+            onChange={() => toggle('warnOnBanned')}
           />
           <ToggleRow
             label="Auto-clean notes"

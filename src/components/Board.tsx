@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { CELL_COUNT, PEERS, findConflicts } from '../engine/board';
+import { CELL_COUNT, PEERS, colOf, findConflicts, rowOf } from '../engine/board';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
@@ -29,6 +29,7 @@ export const Board = () => {
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
   const highlightNotes = useSettings((s) => s.highlightNotes);
+  const highlightCrosshatch = useSettings((s) => s.highlightCrosshatch);
 
   const dragging = useRef(false);
   const lastIdx = useRef<number | null>(null);
@@ -45,12 +46,32 @@ export const Board = () => {
   const hintCells = useMemo(() => new Set(hint?.cells ?? []), [hint]);
   const flashCells = useFx((s) => s.flashCells);
   const flashSet = useMemo(() => new Set(flashCells), [flashCells]);
-  // The digit under the selected cell drives both the same-number highlight
-  // and the matching-note highlight (each gated by its own setting).
+  // The digit under the selected cell drives the same-number highlight, the
+  // matching-note highlight, and the crossroad shading (each gated separately).
   const selectedDigit = selected == null ? 0 : values[selected];
   const selectedValue = highlightSame ? selectedDigit : 0;
   const noteHighlight = highlightNotes ? selectedDigit : 0;
   const checking = autoCheck || mode === 'arcade';
+
+  // Crossroad: shade every row and column that already contains the selected
+  // digit. Where no shaded line crosses an empty cell, that digit likely goes
+  // there — the classic cross-hatching scan.
+  const crossSet = useMemo(() => {
+    if (!highlightCrosshatch || selectedDigit === 0) return new Set<number>();
+    const rows = new Set<number>();
+    const cols = new Set<number>();
+    for (let i = 0; i < CELL_COUNT; i++) {
+      if (values[i] === selectedDigit) {
+        rows.add(rowOf(i));
+        cols.add(colOf(i));
+      }
+    }
+    const set = new Set<number>();
+    for (let i = 0; i < CELL_COUNT; i++) {
+      if (rows.has(rowOf(i)) || cols.has(colOf(i))) set.add(i);
+    }
+    return set;
+  }, [highlightCrosshatch, selectedDigit, values]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     const idx = cellIndexFromPoint(e.clientX, e.clientY);
@@ -98,6 +119,7 @@ export const Board = () => {
           bans={bans[i]}
           selected={selectionSet.has(i)}
           peer={peerSet.has(i)}
+          cross={crossSet.has(i)}
           same={selectedValue !== 0 && values[i] === selectedValue}
           conflict={conflicts.has(i)}
           wrong={checking && !given[i] && values[i] !== 0 && values[i] !== solution[i]}

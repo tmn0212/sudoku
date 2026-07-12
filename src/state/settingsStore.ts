@@ -15,8 +15,13 @@ export interface SettingsState {
   highlightSame: boolean;
   /** Highlight the matching pencil mark in cells that note the selected digit. */
   highlightNotes: boolean;
+  /** Shade the rows and columns through every cell holding the selected digit
+   *  (a "crossroad" that reveals where that digit can still go). */
+  highlightCrosshatch: boolean;
   /** When placing a digit, remove it from peers' pencil marks. */
   autoCleanupNotes: boolean;
+  /** Ask for confirmation before placing a digit you've banned in that cell. */
+  warnOnBanned: boolean;
   /** Show the remaining-count badge under each number-pad key. */
   showRemaining: boolean;
 
@@ -28,7 +33,9 @@ type BooleanSettingKey =
   | 'highlightPeers'
   | 'highlightSame'
   | 'highlightNotes'
+  | 'highlightCrosshatch'
   | 'autoCleanupNotes'
+  | 'warnOnBanned'
   | 'showRemaining';
 
 export const useSettings = create<SettingsState>()(
@@ -38,7 +45,9 @@ export const useSettings = create<SettingsState>()(
       highlightPeers: true,
       highlightSame: true,
       highlightNotes: true,
+      highlightCrosshatch: true,
       autoCleanupNotes: true,
+      warnOnBanned: true,
       showRemaining: true,
 
       setTheme: (theme) => {

@@ -13,6 +13,8 @@ export interface CellProps {
   bans: number;
   selected: boolean;
   peer: boolean;
+  /** On a row/column that already holds the selected digit (crossroad scan). */
+  cross: boolean;
   same: boolean;
   conflict: boolean;
   wrong: boolean;
@@ -40,6 +42,7 @@ const CellComponent = ({
   bans,
   selected,
   peer,
+  cross,
   same,
   conflict,
   wrong,
@@ -53,9 +56,11 @@ const CellComponent = ({
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
+  // Background precedence: selected > same-number > peer > crossroad line.
   if (selected) classes.push('cell--selected');
+  else if (same) classes.push('cell--same');
   else if (peer) classes.push('cell--peer');
-  if (same && !selected) classes.push('cell--same');
+  else if (cross) classes.push('cell--cross');
   if (conflict || wrong) classes.push('cell--error');
   if (hint) classes.push('cell--hint');
   if (flash) classes.push('cell--flash');
