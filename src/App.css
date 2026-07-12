@@ -683,10 +683,23 @@
   font-weight: 700;
   font-size: 1.1rem;
 }
+.home__logo-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+/* Meta stats separated by hairline dividers instead of middots. */
 .home__continue-meta {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   font-size: 0.82rem;
-  opacity: 0.85;
+  opacity: 0.9;
+}
+.home__continue-meta > span:not(:first-child) {
+  padding-left: 9px;
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
 }
 .home__continue-go {
   display: flex;
@@ -720,6 +733,30 @@
 }
 .home__modecard:active {
   transform: scale(0.98);
+}
+
+/* Surprise: jump straight into a random unsolved puzzle. */
+.home__surprise {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+  border: 1.5px dashed color-mix(in srgb, var(--primary) 45%, var(--grid-thin));
+  border-radius: 16px;
+  padding: 14px;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform 0.09s ease, background 0.15s ease;
+}
+.home__surprise:active:not(:disabled) {
+  transform: scale(0.98);
+  background: var(--sel);
+}
+.home__surprise:disabled {
+  opacity: 0.6;
 }
 .home__modecard-icon {
   grid-area: icon;

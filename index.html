@@ -61,6 +61,12 @@
         box-shadow: 0 12px 30px rgba(31, 111, 235, 0.35);
         animation: splashPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
       }
+      .splash__logo-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
       .splash__title {
         margin: 0;
         font-size: 34px;
@@ -105,9 +111,9 @@
   </head>
   <body>
     <div id="splash">
-      <div class="splash__logo"><span>5</span><span>·</span><span>3</span></div>
+      <div class="splash__logo"><span>5</span><i class="splash__logo-dot"></i><span>3</span></div>
       <h1 class="splash__title">Sudoku</h1>
-      <p class="splash__tagline">Play offline · learn the techniques</p>
+      <p class="splash__tagline">Play offline and learn the techniques</p>
       <p class="splash__by">by Minh Nguyen</p>
     </div>
     <div id="root"></div>

@@ -43,7 +43,7 @@ export const Difficulties = () => {
 
   return (
     <div className="screen">
-      <ScreenHeader title={`${MODE_LABEL[mode]} · Difficulty`} />
+      <ScreenHeader title={`${MODE_LABEL[mode]} Sudoku`} />
       <div className="screen__body">
         <div className="difflist">
           {DIFFICULTIES.map((d) => {
