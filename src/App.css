@@ -3,6 +3,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Guarantee full standalone-PWA height even if the `height: 100%` chain under
+     iOS doesn't resolve to the whole screen (see #root in index.css). */
+  min-height: 100dvh;
   max-width: 520px;
   margin: 0 auto;
   /* Respect the iOS safe area (notch + sides). The bottom inset is handled by
@@ -185,7 +188,12 @@
   aspect-ratio: 1;
   margin: 0 auto;
   display: grid;
+  /* Pin BOTH axes to nine equal fractions of the (definite, square) board. Rows
+     were implicit/auto before, so on iOS Safari a cell's note content could grow
+     its row past the square and push the board out of shape (it grew and clipped).
+     Explicit 1fr rows keep every cell a fixed square regardless of content. */
   grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
   background: var(--surface);
   border: 2.5px solid var(--grid-strong);
   border-radius: 8px;
@@ -264,6 +272,11 @@
 
 .cell {
   aspect-ratio: 1;
+  /* A grid item's default min-height/min-width is `auto` (its content's min size),
+     which is what let note content expand the track and grow the board on iOS.
+     Pin them to 0 so a cell can never push its 1fr row/column bigger. */
+  min-width: 0;
+  min-height: 0;
   border: none;
   border-right: 1px solid var(--grid-thin);
   border-bottom: 1px solid var(--grid-thin);
@@ -857,6 +870,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 100dvh;
   max-width: 520px;
   margin: 0 auto;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
@@ -926,6 +940,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 100dvh;
   max-width: 520px;
   margin: 0 auto;
   padding: calc(env(safe-area-inset-top) + 24px) clamp(18px, 6vw, 28px)

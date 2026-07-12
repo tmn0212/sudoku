@@ -76,8 +76,26 @@
 html,
 body,
 #root {
+  /* iOS standalone PWAs don't reliably resolve a `height: 100%` chain to the full
+     screen, leaving a big unused gap at the bottom (the browser doesn't show it).
+     dvh is viewport-based, so every level fills the standalone window — and since
+     body has overflow:hidden, keeping the whole chain at 100dvh also stops the
+     app (the pad) from being clipped by a too-short body. `100%` is the fallback
+     for the rare engine without dvh. */
   height: 100%;
+  height: 100dvh;
   margin: 0;
+}
+
+/* Never show a text-selection highlight anywhere — the game has no selectable
+   copy, and iOS (especially the installed PWA) would otherwise highlight digits
+   on a press-drag even with user-select off. This is the invisible-selection
+   backstop to the user-select rules. */
+::selection {
+  background: transparent;
+}
+::-moz-selection {
+  background: transparent;
 }
 
 body {
