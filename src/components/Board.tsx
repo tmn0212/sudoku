@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { CELL_COUNT, PEERS, colOf, findConflicts, rowOf } from '../engine/board';
+import { CELL_COUNT, PEERS, boxOf, colOf, findConflicts, rowOf } from '../engine/board';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
@@ -53,22 +53,24 @@ export const Board = () => {
   const noteHighlight = highlightNotes ? selectedDigit : 0;
   const checking = autoCheck || mode === 'arcade';
 
-  // Crossroad: shade every row and column that already contains the selected
-  // digit. Where no shaded line crosses an empty cell, that digit likely goes
-  // there — the classic cross-hatching scan.
+  // Crossroad: shade every row, column, and 3x3 box that already contains the
+  // selected digit. Where none of those shaded lines cover an empty cell, that
+  // digit likely goes there — the classic cross-hatching scan.
   const crossSet = useMemo(() => {
     if (!highlightCrosshatch || selectedDigit === 0) return new Set<number>();
     const rows = new Set<number>();
     const cols = new Set<number>();
+    const boxes = new Set<number>();
     for (let i = 0; i < CELL_COUNT; i++) {
       if (values[i] === selectedDigit) {
         rows.add(rowOf(i));
         cols.add(colOf(i));
+        boxes.add(boxOf(i));
       }
     }
     const set = new Set<number>();
     for (let i = 0; i < CELL_COUNT; i++) {
-      if (rows.has(rowOf(i)) || cols.has(colOf(i))) set.add(i);
+      if (rows.has(rowOf(i)) || cols.has(colOf(i)) || boxes.has(boxOf(i))) set.add(i);
     }
     return set;
   }, [highlightCrosshatch, selectedDigit, values]);
