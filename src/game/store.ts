@@ -368,7 +368,7 @@ export const useGame = create<GameState>()(
           set({
             hint: {
               message:
-                'No simple next step from here — this position needs a more advanced technique.',
+                'No simple next step from here. This position needs a more advanced technique.',
               cells: [],
               step: null,
             },

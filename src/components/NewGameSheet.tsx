@@ -9,7 +9,7 @@ interface NewGameSheetProps {
 }
 
 const DESCRIPTIONS: Record<Difficulty, string> = {
-  easy: 'Singles only — a gentle warm-up.',
+  easy: 'Singles only, a gentle warm-up.',
   medium: 'Locked candidates and pairs.',
   hard: 'Triples and X-Wing.',
   pro: 'Swordfish and XY-Wing.',
