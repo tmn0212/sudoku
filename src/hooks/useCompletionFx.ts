@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
+import { useSettings } from '../state/settingsStore';
 import { UNITS } from '../engine/board';
 
 /**
@@ -26,6 +27,7 @@ export const useCompletionFx = (): void => {
 
     const { solution, status } = useGame.getState();
     if (status !== 'playing') return; // the winning move gets the overlay instead
+    if (!useSettings.getState().celebrateCompletions) return; // user turned it off
 
     const unitDone = (grid: number[], unit: number[]) =>
       unit.every((i) => grid[i] !== 0 && grid[i] === solution[i]);

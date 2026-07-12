@@ -5,7 +5,7 @@
   height: 100%;
   /* Guarantee full standalone-PWA height even if the `height: 100%` chain under
      iOS doesn't resolve to the whole screen (see #root in index.css). */
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   max-width: 520px;
   margin: 0 auto;
   /* Respect the iOS safe area (notch + sides). The bottom inset is handled by
@@ -317,12 +317,12 @@
 /* Crossroad scan: rows/columns already holding the selected digit get a warm
    wash, so the empty cells where no line crosses stand out as candidates. */
 .cell--cross {
-  background: color-mix(in srgb, #f5a524 20%, transparent);
+  background: var(--cross-bg);
 }
 /* A crossroad cell where you've already banned the selected digit turns red
    instead of amber — a reminder it definitely can't go here. */
 .cell--cross-banned {
-  background: color-mix(in srgb, var(--ban) 22%, transparent);
+  background: var(--cross-banned-bg);
 }
 .cell--peer {
   background: var(--peer);
@@ -370,52 +370,60 @@
   box-shadow: inset 0 0 0 2px var(--hint-fg);
 }
 
-/* Completion flash: a finished row/column/box — or a digit that's now placed in
-   all nine of its cells — lights up green in a diagonal wave with a glowing ring
-   and a springy digit bounce. --flash-delay (set per cell) staggers the wave. */
+/* Completion flash: a finished row/column/box — or a digit now placed in all nine
+   of its cells — lights up green in a quick diagonal wave. --flash-delay (set per
+   cell) staggers it. The green wash + glow live on a ::before layer whose opacity
+   and transform are the only things that animate, so the whole wave runs on the
+   GPU compositor (no per-frame background/box-shadow repaint = no jank). */
 .cell--flash {
   z-index: 3;
-  animation: cellFlash 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--flash-delay, 0ms) both;
 }
+.cell--flash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: #22c55e;
+  box-shadow: 0 0 12px 2px rgba(34, 197, 94, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+  animation: cellFlash 0.5s ease var(--flash-delay, 0ms) both;
+}
+/* Digit sits above the green wash and gets a quick, clean pop (no negative
+   overshoot — the old spring read as slow/laggy). */
 .cell--flash .cell__value {
-  animation: cellPopValue 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--flash-delay, 0ms) both;
+  position: relative;
+  z-index: 1;
+  animation: cellPopValue 0.5s ease var(--flash-delay, 0ms) both;
 }
 @keyframes cellFlash {
   0% {
-    background-color: transparent;
-    box-shadow: inset 0 0 0 0 transparent;
+    opacity: 0;
+    transform: scale(0.86);
   }
-  22% {
-    background-color: color-mix(in srgb, #22c55e 72%, transparent);
-    box-shadow:
-      inset 0 0 0 2px color-mix(in srgb, #22c55e 90%, transparent),
-      0 0 16px 3px color-mix(in srgb, #22c55e 55%, transparent);
-  }
-  55% {
-    background-color: color-mix(in srgb, #22c55e 26%, transparent);
+  35% {
+    opacity: 0.8;
+    transform: scale(1.02);
   }
   100% {
-    background-color: transparent;
-    box-shadow: inset 0 0 0 0 transparent;
+    opacity: 0;
+    transform: scale(1);
   }
 }
 @keyframes cellPopValue {
   0% {
     transform: scale(1);
   }
-  25% {
-    transform: scale(1.44);
-    color: #12a150;
-  }
-  55% {
-    transform: scale(0.93);
+  35% {
+    transform: scale(1.22);
   }
   100% {
     transform: scale(1);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cell--flash,
+  .cell--flash::before,
   .cell--flash .cell__value {
     animation: none;
   }
@@ -870,7 +878,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   max-width: 520px;
   margin: 0 auto;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
@@ -940,7 +948,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   max-width: 520px;
   margin: 0 auto;
   padding: calc(env(safe-area-inset-top) + 24px) clamp(18px, 6vw, 28px)

@@ -8,6 +8,21 @@ import App from './App.tsx';
 // Apply the persisted theme before first paint to avoid a flash.
 initSettings();
 
+// Drive the app height from the *real* viewport. iOS standalone PWAs don't
+// resolve `100dvh`/`100%` to the full screen on cold start (the dynamic viewport
+// isn't computed until a geometry change), which left a large unused gap at the
+// bottom. `window.innerHeight` is always the true visible height, so publish it
+// as --app-height and keep it fresh on resize/rotation. CSS falls back to 100vh
+// (correct from cold start in standalone) until this first runs.
+const setAppHeight = () => {
+  const h = window.visualViewport?.height ?? window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', `${Math.round(h)}px`);
+};
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+window.visualViewport?.addEventListener('resize', setAppHeight);
+
 // Expose stores in dev for quick manual/e2e inspection (stripped from prod).
 if (import.meta.env.DEV) {
   void Promise.all([

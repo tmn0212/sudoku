@@ -77,9 +77,10 @@ const CellComponent = ({
   if (col % 3 === 2 && col !== 8) classes.push('cell--box-right');
   if (row % 3 === 2 && row !== 8) classes.push('cell--box-bottom');
 
-  // Diagonal wave: cells nearer the top-left of the completed unit fire first.
+  // Diagonal wave: cells nearer the top-left fire first. Kept short so the wave
+  // reads as snappy — a large stagger made the whole-board digit flash feel slow.
   const style = flash
-    ? ({ '--flash-delay': `${(row + col) * 26}ms` } as CSSProperties)
+    ? ({ '--flash-delay': `${(row + col) * 14}ms` } as CSSProperties)
     : undefined;
 
   return (

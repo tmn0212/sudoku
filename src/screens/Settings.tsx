@@ -37,6 +37,7 @@ export const Settings = () => {
   const autoCleanupNotes = useSettings((s) => s.autoCleanupNotes);
   const warnOnBanned = useSettings((s) => s.warnOnBanned);
   const showRemaining = useSettings((s) => s.showRemaining);
+  const celebrateCompletions = useSettings((s) => s.celebrateCompletions);
   const toggle = useSettings((s) => s.toggle);
 
   const autoCheck = useGame((s) => s.autoCheck);
@@ -120,6 +121,12 @@ export const Settings = () => {
             desc="Show how many of each digit are left on the number pad"
             checked={showRemaining}
             onChange={() => toggle('showRemaining')}
+          />
+          <ToggleRow
+            label="Completion celebrations"
+            desc="Flash a green wave when you finish a row, column, box, or digit"
+            checked={celebrateCompletions}
+            onChange={() => toggle('celebrateCompletions')}
           />
         </section>
       </div>

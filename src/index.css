@@ -27,6 +27,11 @@
   --ban: #d93438;
   --ban-bg: #ffe3e3;
 
+  /* Crossroad scan wash (amber) + its banned variant. Theme-scoped so it stays
+     visible on dark surfaces, where a faint amber tint used to wash out. */
+  --cross-bg: rgba(245, 165, 36, 0.22);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
+
   --shadow: 0 6px 24px rgba(20, 25, 40, 0.12);
   --radius: 14px;
 
@@ -65,6 +70,10 @@
     --ban: #ff6b6f;
     --ban-bg: #3a2023;
 
+    /* Brighter amber + more opacity so the wash reads on the dark surface. */
+    --cross-bg: rgba(255, 184, 84, 0.34);
+    --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+
     --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   }
 }
@@ -76,14 +85,14 @@
 html,
 body,
 #root {
-  /* iOS standalone PWAs don't reliably resolve a `height: 100%` chain to the full
-     screen, leaving a big unused gap at the bottom (the browser doesn't show it).
-     dvh is viewport-based, so every level fills the standalone window — and since
-     body has overflow:hidden, keeping the whole chain at 100dvh also stops the
-     app (the pad) from being clipped by a too-short body. `100%` is the fallback
-     for the rare engine without dvh. */
-  height: 100%;
-  height: 100dvh;
+  /* Fill the true viewport. iOS standalone PWAs don't resolve `100%`/`100dvh` to
+     the full screen on cold start (the dynamic viewport isn't computed until a
+     geometry change), which left a big unused gap at the bottom. --app-height is
+     window.innerHeight, published from main.tsx and kept fresh on resize; 100vh
+     is the fallback (correct from cold start in standalone). Keeping the whole
+     chain on it also stops the pad being clipped by a too-short body/overflow. */
+  height: 100vh;
+  height: var(--app-height, 100vh);
   margin: 0;
 }
 

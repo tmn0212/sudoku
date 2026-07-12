@@ -41,8 +41,8 @@ export const useFx = create<FxState>()((set, get) => ({
     if (cells.length === 0) return;
     if (clearTimer) clearTimeout(clearTimer);
     set({ flashCells: cells });
-    // Long enough for the staggered wave (max ~416ms delay + ~700ms anim).
-    clearTimer = setTimeout(() => set({ flashCells: [] }), 1300);
+    // Long enough for the staggered wave (max ~224ms delay + 500ms anim).
+    clearTimer = setTimeout(() => set({ flashCells: [] }), 800);
   },
   popCells: [],
   pop: (cells) => {

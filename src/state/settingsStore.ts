@@ -24,6 +24,8 @@ export interface SettingsState {
   warnOnBanned: boolean;
   /** Show the remaining-count badge under each number-pad key. */
   showRemaining: boolean;
+  /** Play the green celebration flash when a row/column/box or digit is finished. */
+  celebrateCompletions: boolean;
 
   setTheme: (theme: ThemeId) => void;
   toggle: (key: BooleanSettingKey) => void;
@@ -36,7 +38,8 @@ type BooleanSettingKey =
   | 'highlightCrosshatch'
   | 'autoCleanupNotes'
   | 'warnOnBanned'
-  | 'showRemaining';
+  | 'showRemaining'
+  | 'celebrateCompletions';
 
 export const useSettings = create<SettingsState>()(
   persist(
@@ -49,6 +52,7 @@ export const useSettings = create<SettingsState>()(
       autoCleanupNotes: true,
       warnOnBanned: true,
       showRemaining: true,
+      celebrateCompletions: true,
 
       setTheme: (theme) => {
         applyTheme(theme);
