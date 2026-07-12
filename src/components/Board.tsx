@@ -194,6 +194,10 @@ export const Board = () => {
       return;
     }
     if (g === 'pending' && pressCell.current != null) {
+      // A plain tap resolves to just the pressed cell, even when it lands inside
+      // a multi-selection. (A hold on the group opens the radial in the branch
+      // above, which keeps the whole selection for mode-picking.)
+      if (useGame.getState().selection.length > 1) setSelection([pressCell.current]);
       lastTap.current = { cell: pressCell.current, time: Date.now() };
     }
   };
