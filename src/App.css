@@ -387,7 +387,9 @@
   box-shadow: 0 0 12px 2px rgba(34, 197, 94, 0.5);
   opacity: 0;
   pointer-events: none;
-  will-change: opacity, transform;
+  /* No will-change here: opacity/transform animations are auto-composited while
+     running, and the win celebration flashes all 81 cells at once — pre-promoting
+     81 layers via will-change would spike memory for no benefit. */
   animation: cellFlash 0.5s ease var(--flash-delay, 0ms) both;
 }
 /* Digit sits above the green wash and gets a quick, clean pop (no negative

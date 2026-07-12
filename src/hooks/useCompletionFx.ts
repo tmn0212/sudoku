@@ -2,32 +2,44 @@ import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
-import { UNITS } from '../engine/board';
+import { CELL_COUNT, UNITS } from '../engine/board';
 
 /**
  * Watches the board and fires a celebration flash the moment either
  *
  *  - a row / column / box becomes completely and correctly filled, or
  *  - a digit's final copy lands, so it's now placed correctly in all nine of
- *    its cells and can't go anywhere else on the grid.
+ *    its cells and can't go anywhere else on the grid, or
+ *  - the whole puzzle is solved (a full-board wave before the win overlay).
  *
- * Both light up the involved cells the same rewarding way. Lives in the UI
- * layer (not the game store) so the engine/store stay pure and unit tests never
- * trigger timers. The winning move is intentionally skipped — the win overlay
- * is the celebration there.
+ * All light up the involved cells the same rewarding way. Lives in the UI layer
+ * (not the game store) so the engine/store stay pure and unit tests never trigger
+ * timers.
  */
 export const useCompletionFx = (): void => {
   const values = useGame((s) => s.values);
+  const status = useGame((s) => s.status);
   const prev = useRef(values);
+  const prevStatus = useRef(status);
 
   useEffect(() => {
     const before = prev.current;
     prev.current = values;
-    if (before === values) return;
+    const wasStatus = prevStatus.current;
+    prevStatus.current = status;
 
-    const { solution, status } = useGame.getState();
-    if (status !== 'playing') return; // the winning move gets the overlay instead
     if (!useSettings.getState().celebrateCompletions) return; // user turned it off
+
+    // Solved! Celebrate the whole board once, the moment we enter 'won'. The win
+    // overlay waits for this wave to finish before it slides in (see WinOverlay).
+    if (status === 'won' && wasStatus !== 'won') {
+      useFx.getState().flash(Array.from({ length: CELL_COUNT }, (_, i) => i));
+      return;
+    }
+
+    if (before === values) return;
+    const { solution } = useGame.getState();
+    if (status !== 'playing') return; // only unit/digit flashes during play
 
     const unitDone = (grid: number[], unit: number[]) =>
       unit.every((i) => grid[i] !== 0 && grid[i] === solution[i]);
@@ -56,5 +68,5 @@ export const useCompletionFx = (): void => {
       }
     }
     if (flash.size) useFx.getState().flash([...flash]);
-  }, [values]);
+  }, [values, status]);
 };
