@@ -11,6 +11,7 @@ export type Screen =
   | 'game'
   | 'learn'
   | 'lesson'
+  | 'tutorial'
   | 'stats'
   | 'settings'
   | 'difficulties'

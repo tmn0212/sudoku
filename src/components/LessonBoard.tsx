@@ -17,8 +17,10 @@ interface LessonBoardProps {
   grid: Grid;
   /** Explicit pencil-mark state; falls back to computed candidates if omitted. */
   candidateMasks?: CandidateMask[];
-  /** Cells to emphasise as part of the deduction. */
+  /** Cells to emphasise as part of the deduction (ringed). */
   highlights?: number[];
+  /** Cells to tint softly, like the peers/same-number highlight in play. */
+  peers?: number[];
   /** Placements to reveal (shown as a bold accent digit). */
   placements?: CellMark[];
   /** Candidate eliminations to reveal (shown struck through in red). */
@@ -32,6 +34,7 @@ export const LessonBoard = ({
   grid,
   candidateMasks,
   highlights = [],
+  peers = [],
   placements = [],
   eliminations = [],
   revealed = false,
@@ -41,6 +44,7 @@ export const LessonBoard = ({
     [candidateMasks, grid],
   );
   const highlightSet = useMemo(() => new Set(highlights), [highlights]);
+  const peerSet = useMemo(() => new Set(peers), [peers]);
   const placeMap = useMemo(
     () => new Map(placements.map((p) => [p.cell, p.value])),
     [placements],
@@ -56,6 +60,7 @@ export const LessonBoard = ({
         const r = rowOf(i);
         const c = colOf(i);
         const classes = ['lboard__cell'];
+        if (peerSet.has(i)) classes.push('lboard__cell--peer');
         if (highlightSet.has(i)) classes.push('lboard__cell--hl');
         // Thick separators only between boxes (not against the outer frame).
         if (r % 3 === 0 && r !== 0) classes.push('lboard__cell--top');

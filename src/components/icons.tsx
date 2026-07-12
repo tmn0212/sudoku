@@ -146,6 +146,36 @@ export const IconHeart = ({
   </svg>
 );
 
+export const IconUndo = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path fill="currentColor" d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" />
+  </svg>
+);
+
+export const IconRedo = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path fill="currentColor" d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z" />
+  </svg>
+);
+
+export const IconEraser = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path
+      fill="currentColor"
+      d="M16.24 3.56 21 8.32a2 2 0 0 1 0 2.83l-8 8H21v2H8.83l-4.39-4.39a2 2 0 0 1 0-2.83l9-9a2 2 0 0 1 2.8 0zM10.83 19l6.36-6.36-4.24-4.24-6.37 6.36L9 19z"
+    />
+  </svg>
+);
+
+export const IconHint = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <path
+      fill="currentColor"
+      d="M9 21h6v-1H9zm3-19a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z"
+    />
+  </svg>
+);
+
 export const IconHeartBroken = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>
     <path

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { IconCheck, IconChevronRight } from '../components/icons';
+import { IconCheck, IconChevronRight, IconGrid } from '../components/icons';
 import { LESSONS, TIERS } from '../data/lessons';
 import { getLearned } from '../db/learned';
 import { useUi } from '../state/uiStore';
@@ -26,6 +26,22 @@ export const Learn = () => {
           study a real deduction on the board, then practise a puzzle that needs
           the move.
         </p>
+
+        <button
+          className="learn-howto"
+          onClick={() => navigate('tutorial')}
+        >
+          <span className="learn-howto__icon" aria-hidden="true">
+            <IconGrid size={22} />
+          </span>
+          <span className="learn-howto__text">
+            <span className="learn-howto__title">How to Play</span>
+            <span className="learn-howto__sub">
+              The board, the tools, highlighting and modes
+            </span>
+          </span>
+          <IconChevronRight size={20} />
+        </button>
 
         {TIERS.map((tier) => {
           const lessons = LESSONS.filter((l) => l.tier === tier);

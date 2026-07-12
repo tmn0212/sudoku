@@ -1,40 +1,5 @@
 import { useGame } from '../game/store';
-
-const UndoIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <path
-      fill="currentColor"
-      d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"
-    />
-  </svg>
-);
-
-const EraseIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <path
-      fill="currentColor"
-      d="M16.24 3.56 21 8.32a2 2 0 0 1 0 2.83l-8 8H21v2H8.83l-4.39-4.39a2 2 0 0 1 0-2.83l9-9a2 2 0 0 1 2.8 0zM10.83 19l6.36-6.36-4.24-4.24-6.37 6.36L9 19z"
-    />
-  </svg>
-);
-
-const HintIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <path
-      fill="currentColor"
-      d="M9 21h6v-1H9zm3-19a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z"
-    />
-  </svg>
-);
-
-const RedoIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <path
-      fill="currentColor"
-      d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"
-    />
-  </svg>
-);
+import { IconUndo, IconRedo, IconEraser, IconHint } from './icons';
 
 export const Controls = () => {
   const undo = useGame((s) => s.undo);
@@ -48,19 +13,19 @@ export const Controls = () => {
   return (
     <div className="controls" role="group" aria-label="Controls">
       <button className="control" onClick={undo} disabled={!canUndo || won}>
-        <UndoIcon />
+        <IconUndo size={22} />
         <span>Undo</span>
       </button>
       <button className="control" onClick={redo} disabled={!canRedo || won}>
-        <RedoIcon />
+        <IconRedo size={22} />
         <span>Redo</span>
       </button>
       <button className="control" onClick={erase} disabled={won}>
-        <EraseIcon />
+        <IconEraser size={22} />
         <span>Erase</span>
       </button>
       <button className="control" onClick={requestHint} disabled={won}>
-        <HintIcon />
+        <IconHint size={22} />
         <span>Hint</span>
       </button>
     </div>
