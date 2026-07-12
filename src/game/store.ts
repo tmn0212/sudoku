@@ -91,6 +91,8 @@ export interface GameState {
   newGame: (difficulty: Difficulty, mode?: Mode) => void;
   startGame: (puzzle: Puzzle, mode?: Mode) => void;
   startChallenge: (puzzle: Puzzle, ref: ChallengeRef, mode?: Mode) => void;
+  /** Replay the current puzzle from scratch (same givens, mode, challenge). */
+  restartGame: () => void;
   selectCell: (index: number | null) => void;
   setSelection: (cells: number[]) => void;
   addToSelection: (index: number) => void;
@@ -120,7 +122,10 @@ const snapshot = (s: GameState): Snapshot => ({
 const isWin = (values: Grid, solution: Grid): boolean =>
   values.every((v, i) => v === solution[i]);
 
-const buildGame = ({ puzzle, solution, difficulty }: Puzzle, mode: Mode) => ({
+const buildGame = (
+  { puzzle, solution, difficulty }: Pick<Puzzle, 'puzzle' | 'solution' | 'difficulty'>,
+  mode: Mode,
+) => ({
   puzzle,
   solution,
   given: puzzle.map((v) => v !== 0),
@@ -173,6 +178,16 @@ export const useGame = create<GameState>()(
         set((s) => ({
           ...buildGame(puzzle, mode),
           challenge: ref,
+          autoCheck: s.autoCheck,
+        })),
+
+      restartGame: () =>
+        set((s) => ({
+          ...buildGame(
+            { puzzle: s.puzzle, solution: s.solution, difficulty: s.difficulty },
+            s.mode,
+          ),
+          challenge: s.challenge,
           autoCheck: s.autoCheck,
         })),
 

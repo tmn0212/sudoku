@@ -421,18 +421,34 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+.overlay__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
 .overlay__button {
   border: none;
   background: var(--primary);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
   padding: 13px 20px;
   border-radius: 14px;
   width: 100%;
 }
-.overlay__button:active {
+.overlay__button:active:not(:disabled) {
   background: var(--primary-strong);
+}
+.overlay__button:disabled {
+  opacity: 0.6;
+}
+.overlay__button--ghost {
+  background: var(--peer);
+  color: var(--text);
+  font-weight: 600;
+}
+.overlay__button--ghost:active:not(:disabled) {
+  background: var(--sel);
 }
 
 /* ---------- New game sheet ---------- */

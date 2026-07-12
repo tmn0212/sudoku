@@ -3,10 +3,13 @@ import { formatTime } from '../utils/format';
 import { IconTrophy, IconHeartBroken } from './icons';
 
 interface WinOverlayProps {
-  onNewGame: () => void;
+  onNext: () => void;
+  onRetry: () => void;
+  onHome: () => void;
+  busy?: boolean;
 }
 
-export const WinOverlay = ({ onNewGame }: WinOverlayProps) => {
+export const WinOverlay = ({ onNext, onRetry, onHome, busy }: WinOverlayProps) => {
   const status = useGame((s) => s.status);
   const elapsedMs = useGame((s) => s.elapsedMs);
   const mistakes = useGame((s) => s.mistakes);
@@ -51,9 +54,24 @@ export const WinOverlay = ({ onNewGame }: WinOverlayProps) => {
             <dd>{mistakes}</dd>
           </div>
         </dl>
-        <button className="overlay__button" onClick={onNewGame}>
-          {won ? 'New Game' : 'Try Again'}
-        </button>
+        <div className="overlay__actions">
+          {won ? (
+            <button className="overlay__button" onClick={onNext} disabled={busy}>
+              {busy ? 'Loading…' : 'Next Puzzle'}
+            </button>
+          ) : (
+            <button className="overlay__button" onClick={onRetry} disabled={busy}>
+              Try Again
+            </button>
+          )}
+          <button
+            className="overlay__button overlay__button--ghost"
+            onClick={onHome}
+            disabled={busy}
+          >
+            Home
+          </button>
+        </div>
       </div>
     </div>
   );
