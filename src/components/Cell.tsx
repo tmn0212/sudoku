@@ -62,17 +62,17 @@ const CellComponent = ({
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
-  // Background precedence: selected > same-number > banned-crossroad > crossroad
-  // > peer. Crossroad must beat peer: during a scan the selected cell's own
-  // row/column/box are *also* crossroad lines, so if peer won they'd paint a
-  // different colour from every other line and the scan would read as two
-  // inconsistent washes instead of one. With crossroad on top, the whole scan is
-  // a single amber wash and the untouched (plain) cells are the candidates.
+  // Background precedence: selected > same-number > banned-crossroad > peer >
+  // crossroad. Peer beats crossroad on purpose: the selected cell's own
+  // row/column/box paint the light-blue peer colour, while the crossroad lines
+  // radiating from *other* copies of the digit stay amber — so you can tell your
+  // cell's lines apart from the rest of the scan. Cells left untouched (plain)
+  // are the candidates.
   if (selected) classes.push('cell--selected');
   else if (same) classes.push('cell--same');
   else if (crossBanned) classes.push('cell--cross-banned');
-  else if (cross) classes.push('cell--cross');
   else if (peer) classes.push('cell--peer');
+  else if (cross) classes.push('cell--cross');
   if (conflict || wrong) classes.push('cell--error');
   if (hint) classes.push('cell--hint');
   if (flash) classes.push('cell--flash');

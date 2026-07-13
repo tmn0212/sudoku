@@ -60,12 +60,17 @@ export const Board = () => {
 
   const conflicts = useMemo(() => findConflicts(values), [values]);
   const selectionSet = useMemo(() => new Set(selection), [selection]);
+  // The peer / same-number / matching-note / crossroad highlights all focus on a
+  // single cell, so they only apply when exactly one cell is selected. While
+  // multi-selecting cells to mark notes/bans they'd scan off the last-touched
+  // cell, so switch them all off.
+  const single = selection.length <= 1;
   const peerSet = useMemo(
     () =>
-      selected == null || !highlightPeers
+      selected == null || !highlightPeers || !single
         ? new Set<number>()
         : new Set(PEERS[selected]),
-    [selected, highlightPeers],
+    [selected, highlightPeers, single],
   );
   const hintCells = useMemo(() => new Set(hint?.cells ?? []), [hint]);
   const flashCells = useFx((s) => s.flashCells);
@@ -75,7 +80,8 @@ export const Board = () => {
   const ghosts = useFx((s) => s.ghosts);
   // The digit under the selected cell drives the same-number highlight, the
   // matching-note highlight, and the crossroad shading (each gated separately).
-  const selectedDigit = selected == null ? 0 : values[selected];
+  // Only for a single selection — see `single` above.
+  const selectedDigit = selected == null || !single ? 0 : values[selected];
   const selectedValue = highlightSame ? selectedDigit : 0;
   const noteHighlight = highlightNotes ? selectedDigit : 0;
   const checking = autoCheck || mode === 'arcade';
