@@ -9,18 +9,19 @@ engine, and `vite-plugin-pwa` (Workbox) for offline support.
 
 ## Features
 
-- **Real puzzle generation** with a guaranteed *unique* solution, at four
-  difficulties (easy / medium / hard / expert).
+- **Real puzzle generation** with a guaranteed *unique* solution, at five
+  difficulties (easy / medium / hard / pro / impossible).
 - **Technique-based difficulty grading** — difficulty reflects the hardest human
-  technique a puzzle requires (naked/hidden singles, locked candidates, pairs,
-  triples, X-Wing), not just the clue count.
+  technique a puzzle requires (singles, locked candidates, pairs/triples, X-Wing,
+  up through coloring and uniqueness), not just the clue count.
 - **Teaching hints** — the hint engine finds the *easiest* next deduction and
   explains *why*, then can place it for you. It also flags incorrect entries.
 - **Pencil marks** (notes) with auto-cleanup of peers when you place a digit.
 - **Same-number, row/column/box, and conflict highlighting.**
 - **Undo / redo, erase, mistake counter, timer** (auto-pauses when backgrounded).
-- **Auto-save** — an in-progress game is persisted to `localStorage` and restored
-  on relaunch (works fully offline).
+- **Auto-save & history** — the active game is persisted to `localStorage`, while a
+  roster of resumable games, completed-game stats, challenge progress, and learned
+  techniques live in **IndexedDB** — all restored on relaunch, fully offline.
 - **Mobile-first, iOS-friendly**: safe-area insets, no rubber-band scroll, no
   double-tap zoom, light & dark themes, keyboard support on desktop.
 
@@ -38,10 +39,13 @@ npm run dev        # http://localhost:5173
 | `npm run dev`           | Start the dev server                                     |
 | `npm run build`         | Type-check and build for production (generates the PWA)   |
 | `npm run preview`       | Serve the production build (needed to test the service worker) |
-| `npm test`              | Run the full test suite once (Vitest)                    |
+| `npm test` / `npm run test:all` | Run the full test suite once (Vitest)            |
+| `npm run test:fast`     | Pure logic tier (engine/scoring/data), node, sub-second  |
+| `npm run test:ui`       | Store/hooks/components/db tier, jsdom                     |
+| `npm run test:visual`   | Playwright screenshot smoke + layout checks (needs `dev`) |
 | `npm run test:watch`    | Run tests in watch mode                                  |
-| `npm run test:coverage` | Run tests with coverage of the engine                    |
-| `npm run typecheck`     | Type-check without emitting                              |
+| `npm run test:coverage` | Run with coverage                                        |
+| `npm run typecheck`     | Type-check the app and the build scripts                 |
 | `npm run lint`          | Lint with oxlint                                         |
 | `node scripts/generate-icons.mjs` | Regenerate the PWA icons                        |
 
@@ -81,11 +85,18 @@ src/
     techniques.ts  Human-technique logical solver — grading + hints
     generator.ts   Puzzle generation + difficulty grading
     rng.ts         Seedable PRNG (deterministic, testable generation)
-  game/
-    store.ts       Zustand store with localStorage persistence
+  scoring/         Pure score computation
+  data/            Challenge packs (JSON) + lesson content
+  game/store.ts    Main Zustand game reducer (localStorage-persisted)
+  state/           UI stores: uiStore (in-app router), settings, fx, banPrompt
+  db/              IndexedDB (idb): saved games, stats, challenge progress, learned
+  workers/         Off-thread puzzle generation (+ sync fallback)
+  screens/         Top-level screens (Home, Game, Stats, Learn, ...)
   components/      React UI (Board, Cell, NumberPad, Controls, ...)
-  hooks/           Timer + keyboard input
+  hooks/           Timer, keyboard, haptics, autosave, record, fx
+  theme/           Theme registry + CSS variables
 ```
 
-The engine has **no dependencies** and knows nothing about React, so it can be
-tested in isolation and reused anywhere.
+The engine and scoring have **no dependencies** and know nothing about React, so
+they can be tested in isolation and reused anywhere. A full architecture map and
+improvement roadmap lives in [`docs/architecture/`](docs/architecture/README.md).
