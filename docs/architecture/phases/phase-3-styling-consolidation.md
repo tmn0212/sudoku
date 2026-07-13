@@ -1,7 +1,18 @@
 # Phase 3 · Styling Consolidation
 
-**Status:** TODO
+**Status:** IN PROGRESS (2026-07-12) — Step 1 (dedupe) + Step 2 (tokens) DONE & committed; Step 3 (per-component carve) PENDING
 **Risk:** low (mostly mechanical, screenshot-verified) · **Depends on:** Phase 1 (visual harness)
+
+> Done so far: **Step 1** collapsed every duplicate/override selector (numberpad, mode-bar,
+> control, board, app, app__pad — each declared 2-4×) into one block holding the effective
+> ruleset; `App.css` 2638 → 2536 lines, screenshot-verified identical. **Step 2** introduced
+> `--note-primary` (single-sourced the hardcoded `#7c5cff` across App.css + Tutorial.tsx),
+> defined the phantom `--correct`/`--danger`, and removed dead `--note`/`--radius`.
+> **Pending — Step 3:** carve the consolidated rules into per-component `.css` files + the
+> `styles/base.css`/`shell.css` split, and document the convention in CLAUDE.md (Step 4).
+> Note: the full `tokens.ts` + `generate-themes.mjs` source-of-truth restructure from the
+> original Step 2 was intentionally deferred to pair with Phase 5's `ui-tokens` package —
+> it touches all 8 themes and only 2 are screenshot-covered, so it wants per-theme verification.
 
 ## Goal
 
