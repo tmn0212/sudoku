@@ -5,8 +5,8 @@ import {
   candidatesToArray,
   rowOf,
   colOf,
-} from '../engine/board';
-import type { CandidateMask, Grid } from '../engine/types';
+} from '@sudoku/core';
+import type { CandidateMask, Grid } from '@sudoku/core';
 
 export interface CellMark {
   cell: number;

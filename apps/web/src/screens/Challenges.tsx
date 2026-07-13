@@ -8,7 +8,7 @@ import { progressRepo, savedGamesRepo } from '../db/repositories';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
-import type { Difficulty } from '../engine/types';
+import type { Difficulty } from '@sudoku/core';
 import type { ChallengeProgress, Mode, SavedGame } from '../db/idb';
 
 const LABELS: Record<Difficulty, string> = {

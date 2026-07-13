@@ -18,16 +18,16 @@
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { generatePuzzle } from '../src/engine/generator';
+import { generatePuzzle } from '@sudoku/core';
 import {
   TECHNIQUES,
   applyStepToState,
   findStep,
   runTechnique,
   solveLogically,
-} from '../src/engine/techniques';
-import { computeCandidates, stringifyGrid } from '../src/engine/board';
-import type { Difficulty, Grid, TechniqueName } from '../src/engine/types';
+} from '@sudoku/core';
+import { computeCandidates, stringifyGrid } from '@sudoku/core';
+import type { Difficulty, Grid, TechniqueName } from '@sudoku/core';
 
 const TARGETS: TechniqueName[] = TECHNIQUES.map((t) => t.name);
 

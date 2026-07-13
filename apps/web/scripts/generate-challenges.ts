@@ -16,10 +16,10 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { generatePuzzle, gradeDifficulty } from '../src/engine/generator';
-import { hasUniqueSolution } from '../src/engine/solver';
-import { stringifyGrid } from '../src/engine/board';
-import { DIFFICULTIES, type Difficulty } from '../src/engine/types';
+import { generatePuzzle, gradeDifficulty } from '@sudoku/core';
+import { hasUniqueSolution } from '@sudoku/core';
+import { stringifyGrid } from '@sudoku/core';
+import { DIFFICULTIES, type Difficulty } from '@sudoku/core';
 
 /** How many puzzles per tier (≈250 total). Overridable via CHALLENGE_PROBE. */
 const COUNTS: Record<Difficulty, number> = {

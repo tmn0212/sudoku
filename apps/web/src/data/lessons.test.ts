@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { LESSONS, TIERS } from './lessons';
-import { parseGrid } from '../engine/board';
-import { solve } from '../engine/solver';
-import { runTechnique, solveLogically } from '../engine/techniques';
+import { parseGrid } from '@sudoku/core';
+import { solve } from '@sudoku/core';
+import { runTechnique, solveLogically } from '@sudoku/core';
 
 describe('lesson catalog', () => {
   it('covers all 21 techniques with complete prose', () => {

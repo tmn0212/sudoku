@@ -17,7 +17,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
 } from '../components/icons';
-import { parseGrid, PEERS } from '../engine/board';
+import { parseGrid, PEERS } from '@sudoku/core';
 import { useUi } from '../state/uiStore';
 
 // The classic sample grid — recognisable and valid, purely for illustration.

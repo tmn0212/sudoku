@@ -18,12 +18,12 @@ import {
   addCandidate,
   hasCandidate,
   removeCandidate,
-} from '../engine/board';
-import { findStep } from '../engine/techniques';
-import { generatePuzzle } from '../engine/generator';
+} from '@sudoku/core';
+import { findStep } from '@sudoku/core';
+import { generatePuzzle } from '@sudoku/core';
 import { useSettings } from '../state/settingsStore';
-import { computeScore } from '../scoring/score';
-import type { Difficulty, Grid, Mode, Puzzle, Step } from '../engine/types';
+import { computeScore } from '@sudoku/core';
+import type { Difficulty, Grid, Mode, Puzzle, Step } from '@sudoku/core';
 import type { SavedGame } from '../db/idb';
 
 /** What a digit press does to the selected cells. */

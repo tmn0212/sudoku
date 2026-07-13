@@ -60,8 +60,8 @@ export default defineConfig({
           name: 'fast',
           environment: 'node',
           include: [
-            'src/engine/**/*.test.ts',
-            'src/scoring/**/*.test.ts',
+            // Engine + scoring tests live in @sudoku/core now (run via its own
+            // vitest). What remains fast here: app-side pure logic.
             'src/data/**/*.test.{ts,tsx}',
             'src/utils/**/*.test.ts',
             'src/platform/**/*.test.ts',

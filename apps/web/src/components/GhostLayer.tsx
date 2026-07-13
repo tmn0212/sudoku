@@ -1,5 +1,5 @@
 import { memo, type CSSProperties } from 'react';
-import { colOf, hasCandidate, rowOf } from '../engine/board';
+import { colOf, hasCandidate, rowOf } from '@sudoku/core';
 import type { Ghost } from '../state/fxStore';
 
 const noteClass = (notes: number, notesAlt: number, bans: number, n: number): string => {

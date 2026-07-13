@@ -5,7 +5,7 @@ import { IconCheck, IconChevronRight } from '../components/icons';
 import { PACK_SIZES } from '../data/challenges';
 import { progressRepo } from '../db/repositories';
 import { useUi } from '../state/uiStore';
-import { DIFFICULTIES, type Difficulty } from '../engine/types';
+import { DIFFICULTIES, type Difficulty } from '@sudoku/core';
 import type { Mode } from '../db/idb';
 
 const META: Record<Difficulty, { label: string; blurb: string }> = {

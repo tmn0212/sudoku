@@ -8,7 +8,7 @@ import { progressRepo, savedGamesRepo } from '../db/repositories';
 import { PACK_SIZES } from '../data/challenges';
 import { formatTime } from '../utils/format';
 import { IconGrid, IconBolt, IconChevronRight, IconDice } from '../components/icons';
-import { DIFFICULTIES, type Difficulty } from '../engine/types';
+import { DIFFICULTIES, type Difficulty } from '@sudoku/core';
 import type { Mode, SavedGame } from '../db/idb';
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {

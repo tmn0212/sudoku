@@ -3,7 +3,7 @@ import { useGame, isCellLocked } from '../game/store';
 import './NumberPad.css';
 import { requestDigit } from '../game/inputActions';
 import { useSettings } from '../state/settingsStore';
-import { hasCandidate } from '../engine/board';
+import { hasCandidate } from '@sudoku/core';
 import { haptics } from '../platform/haptics';
 
 export const NumberPad = () => {

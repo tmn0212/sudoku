@@ -5,18 +5,18 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { LessonBoard } from '../components/LessonBoard';
 import { IconCheck, IconChevronLeft, IconChevronRight } from '../components/icons';
 import { lessonById } from '../data/lessons';
-import { parseGrid } from '../engine/board';
-import { solve } from '../engine/solver';
+import { parseGrid } from '@sudoku/core';
+import { solve } from '@sudoku/core';
 import {
   applyStepToState,
   findStep,
   runTechnique,
-} from '../engine/techniques';
-import { gradeDifficulty } from '../engine/generator';
+} from '@sudoku/core';
+import { gradeDifficulty } from '@sudoku/core';
 import { learnedRepo } from '../db/repositories';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
-import type { Grid, Step } from '../engine/types';
+import type { Grid, Step } from '@sudoku/core';
 
 interface Frame {
   grid: Grid;

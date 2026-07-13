@@ -8,7 +8,7 @@
  */
 
 import examples from './lesson-examples.json';
-import type { TechniqueName } from '../engine/types';
+import type { TechniqueName } from '@sudoku/core';
 
 export type LessonTier = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
 import { useFx, type Ghost } from '../state/fxStore';
-import { CELL_COUNT } from '../engine/board';
+import { CELL_COUNT } from '@sudoku/core';
 
 /**
  * Watches the cell layers and drives the pop-in (new content) / pop-out (removed

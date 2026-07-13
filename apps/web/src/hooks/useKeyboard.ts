@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { SIZE } from '../engine/board';
+import { SIZE } from '@sudoku/core';
 import { useGame } from '../game/store';
 import { requestDigit } from '../game/inputActions';
 

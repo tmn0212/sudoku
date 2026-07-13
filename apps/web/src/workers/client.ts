@@ -3,8 +3,8 @@
  * main-thread generation when Workers aren't available (tests, SSR, older
  * environments), so callers get a uniform Promise API.
  */
-import { generatePuzzle } from '../engine/generator';
-import type { Difficulty, Puzzle } from '../engine/types';
+import { generatePuzzle } from '@sudoku/core';
+import type { Difficulty, Puzzle } from '@sudoku/core';
 
 let worker: Worker | null = null;
 let workerFailed = false;

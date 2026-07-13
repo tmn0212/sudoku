@@ -9,7 +9,7 @@ import {
   findConflicts,
   hasCandidate,
   rowOf,
-} from '../engine/board';
+} from '@sudoku/core';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';

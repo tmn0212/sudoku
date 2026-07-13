@@ -7,7 +7,7 @@
  */
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Mode } from '../engine/types';
+import type { Mode } from '@sudoku/core';
 
 // Mode is a domain type; re-exported here so existing db-layer importers keep
 // working, but pure code should import it from ../engine/types directly.

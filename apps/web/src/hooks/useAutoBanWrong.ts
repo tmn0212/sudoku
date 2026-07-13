@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
-import { CELL_COUNT } from '../engine/board';
+import { CELL_COUNT } from '@sudoku/core';
 
 const LINGER_MS = 1000;
 

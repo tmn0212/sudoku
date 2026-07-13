@@ -3,8 +3,8 @@
  * responsive even for the slowest tiers. The engine is pure and DOM-free, so it
  * runs unchanged here.
  */
-import { generatePuzzle } from '../engine/generator';
-import type { Difficulty } from '../engine/types';
+import { generatePuzzle } from '@sudoku/core';
+import type { Difficulty } from '@sudoku/core';
 
 interface Request {
   id: number;

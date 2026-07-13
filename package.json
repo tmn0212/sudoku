@@ -9,7 +9,7 @@
     "preview": "pnpm --filter @sudoku/web preview",
     "test": "turbo run test",
     "test:all": "turbo run test",
-    "test:fast": "pnpm --filter @sudoku/web test:fast",
+    "test:fast": "turbo run test:fast",
     "test:ui": "pnpm --filter @sudoku/web test:ui",
     "test:coverage": "pnpm --filter @sudoku/web test:coverage",
     "test:visual": "pnpm --filter @sudoku/web test:visual",

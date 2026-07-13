@@ -3,7 +3,7 @@
  * number pad and the keyboard so the ban-confirmation gate lives in one place.
  */
 
-import { hasCandidate } from '../engine/board';
+import { hasCandidate } from '@sudoku/core';
 import { useSettings } from '../state/settingsStore';
 import { useBanPrompt } from '../state/banPromptStore';
 import { useGame, targetCells } from './store';

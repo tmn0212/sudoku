@@ -5,7 +5,7 @@
  */
 
 import { getDb, type GameRecord } from './idb';
-import { DIFFICULTIES, type Difficulty } from '../engine/types';
+import { DIFFICULTIES, type Difficulty } from '@sudoku/core';
 
 /** Keep completed-game history bounded on the device. Years of play stays well
  *  under this; the oldest records are evicted first. */

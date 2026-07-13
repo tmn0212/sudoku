@@ -4,7 +4,7 @@
  * the bank ships as separate lazy chunks — none of it is in the initial bundle.
  */
 
-import type { Difficulty } from '../../engine/types';
+import type { Difficulty } from '@sudoku/core';
 
 export interface ChallengePack {
   difficulty: Difficulty;

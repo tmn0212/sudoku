@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { DIFFICULTIES, type Difficulty } from '../../engine/types';
-import { parseGrid } from '../../engine/board';
-import { hasUniqueSolution } from '../../engine/solver';
-import { gradeDifficulty } from '../../engine/generator';
+import { DIFFICULTIES, type Difficulty } from '@sudoku/core';
+import { parseGrid } from '@sudoku/core';
+import { hasUniqueSolution } from '@sudoku/core';
+import { gradeDifficulty } from '@sudoku/core';
 import { PACK_SIZES } from './index';
 import easy from './easy.json';
 import medium from './medium.json';

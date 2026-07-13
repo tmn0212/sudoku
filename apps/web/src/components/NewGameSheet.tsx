@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './NewGameSheet.css';
-import { DIFFICULTIES, type Difficulty } from '../engine/types';
+import { DIFFICULTIES, type Difficulty } from '@sudoku/core';
 import { useGame } from '../game/store';
 import { puzzleGenerator } from '../workers/client';
 

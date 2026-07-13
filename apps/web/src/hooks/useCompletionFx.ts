@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
-import { CELL_COUNT, UNITS } from '../engine/board';
+import { CELL_COUNT, UNITS } from '@sudoku/core';
 
 /**
  * Watches the board and fires a celebration flash the moment either
