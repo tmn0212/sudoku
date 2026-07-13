@@ -4,7 +4,7 @@ import './NumberPad.css';
 import { requestDigit } from '../game/inputActions';
 import { useSettings } from '../state/settingsStore';
 import { hasCandidate } from '../engine/board';
-import { haptics } from '../utils/haptics';
+import { haptics } from '../platform/haptics';
 
 export const NumberPad = () => {
   const values = useGame((s) => s.values);

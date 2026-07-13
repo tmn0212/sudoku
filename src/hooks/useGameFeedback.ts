@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
-import { haptics } from '../utils/haptics';
+import { haptics } from '../platform/haptics';
 
 /**
  * Fires haptic feedback in response to game events (new mistakes, win, loss),

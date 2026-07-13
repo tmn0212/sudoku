@@ -64,6 +64,7 @@ export default defineConfig({
             'src/scoring/**/*.test.ts',
             'src/data/**/*.test.{ts,tsx}',
             'src/utils/**/*.test.ts',
+            'src/platform/**/*.test.ts',
           ],
         },
       },

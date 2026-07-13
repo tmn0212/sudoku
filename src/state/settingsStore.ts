@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { applyTheme, isThemeId, type ThemeId } from '../theme/themes';
+import { keyValueStore } from '../platform/keyValueStore';
 
 export interface SettingsState {
   theme: ThemeId;
@@ -63,14 +64,14 @@ export const useSettings = create<SettingsState>()(
     {
       name: 'sudoku-settings',
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => keyValueStore),
     },
   ),
 );
 
 /** Apply the persisted theme once at startup (called from main.tsx). */
 export const initSettings = (): void => {
-  const raw = typeof localStorage !== 'undefined' && localStorage.getItem('sudoku-settings');
+  const raw = keyValueStore.getItem('sudoku-settings');
   let theme: ThemeId = 'system';
   if (raw) {
     try {

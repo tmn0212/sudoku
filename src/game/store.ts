@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { keyValueStore } from '../platform/keyValueStore';
 import {
   CELL_COUNT,
   PEERS,
@@ -584,7 +585,7 @@ export const useGame = create<GameState>()(
     {
       name: 'sudoku-game',
       version: 4,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => keyValueStore),
       migrate: (persisted, version) => {
         const p = persisted as Partial<GameState>;
         if (version < 3 && !p.gameId) p.gameId = newId(); // gameId added in v3

@@ -13,7 +13,7 @@ import {
 import { useGame, type InputMode } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
-import { haptics } from '../utils/haptics';
+import { haptics } from '../platform/haptics';
 import { Cell } from './Cell';
 import { GhostLayer } from './GhostLayer';
 import { RadialMenu } from './RadialMenu';
