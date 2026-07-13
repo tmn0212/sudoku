@@ -4,8 +4,7 @@
  * Pure and dependency-free so it's trivially testable.
  */
 
-import type { Difficulty } from '../engine/types';
-import type { Mode } from '../db/idb';
+import type { Difficulty, Mode } from '../engine/types';
 
 /** Base points for completing a puzzle of each difficulty. */
 export const RATING: Record<Difficulty, number> = {

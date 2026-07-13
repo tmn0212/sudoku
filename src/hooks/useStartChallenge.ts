@@ -4,8 +4,7 @@ import { parseGrid } from '../engine/board';
 import { solve } from '../engine/solver';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
-import type { Difficulty, Puzzle } from '../engine/types';
-import type { Mode } from '../db/idb';
+import type { Difficulty, Puzzle, Mode } from '../engine/types';
 
 /**
  * Loads a challenge-bank puzzle, derives its solution with the engine, and

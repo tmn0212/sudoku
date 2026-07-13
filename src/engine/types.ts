@@ -9,6 +9,10 @@ export type Grid = number[];
 
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'pro' | 'impossible';
 
+/** Play mode. `good` = untimed-pressure learning; `arcade` = 3 lives. A domain
+ *  concept, kept here (not in the persistence layer) so pure code can use it. */
+export type Mode = 'good' | 'arcade';
+
 export const DIFFICULTIES: Difficulty[] = [
   'easy',
   'medium',
