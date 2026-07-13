@@ -21,11 +21,18 @@
   --hint-bg: #fde9a9;
   --hint-fg: #92670a;
 
-  /* Note layers: blue (primary), grey (secondary), red (ban / cannot-be). */
-  --note: #1f6feb;
+  /* Note layers. The primary (pencil) note is a fixed violet — deliberately NOT
+     the theme's --primary, which is the same blue as placed digits in several
+     themes and made notes indistinguishable. Grey = secondary, red = ban.
+     --note-primary is theme-independent (set once here, not per-theme). */
+  --note-primary: #7c5cff;
   --note-alt: #6b7280;
   --ban: #d93438;
   --ban-bg: #ffe3e3;
+
+  /* Semantic status colours (lesson prose "correct"/"wrong" callouts). */
+  --correct: #15a34a;
+  --danger: #cf222e;
 
   /* Crossroad scan wash (amber) + its banned variant. Theme-scoped so it stays
      visible on dark surfaces, where a faint amber tint used to wash out. */
@@ -33,7 +40,6 @@
   --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
 
   --shadow: 0 6px 24px rgba(20, 25, 40, 0.12);
-  --radius: 14px;
 
   color-scheme: light dark;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
@@ -65,7 +71,6 @@
     --hint-bg: #4d3c12;
     --hint-fg: #ffd873;
 
-    --note: #6ea8ff;
     --note-alt: #94a3b8;
     --ban: #ff6b6f;
     --ban-bg: #3a2023;

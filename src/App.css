@@ -2052,7 +2052,7 @@
 /* Note-layer colors in the 3x3 mini-grid. Primary notes are violet (not the
    brand blue) to stay distinct from placed digits — see the mode-identity block. */
 .cell__note--blue {
-  color: #7c5cff;
+  color: var(--note-primary);
   font-weight: 600;
 }
 .cell__note--grey {
@@ -2171,7 +2171,7 @@
    note layer is violet (not the brand blue) because --primary and --note are
    the same blue in several themes, which made digit vs note indistinguishable. */
 .app[data-mode='note'] {
-  --m-accent: #7c5cff; /* Notes */
+  --m-accent: var(--note-primary); /* Notes */
 }
 .app[data-mode='noteAlt'] {
   --m-accent: var(--note-alt); /* Notes 2 (grey) */
@@ -2190,7 +2190,7 @@
   background: var(--primary);
 }
 .mode-bar__btn--active[data-mode='note'] {
-  background: #7c5cff;
+  background: var(--note-primary);
 }
 .mode-bar__btn--active[data-mode='noteAlt'] {
   background: var(--note-alt);
@@ -2207,7 +2207,7 @@
   color: var(--primary);
 }
 .mode-bar__btn:not(.mode-bar__btn--active)[data-mode='note'] .mode-bar__icon {
-  color: #7c5cff;
+  color: var(--note-primary);
 }
 .mode-bar__btn:not(.mode-bar__btn--active)[data-mode='noteAlt'] .mode-bar__icon {
   color: var(--note-alt);
@@ -2218,7 +2218,7 @@
 
 /* The pad digits preview the colour the tap will produce. */
 .app[data-mode='note'] .numberpad__digit {
-  color: #7c5cff;
+  color: var(--note-primary);
 }
 .app[data-mode='noteAlt'] .numberpad__digit {
   color: var(--note-alt);

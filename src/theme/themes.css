@@ -25,7 +25,6 @@
   --error-fg: #d93438;
   --hint-bg: #fde9a9;
   --hint-fg: #92670a;
-  --note: #1f6feb;
   --note-alt: #6b7280;
   --ban: #d93438;
   --ban-bg: #ffe3e3;
@@ -53,7 +52,6 @@
   --error-fg: #ff6b6f;
   --hint-bg: #4d3c12;
   --hint-fg: #ffd873;
-  --note: #6ea8ff;
   --note-alt: #94a3b8;
   --ban: #ff6b6f;
   --ban-bg: #3a2023;
@@ -81,7 +79,6 @@
   --error-fg: #b3402f;
   --hint-bg: #f6e3a1;
   --hint-fg: #8a6a1e;
-  --note: #b06a2c;
   --note-alt: #9b8666;
   --ban: #b3402f;
   --ban-bg: #f6dcd0;
@@ -109,7 +106,6 @@
   --error-fg: #ff6b6f;
   --hint-bg: #123a54;
   --hint-fg: #7fd3ff;
-  --note: #5bb2ec;
   --note-alt: #7f9bb5;
   --ban: #ff6b6f;
   --ban-bg: #3a2023;
@@ -137,7 +133,6 @@
   --error-fg: #b3402f;
   --hint-bg: #f6e3a1;
   --hint-fg: #6a5a1e;
-  --note: #3a7d44;
   --note-alt: #6c7d64;
   --ban: #b3402f;
   --ban-bg: #f6dcd0;
@@ -165,7 +160,6 @@
   --error-fg: #ff6b8a;
   --hint-bg: #40331a;
   --hint-fg: #ffd873;
-  --note: #b98bec;
   --note-alt: #9c8bb0;
   --ban: #ff6b8a;
   --ban-bg: #3a2028;
@@ -193,7 +187,6 @@
   --error-fg: #cc0000;
   --hint-bg: #ffee88;
   --hint-fg: #664d00;
-  --note: #0033cc;
   --note-alt: #444444;
   --ban: #cc0000;
   --ban-bg: #ffd6d6;

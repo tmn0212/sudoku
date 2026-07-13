@@ -72,11 +72,11 @@ const MODE_ROWS = [
   {
     icon: <IconNotes size={18} />,
     label: 'Notes',
-    color: '#7c5cff',
+    color: 'var(--note-primary)',
     desc: 'Pencil in the candidates you are still considering.',
     cell: (
       <MiniCell
-        notes={[1, 2, 4, 7].map((n) => ({ n, color: '#7c5cff' }))}
+        notes={[1, 2, 4, 7].map((n) => ({ n, color: 'var(--note-primary)' }))}
       />
     ),
   },
