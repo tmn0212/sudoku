@@ -12,6 +12,7 @@
      the docked control tray so it can bleed to the screen edge. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) 0
     env(safe-area-inset-left);
+  --m-accent: var(--primary); /* current input-mode accent; set per data-mode below */
 }
 
 .app__main {
@@ -200,6 +201,7 @@
   overflow: hidden;
   box-shadow: var(--shadow);
   position: relative;
+  touch-action: none; /* no page scroll while drag-selecting on the board */
 }
 
 /* Pop-out ghosts float above the grid, each sized to one cell (1/9 of board). */
@@ -500,62 +502,85 @@
   color: var(--muted);
 }
 
-/* ---------- Number pad ---------- */
+/* ---------- Number pad (3x3 docked dial-pad) ----------
+   One consolidated definition. Earlier builds re-declared these selectors 3-4x
+   across appended "phase" sections; the effective (last-wins) ruleset is inlined
+   here so a single block owns the pad. */
 .numberpad {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: clamp(3px, 1.2vw, 7px);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: clamp(5px, 1.8vw, 11px);
+  flex: 1 1 auto;
+  min-height: 0;
+  align-self: stretch;
 }
-
 .numberpad__key {
   position: relative;
-  aspect-ratio: 3 / 4;
-  border: none;
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--primary);
-  box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: 108px;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: auto;
+  justify-self: center;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 13px;
+  background: var(--bg);
+  color: var(--primary);
+  box-shadow: none;
+  container-type: size;
   transition: transform 0.07s ease, opacity 0.2s ease;
 }
 .numberpad__key:active:not(:disabled) {
-  transform: scale(0.92);
+  transform: scale(0.96);
+  background: var(--sel);
+  border-color: var(--primary);
 }
 .numberpad__key:disabled {
   opacity: 0.32;
 }
 .numberpad__digit {
-  font-size: clamp(1.3rem, 6vw, 1.9rem);
-  font-weight: 600;
+  font-size: min(2.9rem, 52cqmin);
+  font-weight: 700;
+  line-height: 1;
 }
 .numberpad__count {
   position: absolute;
-  bottom: 4px;
-  font-size: 0.6rem;
+  top: auto;
+  bottom: 8px;
+  right: 11px;
+  font-size: min(0.78rem, 22cqmin);
+  font-weight: 600;
   color: var(--muted);
+  opacity: 0.65;
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Controls ---------- */
+/* ---------- Controls (Undo / Redo / Erase / Hint) ----------
+   Consolidated: the docked-tray sizing that later re-declared these is merged in. */
 .controls {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: clamp(4px, 1.5vw, 10px);
+  flex: 0 0 auto;
 }
 
 .control {
-  border: none;
-  background: transparent;
-  color: var(--text);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 4px;
+  gap: clamp(3px, 0.7vh, 5px);
+  padding: clamp(5px, 1vh, 9px) 4px;
+  border: none;
   border-radius: 12px;
-  font-size: 0.72rem;
+  background: transparent;
+  color: var(--text);
+  font-size: clamp(0.64rem, 1.5vh, 0.82rem);
+  font-weight: 600;
   transition: transform 0.07s ease, background 0.15s ease, color 0.15s ease;
 }
 .control:active:not(:disabled) {
@@ -2009,11 +2034,6 @@
    Phase B: note layers, input-mode bar, bigger number pad
    ============================================================ */
 
-/* Prevent the page from scrolling while drag-selecting on the board. */
-.board {
-  touch-action: none;
-}
-
 /* Belt-and-braces against iOS text selection: a long press that drags across the
    grid or the number pad must never start selecting the digits. Buttons can
    re-enable user-select on iOS, so pin it off (prefixed) on these surfaces and
@@ -2060,39 +2080,11 @@
   transform: scale(1.12);
 }
 
-/* Group the mode bar + pad + controls at the bottom. */
-.app__pad {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(8px, 1.8vh, 14px);
-}
-
-/* ---------- Input mode bar ---------- */
-.mode-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(4px, 1.5vw, 8px);
-}
-.mode-bar__btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  border: 1.5px solid var(--grid-thin);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 8px 4px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  transition: border-color 0.15s ease, transform 0.07s ease;
-}
+/* ---------- Input mode bar ----------
+   .mode-bar and .mode-bar__btn base rulesets are consolidated in the tray-layout
+   section below (they were re-declared across phases). */
 .mode-bar__btn:active {
   transform: scale(0.95);
-}
-.mode-bar__btn--active {
-  border-color: var(--primary);
-  box-shadow: inset 0 0 0 1px var(--primary);
 }
 .mode-bar__icon {
   display: flex;
@@ -2102,25 +2094,6 @@
 }
 .mode-bar__label {
   line-height: 1;
-}
-
-/* ---------- Bigger, touch-friendly number pad ---------- */
-.numberpad {
-  gap: clamp(3px, 1vw, 6px);
-}
-.numberpad__key {
-  aspect-ratio: 5 / 7;
-  min-height: 54px;
-  min-width: 0;
-  border-radius: 14px;
-}
-.numberpad__digit {
-  font-size: clamp(1.5rem, 7.5vw, 2.2rem);
-  font-weight: 700;
-}
-.numberpad__count {
-  bottom: 5px;
-  font-size: 0.62rem;
 }
 
 /* ============================================================
@@ -2169,7 +2142,9 @@
   /* The tray takes whatever vertical space is left under the fixed board and
      shrinks its own contents (pad + controls) to fit — it never grows past its
      natural size, so on tall screens it stays docked at the bottom. */
+  display: flex;
   flex: 0 1 auto;
+  flex-direction: column;
   min-height: 0;
   gap: clamp(8px, 1.4vh, 12px);
   padding: clamp(10px, 1.8vh, 15px) clamp(10px, 3.5vw, 18px)
@@ -2178,40 +2153,6 @@
   border-top: 1px solid var(--grid-thin);
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.07);
-}
-
-/* A 3x3 dial-pad grid: big, wide, easy-to-hit keys (1-2-3 / 4-5-6 / 7-8-9). */
-.numberpad {
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(6px, 1.8vw, 10px);
-}
-.numberpad__key {
-  aspect-ratio: auto;
-  height: clamp(44px, 6vh, 60px);
-  min-height: 0;
-  border: 1.5px solid var(--grid-thin);
-  border-radius: 13px;
-  background: var(--bg);
-  box-shadow: none;
-  color: var(--primary);
-}
-.numberpad__key:active:not(:disabled) {
-  transform: scale(0.96);
-  background: var(--sel);
-  border-color: var(--primary);
-}
-.numberpad__digit {
-  font-size: clamp(1.4rem, 6vw, 2rem);
-  font-weight: 700;
-  line-height: 1;
-}
-.numberpad__count {
-  top: auto;
-  bottom: 6px;
-  right: 9px;
-  font-size: 0.6rem;
-  font-weight: 600;
-  opacity: 0.65;
 }
 
 /* On shorter screens, tighten the tray's own spacing a touch so the height-driven
@@ -2224,23 +2165,11 @@
   }
 }
 
-/* Mode bar + controls share the tray; slightly taller for easy tapping. */
-.mode-bar__btn {
-  padding: 9px 4px;
-  background: var(--bg);
-}
-.control {
-  padding: 9px 4px;
-}
-
 /* ---------- Input-mode colour identity ----------
    Each mode owns a distinct accent so the selection, the active mode button,
    and the number pad all agree on "what a tap does right now". The primary
    note layer is violet (not the brand blue) because --primary and --note are
    the same blue in several themes, which made digit vs note indistinguishable. */
-.app {
-  --m-accent: var(--primary); /* Digit */
-}
 .app[data-mode='note'] {
   --m-accent: #7c5cff; /* Notes */
 }
@@ -2349,17 +2278,25 @@
   flex: 0 0 auto;
 }
 .mode-bar__btn {
+  display: flex;
   flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
   min-height: 0;
   /* Four stacked buttons are shorter than the pad's three rows, so keep the
      icon + label compact enough to fit without clipping. */
   gap: clamp(1px, 0.5vh, 3px);
   padding: clamp(2px, 0.5vh, 5px) 4px;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
   font-size: clamp(0.55rem, 1.25vh, 0.7rem);
   font-weight: 700;
   overflow: hidden;
   /* Size container so the label can be dropped when the button is truly short. */
   container-type: size;
+  transition: border-color 0.15s ease, transform 0.07s ease;
 }
 .mode-bar__icon svg {
   width: clamp(16px, 2.5vh, 20px);
@@ -2374,51 +2311,7 @@
   }
 }
 
-/* The pad fills the width left of the mode column and stretches to the tray's
-   (shrinking) height. Its 3x3 cells therefore get shorter on short screens while
-   still using the full width, and each digit scales to its key so it never spills
-   or gets clipped — the board keeps its fixed size regardless. */
-.numberpad {
-  flex: 1 1 auto;
-  min-height: 0;
-  align-self: stretch;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: clamp(5px, 1.8vw, 11px);
-}
-.numberpad__key {
-  width: 100%;
-  height: 100%;
-  max-width: 108px;
-  justify-self: center;
-  aspect-ratio: auto;
-  min-height: 0;
-  min-width: 0;
-  container-type: size;
-}
-.numberpad__digit {
-  /* Cap by the key's smaller dimension so short keys shrink the digit to fit. */
-  font-size: min(2.9rem, 52cqmin);
-  font-weight: 700;
-  line-height: 1;
-}
-.numberpad__count {
-  font-size: min(0.78rem, 22cqmin);
-  bottom: 8px;
-  right: 11px;
-}
-
-/* Controls dock at the bottom of the tray; their content scales with height too
-   so Undo / Redo / Erase / Hint stay legible without overflowing when short. */
-.controls {
-  flex: 0 0 auto;
-}
-.control {
-  gap: clamp(3px, 0.7vh, 5px);
-  padding: clamp(5px, 1vh, 9px) 4px;
-  font-size: clamp(0.64rem, 1.5vh, 0.82rem);
-  font-weight: 600;
-}
+/* Control icons scale with the (shrinking) tray height. */
 .control svg {
   width: clamp(20px, 3.6vh, 26px);
   height: clamp(20px, 3.6vh, 26px);
