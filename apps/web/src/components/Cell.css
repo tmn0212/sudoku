@@ -76,6 +76,20 @@
   background: color-mix(in srgb, var(--m-accent, var(--primary)) 22%, transparent);
   box-shadow: inset 0 0 0 2px var(--m-accent, var(--primary));
 }
+/* Crossroad-scan anchor: when the selected cell is the one whose digit drives
+   the scan, the faint blue selection tint would blend into a dark surface. Swap
+   it for a solid, richer amber — two opaque washes of the theme's own
+   --cross-bg over the surface, so it's the darkest/strongest amber on the board
+   and reads as the deliberate "here's the digit I'm scanning" anchor while the
+   radiating lines stay the lighter translucent wash. Derived from --cross-bg so
+   it tracks every theme's amber automatically. The selection ring (from
+   .cell--selected above) stays on top. */
+.cell--cross-selected {
+  background:
+    linear-gradient(var(--cross-bg), var(--cross-bg)),
+    linear-gradient(var(--cross-bg), var(--cross-bg)),
+    var(--surface);
+}
 /* In the note modes the selection ring switches to a dashed outline, an
    at-a-glance "this is pencil, not ink" cue. Drawn as an inset pseudo-element
    border (not `outline`) so all four edges render. */

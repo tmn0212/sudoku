@@ -69,8 +69,14 @@ const CellComponent = ({
   // radiating from *other* copies of the digit stay amber — so you can tell your
   // cell's lines apart from the rest of the scan. Cells left untouched (plain)
   // are the candidates.
-  if (selected) classes.push('cell--selected');
-  else if (same) classes.push('cell--same');
+  if (selected) {
+    classes.push('cell--selected');
+    // The anchor cell of a crossroad scan (`cross` is only set while a scan is
+    // live) trades its faint blue selection tint for a solid, richer amber, so
+    // it reads as the darkest cell in the scan instead of vanishing into a dark
+    // surface. The selection ring stays.
+    if (cross) classes.push('cell--cross-selected');
+  } else if (same) classes.push('cell--same');
   else if (crossBanned) classes.push('cell--cross-banned');
   else if (peer) classes.push('cell--peer');
   else if (cross) classes.push('cell--cross');
