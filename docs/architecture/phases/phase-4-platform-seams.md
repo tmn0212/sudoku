@@ -1,7 +1,16 @@
 # Phase 4 · Platform Seams
 
-**Status:** TODO
+**Status:** DONE (2026-07-12) — all 7 steps landed, including the optional Board gesture reducer.
 **Risk:** low · **Depends on:** Phase 2 (Mode moved), Phase 3 (theme tokens extracted)
+
+> Shipped in 4 committed batches. `src/platform/` is the home for the swappable seams a
+> native port must provide: **Haptics** + **KeyValueStore** (batch 1), the **db repository**
+> interfaces over idb (batch 2), and the **generation / theme / visibility** ports (batch 3).
+> Batch 4 extracted the Board gesture policy into a pure `boardGestures.ts` reducer with 23
+> unit tests (node-fast) + a `test:gestures` Playwright interaction smoke covering the
+> reducer↔DOM adapter. All behavior-preserving: 251 unit tests, gesture smoke, and visual
+> smoke green. Note: the theme port formalizes the `applyTheme` seam; the portable token
+> *values* (`tokens.ts`) still ride with Phase 5.
 
 ## Goal
 
@@ -85,11 +94,12 @@ RN. `radial.ts:radialModeFromPointer` is already pure — reuse it.
 
 ## Acceptance criteria
 
-- [ ] `Haptics` and `KeyValueStore` interfaces exist with web adapters; no consumer touches
+- [x] `Haptics` and `KeyValueStore` interfaces exist with web adapters; no consumer touches
       `navigator`/`localStorage` directly (including `settingsStore.initSettings`).
-- [ ] `db/*` expose repository interfaces; call sites use them, not raw `idb` queries.
-- [ ] Generation, theme, and visibility seams are formalized.
-- [ ] (Optional) Board gesture policy is a testable reducer with an injected hit-test.
+- [x] `db/*` expose repository interfaces; call sites use them, not raw `idb` queries.
+- [x] Generation, theme, and visibility seams are formalized.
+- [x] Board gesture policy is a testable reducer (`boardGestures.ts`, 23 unit tests) with the
+      hit-test injected by the host; `test:gestures` covers the adapter in a real browser.
 
 ## Suggested commits
 

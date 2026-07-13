@@ -107,6 +107,8 @@ slips. Minimum viable mitigation (≈1 hour, Phase 1):
 | `src/hooks/**` | **Tier 2** `test:ui` | These are the untested gap — write the bridge-hook test alongside |
 | `src/db/**` | **Tier 2** `test:ui` (fake-indexeddb) | |
 | `src/components/**` (behavior) | **Tier 2** `test:ui` | |
+| `Board` input / `boardGestures.ts` (tap/drag/long-press/double-tap) | **Tier 1** `boardGestures.test.ts` (reducer) | **+ `test:gestures`** — jsdom can't hit-test, so the adapter needs a real browser |
+| `src/platform/**` (seams) | **Tier 1** `test:fast` | Web adapters over navigator/localStorage/DOM |
 | `*.css`, `themes.css`, layout/theme in `Board`/`TopBar`/`Cell` | **Tier 3 visual** `test:visual` | Look at the 4 screenshots; check dark + 428×926 + short screen |
 | iOS-standalone / `dvh` / `safe-area` / board sizing | `test:visual` **+ on-device checklist** | Unit tests can't see this |
 | PWA config / service worker / offline | `npm run build` + `npm run preview` | The only way to exercise the SW |

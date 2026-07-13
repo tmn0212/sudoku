@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:visual": "node scripts/visual-smoke.mjs",
+    "test:gestures": "node scripts/gesture-smoke.mjs",
     "typecheck": "tsc -b --noEmit && tsc -p tsconfig.scripts.json --noEmit"
   },
   "dependencies": {

@@ -10,14 +10,21 @@ import {
   hasCandidate,
   rowOf,
 } from '../engine/board';
-import { useGame, type InputMode } from '../game/store';
+import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
 import { haptics } from '../platform/haptics';
 import { Cell } from './Cell';
 import { GhostLayer } from './GhostLayer';
 import { RadialMenu } from './RadialMenu';
-import { radialModeFromPointer, type RadialState } from './radial';
+import { type RadialState } from './radial';
+import {
+  gestureReducer,
+  initialGestureState,
+  LONG_PRESS_MS,
+  type GestureState,
+  type GestureEvent,
+} from './boardGestures';
 
 const cellIndexFromPoint = (x: number, y: number): number | null => {
   const el = document.elementFromPoint(x, y) as HTMLElement | null;
@@ -48,15 +55,12 @@ export const Board = () => {
   const highlightNotes = useSettings((s) => s.highlightNotes);
   const highlightCrosshatch = useSettings((s) => s.highlightCrosshatch);
 
-  // Pointer gesture bookkeeping (refs so handlers don't re-create on each move).
-  const gesture = useRef<'idle' | 'pending' | 'drag' | 'radial'>('idle');
-  const startPos = useRef({ x: 0, y: 0 });
-  const pressCell = useRef<number | null>(null);
-  const lastIdx = useRef<number | null>(null);
+  // The gesture *policy* is a pure reducer (boardGestures.ts); this component is
+  // the web adapter — it hit-tests pointer coords to a cell, owns the long-press
+  // timer, measures the radial anchor, and runs the reducer's effects. Gesture
+  // state lives in a ref (only the radial drives a re-render, via setRadial).
+  const gestureRef = useRef<GestureState>(initialGestureState);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastTap = useRef<{ cell: number; time: number } | null>(null);
-  const radialAnchor = useRef<{ x: number; y: number } | null>(null);
-  const radialMode = useRef<InputMode | null>(null);
   const [radial, setRadial] = useState<RadialState | null>(null);
 
   const conflicts = useMemo(() => findConflicts(values), [values]);
@@ -116,105 +120,96 @@ export const Board = () => {
     }
   };
 
-  // Hold-to-open radial mode picker, anchored on the pressed cell.
-  const openRadial = (idx: number) => {
-    const el = document.querySelector(`[data-index="${idx}"]`);
+  // Centre of a cell in viewport coords, to anchor the radial (falls back to the
+  // press origin if the element can't be measured).
+  const cellCentre = (index: number): { x: number; y: number } => {
+    const el = document.querySelector(`[data-index="${index}"]`);
     const r = el?.getBoundingClientRect();
-    const x = r ? r.left + r.width / 2 : startPos.current.x;
-    const y = r ? r.top + r.height / 2 : startPos.current.y;
-    gesture.current = 'radial';
-    radialAnchor.current = { x, y };
-    radialMode.current = null;
-    setRadial({ x, y, active: null });
-    haptics.tap();
+    if (r) return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    const s = gestureRef.current;
+    return { x: s.startX, y: s.startY };
+  };
+
+  // Run the reducer for one event and carry out its effects against the store,
+  // the radial UI, haptics, and the long-press timer. (`dispatch` recurses only
+  // via the deferred timer callback, so the self-reference is always resolved.)
+  const dispatch = (event: GestureEvent) => {
+    const { state, effects } = gestureReducer(gestureRef.current, event);
+    gestureRef.current = state;
+    for (const fx of effects) {
+      switch (fx.type) {
+        case 'selectSingle':
+          setSelection([fx.index]);
+          break;
+        case 'addToSelection':
+          addToSelection(fx.index);
+          break;
+        case 'setMode':
+          setInputMode(fx.mode);
+          break;
+        case 'cycleMode':
+          cycleInputMode();
+          break;
+        case 'clearPressTimer':
+          clearPressTimer();
+          break;
+        case 'startPressTimer':
+          clearPressTimer();
+          pressTimer.current = setTimeout(() => {
+            const cell = gestureRef.current.pressCell;
+            if (cell == null) return;
+            const { x, y } = cellCentre(cell);
+            dispatch({ type: 'pressTimerElapsed', anchorX: x, anchorY: y });
+          }, LONG_PRESS_MS);
+          break;
+        case 'openRadial':
+          setRadial({ x: fx.x, y: fx.y, active: null });
+          haptics.tap();
+          break;
+        case 'updateRadial':
+          setRadial((r) => (r ? { ...r, active: fx.mode } : r));
+          break;
+        case 'closeRadial':
+          setRadial(null);
+          break;
+      }
+    }
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
-    const idx = cellIndexFromPoint(e.clientX, e.clientY);
-    if (idx == null) return;
+    const index = cellIndexFromPoint(e.clientX, e.clientY);
+    if (index == null) return;
     try {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     } catch {
       /* ignore */
     }
-    // Double-tap the current single cell to cycle Digit -> Notes -> Notes 2 -> Ban.
-    const tap = lastTap.current;
-    if (tap && tap.cell === idx && Date.now() - tap.time < 320) {
-      lastTap.current = null;
-      gesture.current = 'idle';
-      setSelection([idx]);
-      cycleInputMode();
-      return;
-    }
-    startPos.current = { x: e.clientX, y: e.clientY };
-    pressCell.current = idx;
-    lastIdx.current = idx;
-    gesture.current = 'pending';
-    // Keep an existing multi-selection when the press lands inside it (so you can
-    // hold it to pick a mode); otherwise start a fresh single selection.
     const st = useGame.getState();
-    if (!(st.selection.length > 1 && st.selection.includes(idx))) setSelection([idx]);
-    clearPressTimer();
-    pressTimer.current = setTimeout(() => {
-      if (gesture.current === 'pending') openRadial(idx);
-    }, 450);
+    // Inside an existing multi-selection? Then a hold can pick a mode without the
+    // press collapsing the group (the reducer keeps it).
+    const inMultiSelection = st.selection.length > 1 && st.selection.includes(index);
+    dispatch({ type: 'pointerDown', index, x: e.clientX, y: e.clientY, now: Date.now(), inMultiSelection });
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (gesture.current === 'idle') return;
-    if (gesture.current === 'radial') {
-      const m = radialModeFromPointer(radialAnchor.current, e.clientX, e.clientY);
-      if (m !== radialMode.current) {
-        radialMode.current = m;
-        setRadial((r) => (r ? { ...r, active: m } : r));
-      }
-      return;
-    }
-    // A real drag (moved past a small threshold) becomes a multi-select.
-    if (gesture.current === 'pending') {
-      const moved = Math.hypot(
-        e.clientX - startPos.current.x,
-        e.clientY - startPos.current.y,
-      );
-      if (moved < 8) return;
-      gesture.current = 'drag';
-      clearPressTimer();
-    }
-    const idx = cellIndexFromPoint(e.clientX, e.clientY);
-    if (idx == null || idx === lastIdx.current) return;
-    lastIdx.current = idx;
-    // Placing final digits across a drag makes no sense, but marking a run of
-    // cells does: a drag that starts in Digit mode auto-switches to Notes.
-    if (useGame.getState().inputMode === 'normal') setInputMode('note');
-    addToSelection(idx);
+    // Skip the DOM hit-test entirely while no gesture is live.
+    if (gestureRef.current.phase === 'idle') return;
+    const index = cellIndexFromPoint(e.clientX, e.clientY);
+    dispatch({
+      type: 'pointerMove',
+      index,
+      x: e.clientX,
+      y: e.clientY,
+      inputMode: useGame.getState().inputMode,
+    });
   };
 
   const onPointerUp = () => {
-    clearPressTimer();
-    const g = gesture.current;
-    gesture.current = 'idle';
-    if (g === 'radial') {
-      if (radialMode.current) setInputMode(radialMode.current);
-      radialAnchor.current = null;
-      radialMode.current = null;
-      setRadial(null);
-      return;
-    }
-    if (g === 'pending' && pressCell.current != null) {
-      // A plain tap resolves to just the pressed cell, even when it lands inside
-      // a multi-selection. (A hold on the group opens the radial in the branch
-      // above, which keeps the whole selection for mode-picking.)
-      if (useGame.getState().selection.length > 1) setSelection([pressCell.current]);
-      lastTap.current = { cell: pressCell.current, time: Date.now() };
-    }
+    dispatch({ type: 'pointerUp', selectionCount: useGame.getState().selection.length, now: Date.now() });
   };
 
   const onPointerCancel = () => {
-    clearPressTimer();
-    gesture.current = 'idle';
-    radialAnchor.current = null;
-    radialMode.current = null;
-    setRadial(null);
+    dispatch({ type: 'pointerCancel' });
   };
 
   return (

@@ -26,17 +26,21 @@ mode picker, and a Ban tool.
 
 ### Tests — run the tier that matches your change (don't run everything every time)
 
-- `npm run test:fast` — pure logic (engine / scoring / data / utils), **node**, the default
+- `npm run test:fast` — pure logic (engine / scoring / data / utils / platform, plus
+  colocated `*.test.ts` component logic like the board gesture reducer), **node**, the default
   after any logic change.
 - `npm run test:ui` — store / state / db / hooks / components, **jsdom**.
 - `npm run test:all` (= `npm test`) — the whole suite. `npm run test:coverage` for coverage.
 - `npm run test:visual` — Playwright screenshot smoke + layout assertions (needs `npm run dev`
   running). Unit tests **cannot** see layout; use this for anything that renders on the phone.
+- `npm run test:gestures` — Playwright **interaction** smoke for the board (tap / double-tap /
+  drag / long-press; needs `npm run dev`). Run it when you touch board input or `boardGestures.ts`
+  — jsdom can't hit-test, so this is the only coverage of the reducer↔DOM adapter wiring.
 
 See the full **change-type → test-tier decision table** in
 [`docs/architecture/05-testing.md`](docs/architecture/05-testing.md#change-type--test-tier-decision-table).
 Rule of thumb: logic change → `test:fast`; store/hooks/components → `test:ui`; layout/theme →
-`test:visual` + look at the screenshots.
+`test:visual` + look at the screenshots; board input → `test:gestures`.
 
 ### Testing notes
 
@@ -70,8 +74,13 @@ Dependency flows top → bottom; the top is pure, the bottom is platform-coupled
   `generatePuzzleAsync` (`workers/client.ts`) — don't reintroduce main-thread generation.
 - `src/screens/` — 9 top-level screens. `src/components/` — 17 components (`Board.tsx` does
   DOM hit-testing). `src/hooks/` — 9 side-effect hooks (timer, haptics, save, record, fx).
-- `src/theme/` — theme registry (`themes.ts`) + values (`themes.css`). `src/utils/` — format,
-  haptics.
+- `src/theme/` — portable, DOM-free theme registry (`themes.ts`) + values (`themes.css`).
+  `src/utils/` — format helpers.
+- `src/platform/` — **the swappable seams a native port must provide**, each an interface +
+  web adapter: `haptics.ts`, `keyValueStore.ts` (the Zustand-persist backend), `theme.ts`
+  (`ThemeApplier`, sets `data-theme`), `visibility.ts` (`AppVisibility`). Storage repos live in
+  `db/repositories.ts`; the generation seam in `workers/client.ts` (`PuzzleGenerator`). Consumers
+  depend on the interface, never on `navigator`/`localStorage`/`document` — so iOS swaps a binding.
 
 ## Conventions
 

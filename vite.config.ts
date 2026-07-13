@@ -65,6 +65,10 @@ export default defineConfig({
             'src/data/**/*.test.{ts,tsx}',
             'src/utils/**/*.test.ts',
             'src/platform/**/*.test.ts',
+            // Pure logic colocated with a component (e.g. the board gesture
+            // reducer). Component *render* tests are .test.tsx and run in the ui
+            // tier; .test.ts here stays framework-free and node-fast.
+            'src/components/**/*.test.ts',
           ],
         },
       },
