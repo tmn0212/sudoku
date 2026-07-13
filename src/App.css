@@ -324,8 +324,14 @@
 .cell--cross-banned {
   background: var(--cross-banned-bg);
 }
+/* The board peer wash (the selected cell's own row/column/box) is a tint of the
+   theme accent over the surface — NOT the shared --peer token, which is a very
+   subtle "pressed" grey that is near-invisible against dark theme surfaces (it's
+   reused by buttons/menus, so it can't be brightened globally). Mixing the accent
+   into the surface guarantees a visible, on-theme wash in light AND dark, and
+   keeps it clearly distinct from the amber crossroad wash. */
 .cell--peer {
-  background: var(--peer);
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
 }
 .cell--same {
   background: var(--same);
