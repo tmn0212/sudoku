@@ -8,10 +8,14 @@
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Mode } from '@sudoku/core';
+import type { SavedGame } from '@sudoku/state';
 
 // Mode is a domain type; re-exported here so existing db-layer importers keep
-// working, but pure code should import it from ../engine/types directly.
+// working, but pure code should import it from @sudoku/core directly.
 export type { Mode };
+// SavedGame is the game store's serialization shape (owned by @sudoku/state); the
+// savedGames object store persists it. Re-exported for existing db-layer importers.
+export type { SavedGame };
 
 export interface GameRecord {
   id?: number;
@@ -41,33 +45,6 @@ export interface LearnedTechnique {
   learnedAt: number;
 }
 
-/**
- * A resumable in-progress game. We keep a small roster of these (see
- * savedGames.ts) so several games can be continued, not just the last one.
- * Board state is stored as plain arrays; the store re-hydrates it on resume.
- */
-export interface SavedGame {
-  id: string;
-  mode: Mode;
-  difficulty: string;
-  challenge: { difficulty: string; index: number } | null;
-  puzzle: number[];
-  solution: number[];
-  given: boolean[];
-  values: number[];
-  notes: number[];
-  notesAlt: number[];
-  bans: number[];
-  /** Optional for backward compat with saves made before wrong-entry locks. */
-  lockedBans?: number[];
-  inputMode: string;
-  status: string;
-  elapsedMs: number;
-  mistakes: number;
-  hints: number;
-  score: number;
-  updatedAt: number;
-}
 
 interface SudokuDB extends DBSchema {
   games: {

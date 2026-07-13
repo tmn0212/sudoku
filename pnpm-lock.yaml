@@ -17,6 +17,12 @@ importers:
       '@sudoku/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@sudoku/state':
+        specifier: workspace:*
+        version: link:../../packages/state
+      '@sudoku/ui-tokens':
+        specifier: workspace:*
+        version: link:../../packages/ui-tokens
       idb:
         specifier: ^8.0.3
         version: 8.0.3
@@ -93,6 +99,34 @@ importers:
       vitest:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.49.0)(tsx@4.23.0))
+
+  packages/state:
+    dependencies:
+      '@sudoku/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sudoku/ui-tokens':
+        specifier: workspace:*
+        version: link:../ui-tokens
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      zustand:
+        specifier: ^5.0.14
+        version: 5.0.14(@types/react@19.2.17)(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.17
+      typescript:
+        specifier: ~6.0.2
+        version: 6.0.3
+
+  packages/ui-tokens:
+    devDependencies:
+      typescript:
+        specifier: ~6.0.2
+        version: 6.0.3
 
 packages:
 

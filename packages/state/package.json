@@ -1,0 +1,25 @@
+{
+  "name": "@sudoku/state",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@sudoku/core": "workspace:*",
+    "@sudoku/ui-tokens": "workspace:*",
+    "zustand": "^5.0.14"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "@types/react": "^19.2.17"
+  }
+}

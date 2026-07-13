@@ -22,6 +22,8 @@
   },
   "dependencies": {
     "@sudoku/core": "workspace:*",
+    "@sudoku/state": "workspace:*",
+    "@sudoku/ui-tokens": "workspace:*",
     "idb": "^8.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
