@@ -1,4 +1,5 @@
 import { useBanPrompt } from '../state/banPromptStore';
+import './BanConfirm.css';
 
 /**
  * Confirmation shown when the user tries to enter a digit they've banned in the

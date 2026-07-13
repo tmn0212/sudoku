@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './Learn.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { IconCheck, IconChevronRight, IconGrid } from '../components/icons';
 import { LESSONS, TIERS } from '../data/lessons';

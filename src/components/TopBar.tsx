@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './TopBar.css';
 import { useGame, ARCADE_LIVES } from '../game/store';
 import { formatTime } from '../utils/format';
 import {

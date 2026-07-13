@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react';
+import './Tutorial.css';
+import '../styles/walkthrough.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { LessonBoard } from '../components/LessonBoard';
 import {

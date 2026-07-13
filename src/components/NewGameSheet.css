@@ -1,0 +1,79 @@
+/* New-game bottom sheet (colocated with NewGameSheet.tsx). */
+/* ---------- New game sheet ---------- */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 25, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 60;
+  animation: fade 0.2s ease;
+}
+.sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 520px;
+  border-radius: 22px 22px 0 0;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow);
+  animation: slideup 0.25s ease;
+}
+@keyframes slideup {
+  from {
+    transform: translateY(100%);
+  }
+}
+.sheet__handle {
+  width: 40px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--grid-thin);
+  margin: 4px auto 14px;
+}
+.sheet__title {
+  margin: 0 0 16px;
+  font-size: 1.3rem;
+  text-align: center;
+}
+.sheet__options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sheet__option {
+  text-align: left;
+  border: 1.5px solid var(--grid-thin);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.15s ease, transform 0.07s ease;
+}
+.sheet__option:active {
+  transform: scale(0.98);
+}
+.sheet__option--current {
+  border-color: var(--primary);
+}
+.sheet__option-name {
+  font-weight: 700;
+  text-transform: capitalize;
+  font-size: 1.05rem;
+}
+.sheet__option-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.sheet__cancel {
+  margin-top: 14px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+  padding: 10px;
+}

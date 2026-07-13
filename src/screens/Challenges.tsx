@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './Challenges.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { IconCheck, IconDice, IconClock } from '../components/icons';
 import { formatTime } from '../utils/format';

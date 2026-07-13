@@ -1,4 +1,5 @@
 import { useGame } from '../game/store';
+import './HintBanner.css';
 
 export const HintBanner = () => {
   const hint = useGame((s) => s.hint);

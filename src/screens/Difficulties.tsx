@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './Difficulties.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { IconCheck, IconChevronRight } from '../components/icons';
 import { PACK_SIZES } from '../data/challenges';

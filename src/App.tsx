@@ -4,7 +4,6 @@ import { Home } from './screens/Home';
 import { Game } from './screens/Game';
 import { ReloadPrompt } from './components/ReloadPrompt';
 import { requestPersistentStorage } from './db/idb';
-import './App.css';
 
 // Core screens load eagerly; everything else is a separate lazy chunk so the
 // initial bundle stays lean (challenge packs and lesson data ride along).

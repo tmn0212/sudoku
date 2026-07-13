@@ -1,0 +1,74 @@
+/* Difficulty picker screen (colocated with Difficulties.tsx). */
+/* ---------- Difficulty picker (mode → difficulty) ---------- */
+.difflist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.diffcard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: none;
+  border-left: 5px solid var(--primary);
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  transition: transform 0.09s ease;
+}
+.diffcard:active {
+  transform: scale(0.98);
+}
+.diffcard--easy {
+  border-left-color: #2f9e57;
+}
+.diffcard--medium {
+  border-left-color: #2f7de0;
+}
+.diffcard--hard {
+  border-left-color: #d98a1f;
+}
+.diffcard--pro {
+  border-left-color: #b0472f;
+}
+.diffcard--impossible {
+  border-left-color: #8b3ad0;
+}
+.diffcard__main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.diffcard__label {
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+.diffcard__blurb {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.diffcard__side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.diffcard__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.diffcard__progress--done {
+  color: var(--primary);
+}
+.diffcard__go {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}

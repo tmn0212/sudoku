@@ -1,0 +1,121 @@
+/* Shared screen scaffolding: the .screen shell, ScreenHeader chrome, the generic
+   spinner, and the per-screen entrance animation. Loaded globally via main.tsx. */
+/* ============================================================
+   Screens (Home / Settings / Learn / Stats) & navigation
+   ============================================================ */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: var(--app-height, 100vh);
+  max-width: 520px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.screen__body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px clamp(14px, 4vw, 22px) 24px;
+}
+.screen__placeholder {
+  color: var(--muted);
+  text-align: center;
+  margin-top: 40px;
+}
+/* A pinned action area that never scrolls, so Back/Next (and lesson actions)
+   stay in one fixed spot no matter how tall the scrolling content above is. */
+.screen__footer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px clamp(14px, 4vw, 22px)
+    max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--grid-thin);
+  background: var(--bg);
+}
+.screen__footer .walk__nav {
+  margin-bottom: 0;
+}
+.screen__footer .lesson-actions {
+  margin-top: 0;
+}
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px clamp(8px, 3vw, 14px);
+}
+.screen-header__back {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  display: flex;
+  padding: 8px;
+  border-radius: 10px;
+}
+.screen-header__back:active {
+  background: var(--peer);
+}
+.screen-header__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.screen-header__action {
+  min-width: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* ---------- Suspense loader ---------- */
+.screen-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+.screen-loading .spinner {
+  border-color: var(--grid-thin);
+  border-top-color: var(--primary);
+}
+
+/* Screen entrance animation — each navigation remounts .screen-anim (keyed on
+   the active screen in App.tsx) and plays a quick fade + rise. */
+.screen-anim {
+  height: 100%;
+  animation: screenIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-anim {
+    animation: none;
+  }
+}

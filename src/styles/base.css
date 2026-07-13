@@ -17,7 +17,7 @@
 }
 
 /* Shared fade-in used by the radial menu (RadialMenu.css) and the overlays/sheets
-   (App.css). Global so any surface can reference it. */
+   (WinOverlay.css, BanConfirm.css, NewGameSheet.css). Global so any surface can use it. */
 @keyframes fade {
   from {
     opacity: 0;
@@ -33,5 +33,14 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Shared spring-in used by the overlay/confirm cards and the top-bar life pips.
+   Global so any surface can reference it (like `fade`). */
+@keyframes pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
   }
 }

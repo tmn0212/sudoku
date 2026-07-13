@@ -1,4 +1,5 @@
 import { ScreenHeader } from '../components/ScreenHeader';
+import './Settings.css';
 import { useSettings } from '../state/settingsStore';
 import { useGame } from '../game/store';
 import { THEMES } from '../theme/themes';

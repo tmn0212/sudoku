@@ -1,0 +1,32 @@
+/* Service-worker update toast (colocated with ReloadPrompt.tsx). */
+/* ---------- Reload toast ---------- */
+.reload-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  box-shadow: var(--shadow);
+  z-index: 70;
+  max-width: 92vw;
+}
+.reload-toast button {
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.reload-toast__actions {
+  display: flex;
+  gap: 6px;
+}

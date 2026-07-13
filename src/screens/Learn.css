@@ -1,0 +1,113 @@
+/* Learn index screen: intro, lesson list, and the how-to-play entry card (colocated with Learn.tsx). */
+.learn-intro {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.learn-section {
+  margin-bottom: 22px;
+}
+.learn-section__title {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.learn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.learn-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  transition: transform 0.07s ease;
+}
+.learn-item:active {
+  transform: scale(0.98);
+}
+.learn-item__title {
+  display: block;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+.learn-item__summary {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.learn-item__badge {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.learn-item__badge--done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+
+.learn-howto {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow);
+  text-align: left;
+  transition: transform 0.09s ease;
+}
+.learn-howto:active {
+  transform: scale(0.98);
+}
+.learn-howto__icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.learn-howto__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.learn-howto__title {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+.learn-howto__sub {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}

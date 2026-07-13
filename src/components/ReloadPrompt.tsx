@@ -1,4 +1,5 @@
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import './ReloadPrompt.css';
 
 /**
  * Small toast shown when the service worker has cached the app for offline use,

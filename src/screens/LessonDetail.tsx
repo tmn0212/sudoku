@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import './LessonDetail.css';
+import '../styles/walkthrough.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { LessonBoard } from '../components/LessonBoard';
 import { IconCheck, IconChevronLeft, IconChevronRight } from '../components/icons';

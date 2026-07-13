@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './NewGameSheet.css';
 import { DIFFICULTIES, type Difficulty } from '../engine/types';
 import { useGame } from '../game/store';
 import { generatePuzzleAsync } from '../workers/client';

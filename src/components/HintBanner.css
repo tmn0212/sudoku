@@ -1,0 +1,39 @@
+/* Hint banner shown under the board (colocated with HintBanner.tsx). */
+/* ---------- Hint banner ---------- */
+.hint-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--hint-bg);
+  color: var(--hint-fg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+.hint-banner__text {
+  margin: 0;
+  flex: 1;
+}
+.hint-banner__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hint-banner__apply,
+.hint-banner__dismiss {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.hint-banner__apply {
+  background: var(--hint-fg);
+  color: var(--hint-bg);
+}
+.hint-banner__dismiss {
+  background: transparent;
+  color: var(--hint-fg);
+  text-decoration: underline;
+}

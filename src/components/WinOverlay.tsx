@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './WinOverlay.css';
 import { useGame } from '../game/store';
 import { useSettings } from '../state/settingsStore';
 import { formatTime } from '../utils/format';

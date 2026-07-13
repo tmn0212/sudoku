@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './Stats.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { getStats, type Stats as StatsData } from '../db/stats';
 import { formatTime } from '../utils/format';

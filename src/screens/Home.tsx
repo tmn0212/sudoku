@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import './Home.css';
 import { useEffect, useState } from 'react';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';

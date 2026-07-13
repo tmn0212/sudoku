@@ -4,6 +4,7 @@ import './index.css';
 import './theme/themes.css';
 import './styles/base.css';
 import './styles/shell.css';
+import './styles/screens.css';
 import { initSettings } from './state/settingsStore';
 import App from './App.tsx';
 

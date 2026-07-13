@@ -1,0 +1,148 @@
+/* Top bar: difficulty / timer / lives + more-options button (colocated with TopBar.tsx). */
+/* ---------- Top bar ----------
+   Home on the left, Settings + New on the right, and a centred stat column
+   (difficulty → timer → lives) that keeps the clock anchored dead-centre no
+   matter how long the difficulty label is. */
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px clamp(12px, 4vw, 20px) 6px;
+}
+.topbar > .topbar__btn {
+  justify-self: start;
+}
+.topbar__actions {
+  justify-self: end;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* In-game "more options" dropdown (New game / Restart / Home). */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+}
+.topbar__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 45;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--grid-thin);
+  box-shadow: var(--shadow);
+  animation: pop 0.14s ease;
+}
+.topbar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 600;
+  border-radius: 10px;
+  text-align: left;
+}
+.topbar__menu-item:active {
+  background: var(--peer);
+}
+.topbar__menu-item svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+/* Big, bordered icon buttons — the top bar has plenty of room, so make them
+   comfortably tappable. */
+.topbar__btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+.topbar__btn:active {
+  transform: scale(0.94);
+  background: var(--peer);
+}
+/* The New (+) button is the primary action. */
+.topbar__btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.topbar__btn--primary:active {
+  background: var(--primary-strong);
+}
+
+/* Centre stat column. */
+.topbar__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.topbar__difficulty {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* The clock is the headline element: big, bold, high-contrast. */
+.topbar__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.topbar__timer svg {
+  color: var(--muted);
+}
+
+/* Reserve the lives/mistakes row so the timer never shifts when a mistake
+   appears mid-game. */
+.topbar__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+}
+.topbar__lives {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ban);
+}
+.topbar__mistakes {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
