@@ -11,30 +11,50 @@ a bare game: 5 difficulties, two modes (Good / Arcade with 3 lives), challenge p
 a Learn/Tutorial system, stats + scoring, 8 themes, drag-multi-select with a radial
 mode picker, and a Ban tool.
 
+It's a **pnpm + Turborepo monorepo** (prep for a shared-core native app): the portable
+logic lives in `packages/` and the web app is `apps/web`. **Use `pnpm`, not `npm`** (a
+`pnpm` shim must be on PATH — `corepack enable --install-directory ~/.local/bin pnpm`).
+
+```
+packages/core/       @sudoku/core      engine + scoring + types (pure, zero-dep, own tests)
+packages/state/      @sudoku/state     Zustand stores as DI factories + KeyValueStore/ThemeApplier ports
+packages/ui-tokens/  @sudoku/ui-tokens portable theme registry
+apps/web/            @sudoku/web       the Vite PWA = web adapters + views + thin store-wiring files
+```
+
+Packages export **raw TS source** (Vite/tsc bundle them — no build step). `apps/web` keeps
+thin wiring files at the original store paths (`src/game/store.ts`, `src/state/*Store.ts`) that
+instantiate the shared factories with web adapters, so **consumer imports are unchanged**.
+
 > **The full, current architecture map and a phased improvement roadmap live in
 > [`docs/architecture/`](docs/architecture/README.md).** Read `01-overview.md` there
 > before a nontrivial change. This file is the quick reference.
 
 ## Commands
 
-- `npm run dev` — dev server (http://localhost:5173)
-- `npm run build` — typecheck + production build (emits the service worker + manifest)
-- `npm run preview` — serve the build (the **only** way to exercise the service worker)
-- `npm run typecheck` — `tsc -b --noEmit` for the app + the `scripts/` generators
-- `node scripts/generate-icons.mjs` — regenerate PWA icons (pure-JS PNG encoder)
-- `npm run gen:challenges` / `npm run gen:lessons` — regenerate the challenge/lesson data
+Run from the repo root (Turborepo fans out across packages; `pnpm --filter @sudoku/web` targets
+just the app). Paths below are relative to `apps/web/` unless under `packages/`.
+
+- `pnpm dev` — dev server (http://localhost:5173)
+- `pnpm build` — `turbo run build`: typecheck + production build (emits the service worker + manifest)
+- `pnpm preview` — serve the build (the **only** way to exercise the service worker)
+- `pnpm typecheck` — `turbo run typecheck` across every package
+- `pnpm lint` — `turbo run lint` (oxlint)
+- `node apps/web/scripts/generate-icons.mjs` — regenerate PWA icons (pure-JS PNG encoder)
+- `pnpm gen:challenges` / `pnpm gen:lessons` — regenerate the challenge/lesson data
 
 ### Tests — run the tier that matches your change (don't run everything every time)
 
-- `npm run test:fast` — pure logic (engine / scoring / data / utils / platform, plus
-  colocated `*.test.ts` component logic like the board gesture reducer), **node**, the default
-  after any logic change.
-- `npm run test:ui` — store / state / db / hooks / components, **jsdom**.
-- `npm run test:all` (= `npm test`) — the whole suite. `npm run test:coverage` for coverage.
-- `npm run test:visual` — Playwright screenshot smoke + layout assertions (needs `npm run dev`
+- `pnpm test:fast` — `turbo run test:fast`: pure logic, **node**. `@sudoku/core` (engine +
+  scoring) runs via its own vitest; `apps/web`'s fast tier covers data / utils / platform +
+  colocated `*.test.ts` component logic like the board gesture reducer. The default after any
+  logic change.
+- `pnpm test:ui` — store / state / db / hooks / components in `apps/web`, **jsdom**.
+- `pnpm test` (= `turbo run test`) — the whole suite across packages. `pnpm test:coverage` for coverage.
+- `pnpm test:visual` — Playwright screenshot smoke + layout assertions (needs `pnpm dev`
   running). Unit tests **cannot** see layout; use this for anything that renders on the phone.
-- `npm run test:gestures` — Playwright **interaction** smoke for the board (tap / double-tap /
-  drag / long-press; needs `npm run dev`). Run it when you touch board input or `boardGestures.ts`
+- `pnpm test:gestures` — Playwright **interaction** smoke for the board (tap / double-tap /
+  drag / long-press; needs `pnpm dev`). Run it when you touch board input or `boardGestures.ts`
   — jsdom can't hit-test, so this is the only coverage of the reducer↔DOM adapter wiring.
 
 See the full **change-type → test-tier decision table** in
@@ -44,9 +64,9 @@ Rule of thumb: logic change → `test:fast`; store/hooks/components → `test:ui
 
 ### Testing notes
 
-- Engine tests run in the **node** env (fast). Store/component/hook/db tests run in **jsdom**
-  (the tier split is in `vite.config.ts` under `test.projects`; a `// @vitest-environment jsdom`
-  pragma on line 1 also works and is used by existing files).
+- `@sudoku/core` tests run **node** (its own `packages/core/vitest.config.ts`). In `apps/web`,
+  the fast/ui tier split is in `apps/web/vite.config.ts` under `test.projects`; a
+  `// @vitest-environment jsdom` pragma on line 1 also works and is used by existing files.
 - Vitest's default reporter buffers output until the run ends in non-TTY shells — a run that
   only shows the `RUN` header is still working, not hung. Give it time.
 - Puzzle generation is seedable (`generatePuzzle(difficulty, { seed })`) so tests are
@@ -54,33 +74,40 @@ Rule of thumb: logic change → `test:fast`; store/hooks/components → `test:ui
 
 ## Architecture (the real tree)
 
-Dependency flows top → bottom; the top is pure, the bottom is platform-coupled.
+Dependency flows top → bottom; the top is pure (shared `packages/`), the bottom is
+platform-coupled (`apps/web`). A native app would add `apps/mobile` consuming the same packages.
 
-- `src/engine/` — **pure, dependency-free, React/DOM-agnostic.** Board geometry & bitmask
-  candidates (`board.ts`), backtracking solver + uniqueness counter (`solver.ts`),
-  human-technique solver for grading + hints (`techniques.ts`), generation + grading
-  (`generator.ts`), seedable RNG (`rng.ts`), shared types (`types.ts`). Keep it pure.
-- `src/scoring/` — pure score computation (`score.ts`).
-- `src/data/` — challenge packs (`challenges/*.json`, lazy-imported) + lesson content.
-- `src/game/store.ts` — the main **Zustand** game reducer, persisted to `localStorage`
-  (key `sudoku-game`). `inputActions.ts` holds the shared ban-confirm input gate.
-- `src/state/` — **four more Zustand stores**: `uiStore.ts` (the in-app router — **there is
-  no react-router**; it's a `Screen` enum + back stack), `settingsStore.ts` (prefs + theme),
-  `fxStore.ts` (animations), `banPromptStore.ts` (ban-confirm modal).
+**`packages/core` (`@sudoku/core`) — pure, dependency-free, React/DOM-agnostic.** Board geometry
+& bitmask candidates (`engine/board.ts`), backtracking solver + uniqueness counter
+(`engine/solver.ts`), human-technique solver for grading + hints (`engine/techniques.ts`),
+generation + grading (`engine/generator.ts`), seedable RNG (`engine/rng.ts`), shared types
+(`engine/types.ts` incl. `Mode`/`Difficulty`), pure score computation (`scoring/score.ts`). One
+barrel: `@sudoku/core`. Keep it pure — no framework/DOM/storage ever.
+
+**`packages/state` (`@sudoku/state`) — the Zustand stores + the ports they need.** The game
+reducer, settings, and ban-confirm are **DI factories** (`createGameStore`/`createSettingsStore`/
+`createBanPromptStore`) taking `KeyValueStore`/`ThemeApplier`/`placeDigit` deps; the router
+(`uiStore`, a `Screen` enum + back stack — **no react-router**) and `fxStore` (animations) are
+dep-free singletons. `SavedGame` (the serialization shape) + `ports.ts` live here. `react` is a
+peerDependency.
+
+**`packages/ui-tokens` (`@sudoku/ui-tokens`)** — the portable theme registry (`themes.ts`).
+
+**`apps/web` (`@sudoku/web`) — the Vite PWA: web adapters, views, and store wiring.**
+- `src/game/store.ts`, `src/state/*Store.ts` — **thin wiring**: instantiate the `@sudoku/state`
+  factories with web adapters (or re-export the singletons). Consumer import paths are unchanged.
+  `game/inputActions.ts` holds the shared ban-confirm input gate.
 - `src/db/` — **IndexedDB** via `idb` (DB `sudoku`): `savedGames` (resume roster, capped 10),
-  `games` (completed history — used by stats), `challengeProgress`, `learned`. Persistence is
-  **not** localStorage-only. Only `db/idb.ts` opens the DB; everything else uses `getDb()`.
-- `src/workers/` — off-thread puzzle generation with a **synchronous fallback**. The UI calls
-  `generatePuzzleAsync` (`workers/client.ts`) — don't reintroduce main-thread generation.
-- `src/screens/` — 9 top-level screens. `src/components/` — 17 components (`Board.tsx` does
-  DOM hit-testing). `src/hooks/` — 9 side-effect hooks (timer, haptics, save, record, fx).
-- `src/theme/` — portable, DOM-free theme registry (`themes.ts`) + values (`themes.css`).
-  `src/utils/` — format helpers.
-- `src/platform/` — **the swappable seams a native port must provide**, each an interface +
-  web adapter: `haptics.ts`, `keyValueStore.ts` (the Zustand-persist backend), `theme.ts`
-  (`ThemeApplier`, sets `data-theme`), `visibility.ts` (`AppVisibility`). Storage repos live in
-  `db/repositories.ts`; the generation seam in `workers/client.ts` (`PuzzleGenerator`). Consumers
-  depend on the interface, never on `navigator`/`localStorage`/`document` — so iOS swaps a binding.
+  `games` (history), `challengeProgress`, `learned`. Only `db/idb.ts` opens the DB (everything
+  else uses `getDb()`); `db/repositories.ts` exposes the storage-repo interfaces.
+- `src/platform/` — **web adapters implementing the seams a native port swaps**: `haptics.ts`,
+  `keyValueStore.ts` + `theme.ts` (implement the `@sudoku/state` ports), `visibility.ts`
+  (`AppVisibility`). The generation seam is `workers/client.ts` (`PuzzleGenerator`) — off-thread
+  with a sync fallback; the UI calls `generatePuzzleAsync`, never main-thread generation.
+- `src/data/` — challenge packs (`challenges/*.json`, lazy) + lesson content.
+- `src/screens/` (9 screens), `src/components/` (`Board.tsx` does DOM hit-testing; gesture
+  *policy* is the pure `boardGestures.ts` reducer), `src/hooks/` (timer, haptics, save, record,
+  fx), `src/theme/themes.css`, `src/utils/`.
 
 ## Conventions
 
@@ -109,5 +136,10 @@ Dependency flows top → bottom; the top is pure, the bottom is platform-coupled
   the challenge packs (`gen:challenges`) reshuffles indices and **invalidates users' saved
   progress**. Don't regenerate casually.
 - **The active-game shape is hand-maintained in three places** that must stay in sync:
-  `store.ts` `partialize`, `useSaveRoster.ts` `serialize`, and the `SavedGame` interface in
-  `db/idb.ts`. Adding a field means editing all three.
+  `packages/state/src/game/store.ts` `partialize`, `apps/web/src/hooks/useSaveRoster.ts`
+  `serialize`, and the `SavedGame` interface (now in `packages/state`, re-exported by
+  `apps/web/src/db/idb.ts`). Adding a field means editing all three.
+- **The store cluster is split across the package boundary:** the reducer *logic* + factories
+  live in `packages/state`; `apps/web/src/game/store.ts` + `src/state/*Store.ts` are thin wiring
+  that inject the web adapters. Change reducer behavior in `packages/state`; change what's
+  injected in the `apps/web` wiring. `react` stays a peerDependency there — never a dependency.

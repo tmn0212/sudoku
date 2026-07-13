@@ -1,7 +1,20 @@
 # Phase 5 · Shared-Core Monorepo
 
-**Status:** TODO
+**Status:** DONE (2026-07-12) — pnpm + Turborepo workspace; core / state / ui-tokens extracted.
 **Risk:** medium (build-system change) · **Depends on:** Phase 4 (seams in place)
+
+> Shipped in 3 committed batches. The repo is now a **pnpm + Turborepo** workspace:
+> `packages/core` (engine + scoring + types, pure, zero-dep), `packages/state` (the Zustand
+> stores as DI factories + the KeyValueStore/ThemeApplier ports), `packages/ui-tokens` (the
+> theme registry), and `apps/web` (Vite app = web adapters + views + thin store-wiring files).
+> Packages export raw TS source (internal-package pattern; Vite/tsc bundle them — no build
+> step). `react` is a peerDependency of `@sudoku/state`; `core` has zero React/DOM. Consumer
+> imports and all tests were kept unchanged via the wiring files. `.npmrc` pins
+> `node-linker=hoisted` for the migration. `turbo run build test typecheck lint` green (core 76
+> + web 175 = 251 tests); visual + gesture smoke pass.
+>
+> Deferred: the full `tokens.ts` value-generator (still just the registry today) — a natural
+> follow-up now that `ui-tokens` exists.
 
 ## Goal
 
@@ -64,10 +77,10 @@ consumes it. `core` should have **no** React dependency at all.
 
 ## Acceptance criteria
 
-- [ ] Workspace builds via pnpm + Turborepo; `apps/web` unchanged behaviorally.
-- [ ] `packages/core` (pure), `packages/state` (reducers + ports), `packages/ui-tokens` exist.
-- [ ] `react` is a peerDependency in shared packages; `core` has no React.
-- [ ] Tests run per-package; the fast/ui tiers still work (or are re-expressed per package).
+- [x] Workspace builds via pnpm + Turborepo; `apps/web` unchanged behaviorally.
+- [x] `packages/core` (pure), `packages/state` (reducers + ports), `packages/ui-tokens` exist.
+- [x] `react` is a peerDependency in `@sudoku/state`; `core`/`ui-tokens` have no React.
+- [x] Tests run per-package (core via its own vitest; web keeps fast/ui tiers via turbo).
 
 ## Notes
 
