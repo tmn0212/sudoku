@@ -1,18 +1,21 @@
 # Phase 3 · Styling Consolidation
 
-**Status:** IN PROGRESS (2026-07-12) — Step 1 (dedupe) + Step 2 (tokens) DONE & committed; Step 3 (per-component carve) PENDING
+**Status:** DONE (2026-07-12) — Steps 1 (dedupe), 2 (tokens), 3 (carve) + 4 (CLAUDE.md) shipped; `App.css` deleted. Token source-of-truth (`tokens.ts` generator) intentionally deferred to Phase 5.
 **Risk:** low (mostly mechanical, screenshot-verified) · **Depends on:** Phase 1 (visual harness)
 
-> Done so far: **Step 1** collapsed every duplicate/override selector (numberpad, mode-bar,
+> Done: **Step 1** collapsed every duplicate/override selector (numberpad, mode-bar,
 > control, board, app, app__pad — each declared 2-4×) into one block holding the effective
 > ruleset; `App.css` 2638 → 2536 lines, screenshot-verified identical. **Step 2** introduced
 > `--note-primary` (single-sourced the hardcoded `#7c5cff` across App.css + Tutorial.tsx),
 > defined the phantom `--correct`/`--danger`, and removed dead `--note`/`--radius`.
-> **Pending — Step 3:** carve the consolidated rules into per-component `.css` files + the
-> `styles/base.css`/`shell.css` split, and document the convention in CLAUDE.md (Step 4).
+> **Step 3** carved the monolith into colocated per-component/screen `.css` files in two
+> verified batches (game components, then screens/overlays), split cross-cutting rules into
+> `styles/base.css` + `shell.css` + `screens.css` + `walkthrough.css` (loaded once from
+> `main.tsx`), and **deleted `App.css`**. Bonus: lazy screens now ship split CSS chunks.
+> **Step 4** documented the one-file-per-component convention in `CLAUDE.md`.
 > Note: the full `tokens.ts` + `generate-themes.mjs` source-of-truth restructure from the
-> original Step 2 was intentionally deferred to pair with Phase 5's `ui-tokens` package —
-> it touches all 8 themes and only 2 are screenshot-covered, so it wants per-theme verification.
+> original Step 2 remains deferred to pair with Phase 5's `ui-tokens` package — it touches all
+> 8 themes and only 2 are screenshot-covered, so it wants per-theme verification.
 
 ## Goal
 
@@ -101,12 +104,12 @@ Add a Styling subsection:
 
 ## Acceptance criteria
 
-- [ ] No selector is defined more than once; dead blocks removed.
-- [ ] `src/theme/tokens.ts` is the single source; `themes.css` is generated; no hardcoded
-      `#7c5cff` remains; `--correct`/`--danger` are real tokens.
-- [ ] `App.css` is gone; every component/screen has a colocated `.css`; cross-cutting rules in
-      `styles/base.css` + `shell.css`.
-- [ ] `CLAUDE.md` documents the styling convention.
+- [x] No selector is defined more than once; dead blocks removed.
+- [~] `#7c5cff` single-sourced to `--note-primary`; `--correct`/`--danger` are real tokens.
+      _Deferred to Phase 5: `src/theme/tokens.ts` as generator source of truth for `themes.css`._
+- [x] `App.css` is gone; every component/screen has a colocated `.css`; cross-cutting rules in
+      `styles/base.css` + `shell.css` + `screens.css` + `walkthrough.css`.
+- [x] `CLAUDE.md` documents the styling convention.
 
 ## Suggested commits
 

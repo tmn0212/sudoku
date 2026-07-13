@@ -81,9 +81,17 @@ Dependency flows top → bottom; the top is pure, the bottom is platform-coupled
 - Difficulty is **technique-based**, not clue-count based (`easy / medium / hard / pro /
   impossible`). If you add a technique to `techniques.ts`, wire its rank into `TECHNIQUES` and
   re-check the grade mapping in `generator.ts`.
-- **Styling:** `src/App.css` is a large global stylesheet — **never re-declare a selector to
-  override it; edit the existing block** (past appends created 4× duplicate selectors). See
-  `docs/architecture/04-styling.md` for the consolidation plan.
+- **Styling: one CSS file per component/screen, colocated and imported by it.** A class's
+  home is its BEM prefix (`numberpad__*` → `components/NumberPad.css`, `walk__*` →
+  `styles/walkthrough.css`). Cross-cutting rules live in `src/styles/`: `base.css` (user-select
+  guard, global reduced-motion, shared `fade`/`pop` keyframes), `shell.css` (the game shell +
+  docked tray: `.app*`/`.pad-row`), `screens.css` (screen nav chrome: `.screen*`, spinner,
+  `screenIn`), `walkthrough.css` (shared `.walk*`). These four load once from `main.tsx`;
+  everything else imports its own `.css`. **Never re-declare a selector to override it — edit
+  the existing block** (past appends created 4× duplicate selectors). Because selectors are now
+  unique per file, cascade is specificity-driven, so import order doesn't matter. Prefer theme
+  tokens over hex literals. The old monolithic `App.css` is gone; see
+  `docs/architecture/04-styling.md`.
 - Make small, focused git commits per milestone.
 
 ## Silent-coupling gotchas (easy to break)
