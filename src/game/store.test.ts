@@ -275,4 +275,41 @@ describe('game store', () => {
     useGame.getState().inputDigit(5);
     expect(useGame.getState().values).toEqual(before);
   });
+
+  const solveFully = () => {
+    const { solution, given } = useGame.getState();
+    for (let i = 0; i < 81; i++) {
+      if (given[i]) continue;
+      useGame.getState().selectCell(i);
+      useGame.getState().inputDigit(solution[i]);
+    }
+  };
+
+  it('sets a positive final score on a win via inputDigit', () => {
+    solveFully();
+    expect(useGame.getState().status).toBe('won');
+    expect(useGame.getState().score).toBeGreaterThan(0);
+  });
+
+  // KNOWN BUG — fixed in Phase 2 (docs/architecture/phases/phase-2-correctness-and-memory.md):
+  // undo() leaves the finished score in place, and redo() sets status:'won' without
+  // recomputing score. `it.fails` passes *because* the assertions throw today; once a
+  // shared finalizeIfDone() lands, this test will pass and `it.fails` will flip red —
+  // change `it.fails` back to `it` at that point.
+  it.fails(
+    'undo clears the finished score and redo restores it (fixed in Phase 2)',
+    () => {
+      solveFully();
+      expect(useGame.getState().status).toBe('won');
+      expect(useGame.getState().score).toBeGreaterThan(0);
+
+      useGame.getState().undo();
+      expect(useGame.getState().status).toBe('playing');
+      expect(useGame.getState().score).toBe(0); // stale (non-zero) today -> throws
+
+      useGame.getState().redo();
+      expect(useGame.getState().status).toBe('won');
+      expect(useGame.getState().score).toBeGreaterThan(0);
+    },
+  );
 });
