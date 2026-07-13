@@ -1,7 +1,16 @@
 # Phase 2 · Correctness & Memory
 
-**Status:** TODO
+**Status:** DONE (2026-07-12, in working tree) — steps 1,2,3,5,6 landed; steps 4 & 7 deferred (optional)
 **Risk:** low · **Effort:** ~half a day · **Depends on:** Phase 1 (for the guarding tests)
+
+> Done: `finalizeIfDone()` is now the single win/score reducer, called from `inputDigit`,
+> `applyHint`, `undo`, and `redo` — the `redo` rescore bug is fixed and `undo` no longer leaves
+> a stale finished score (it also no longer lets you undo out of an arcade loss). Undo history
+> is dropped from `partialize` (no more per-tick re-serialize of up to 200 snapshots) and
+> `MAX_HISTORY` lowered 200 → 50. `games` history is capped at `MAX_GAME_RECORDS = 2000` with
+> oldest-eviction. `Mode` moved to `engine/types.ts` (pure code no longer imports it from
+> `db/idb`). Deferred as optional: step 4 (single-pass `getStats` — pruning already bounds it)
+> and step 7 (passing `autoCleanupNotes` in as an arg).
 
 ## Goal
 
