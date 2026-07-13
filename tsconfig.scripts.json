@@ -1,0 +1,22 @@
+{
+  "//": "Type-checks the build-time scripts/*.ts (challenge + lesson generators), which import the pure engine with bundler-style, extensionless specifiers. Run via `npm run typecheck`. Standalone (not part of the tsc -b solution) to avoid composite-project file overlap with tsconfig.app.json.",
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node", "vite/client"],
+    "allowImportingTsExtensions": true,
+    "allowArbitraryExtensions": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["scripts/**/*.ts"]
+}

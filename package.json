@@ -9,11 +9,15 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "gen:challenges": "tsx scripts/generate-challenges.ts",
+    "gen:lessons": "tsx scripts/generate-lessons.ts",
     "test": "vitest run",
+    "test:fast": "vitest run --project fast",
+    "test:ui": "vitest run --project ui",
+    "test:all": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -b --noEmit"
+    "test:visual": "node scripts/visual-smoke.mjs",
+    "typecheck": "tsc -b --noEmit && tsc -p tsconfig.scripts.json --noEmit"
   },
   "dependencies": {
     "idb": "^8.0.3",
