@@ -22,8 +22,8 @@ import { findStep } from '../engine/techniques';
 import { generatePuzzle } from '../engine/generator';
 import { useSettings } from '../state/settingsStore';
 import { computeScore } from '../scoring/score';
-import type { Difficulty, Grid, Puzzle, Step } from '../engine/types';
-import type { Mode, SavedGame } from '../db/idb';
+import type { Difficulty, Grid, Mode, Puzzle, Step } from '../engine/types';
+import type { SavedGame } from '../db/idb';
 
 /** What a digit press does to the selected cells. */
 export type InputMode = 'normal' | 'note' | 'noteAlt' | 'ban';
@@ -119,7 +119,7 @@ export interface GameState {
   tick: (ms: number) => void;
 }
 
-const MAX_HISTORY = 200;
+const MAX_HISTORY = 50;
 const zeros = (): number[] => new Array(CELL_COUNT).fill(0);
 
 /** A short, unique-enough id for a game slot. */
@@ -135,6 +135,42 @@ const snapshot = (s: GameState): Snapshot => ({
 
 const isWin = (values: Grid, solution: Grid): boolean =>
   values.every((v, i) => v === solution[i]);
+
+/** Meta a finished game needs to compute its final score. */
+interface FinalizeMeta {
+  solution: Grid;
+  difficulty: Difficulty;
+  mode: Mode;
+  elapsedMs: number;
+  mistakes: number;
+  hints: number;
+}
+
+/**
+ * The single source of truth for "is this game over, and what's the score".
+ * Every board mutation (place, hint, redo) — and undo, which reverts one — runs
+ * through this so status and score can never drift apart. A game that is still
+ * `playing` always has score 0.
+ */
+const finalizeIfDone = (
+  values: Grid,
+  m: FinalizeMeta,
+): { status: GameStatus; score: number } => {
+  const won = isWin(values, m.solution);
+  const lost = m.mode === 'arcade' && m.mistakes >= ARCADE_LIVES;
+  const score =
+    won || lost
+      ? computeScore({
+          difficulty: m.difficulty,
+          mode: m.mode,
+          timeMs: m.elapsedMs,
+          mistakes: m.mistakes,
+          hints: m.hints,
+          won,
+        })
+      : 0;
+  return { status: lost ? 'lost' : won ? 'won' : 'playing', score };
+};
 
 const buildGame = (
   { puzzle, solution, difficulty }: Pick<Puzzle, 'puzzle' | 'solution' | 'difficulty'>,
@@ -341,19 +377,14 @@ export const useGame = create<GameState>()(
           }
         }
 
-        const lost = s.mode === 'arcade' && mistakes >= ARCADE_LIVES;
-        const won = isWin(values, s.solution);
-        const score =
-          won || lost
-            ? computeScore({
-                difficulty: s.difficulty,
-                mode: s.mode,
-                timeMs: s.elapsedMs,
-                mistakes,
-                hints: s.hints,
-                won,
-              })
-            : 0;
+        const { status, score } = finalizeIfDone(values, {
+          solution: s.solution,
+          difficulty: s.difficulty,
+          mode: s.mode,
+          elapsedMs: s.elapsedMs,
+          mistakes,
+          hints: s.hints,
+        });
         set({
           values,
           notes,
@@ -364,7 +395,7 @@ export const useGame = create<GameState>()(
           hint: null,
           mistakes,
           score,
-          status: lost ? 'lost' : won ? 'won' : 'playing',
+          status,
         });
       },
 
@@ -411,6 +442,14 @@ export const useGame = create<GameState>()(
         const s = get();
         if (s.past.length === 0) return;
         const previous = s.past[s.past.length - 1];
+        const { status, score } = finalizeIfDone(previous.values, {
+          solution: s.solution,
+          difficulty: s.difficulty,
+          mode: s.mode,
+          elapsedMs: s.elapsedMs,
+          mistakes: s.mistakes,
+          hints: s.hints,
+        });
         set({
           ...previous,
           values: previous.values.slice(),
@@ -419,7 +458,8 @@ export const useGame = create<GameState>()(
           bans: previous.bans.slice(),
           past: s.past.slice(0, -1),
           future: [snapshot(s), ...s.future].slice(0, MAX_HISTORY),
-          status: 'playing',
+          status,
+          score,
           hint: null,
         });
       },
@@ -428,7 +468,14 @@ export const useGame = create<GameState>()(
         const s = get();
         if (s.future.length === 0) return;
         const next = s.future[0];
-        const won = isWin(next.values, s.solution);
+        const { status, score } = finalizeIfDone(next.values, {
+          solution: s.solution,
+          difficulty: s.difficulty,
+          mode: s.mode,
+          elapsedMs: s.elapsedMs,
+          mistakes: s.mistakes,
+          hints: s.hints,
+        });
         set({
           ...next,
           values: next.values.slice(),
@@ -437,7 +484,8 @@ export const useGame = create<GameState>()(
           bans: next.bans.slice(),
           past: [...s.past, snapshot(s)].slice(-MAX_HISTORY),
           future: s.future.slice(1),
-          status: won ? 'won' : 'playing',
+          status,
+          score,
           hint: null,
         });
       },
@@ -506,17 +554,14 @@ export const useGame = create<GameState>()(
             if (notes[p]) notes[p] = removeCandidate(notes[p], value);
           }
         }
-        const won = isWin(values, s.solution);
-        const score = won
-          ? computeScore({
-              difficulty: s.difficulty,
-              mode: s.mode,
-              timeMs: s.elapsedMs,
-              mistakes: s.mistakes,
-              hints: s.hints,
-              won: true,
-            })
-          : 0;
+        const { status, score } = finalizeIfDone(values, {
+          solution: s.solution,
+          difficulty: s.difficulty,
+          mode: s.mode,
+          elapsedMs: s.elapsedMs,
+          mistakes: s.mistakes,
+          hints: s.hints,
+        });
         set({
           values,
           notes,
@@ -526,7 +571,7 @@ export const useGame = create<GameState>()(
           future: [],
           hint: null,
           score,
-          status: won ? 'won' : 'playing',
+          status,
         });
       },
 
@@ -567,8 +612,10 @@ export const useGame = create<GameState>()(
         hints: s.hints,
         score: s.score,
         autoCheck: s.autoCheck,
-        past: s.past,
-        future: s.future,
+        // Undo/redo history is intentionally NOT persisted: including it made the
+        // whole state (up to MAX_HISTORY snapshots) re-serialize to localStorage on
+        // every change, including the 1s timer tick. Undo-across-reload isn't
+        // expected, and the board itself still restores fully.
       }),
     },
   ),

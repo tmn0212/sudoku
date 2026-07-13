@@ -291,25 +291,32 @@ describe('game store', () => {
     expect(useGame.getState().score).toBeGreaterThan(0);
   });
 
-  // KNOWN BUG — fixed in Phase 2 (docs/architecture/phases/phase-2-correctness-and-memory.md):
-  // undo() leaves the finished score in place, and redo() sets status:'won' without
-  // recomputing score. `it.fails` passes *because* the assertions throw today; once a
-  // shared finalizeIfDone() lands, this test will pass and `it.fails` will flip red —
-  // change `it.fails` back to `it` at that point.
-  it.fails(
-    'undo clears the finished score and redo restores it (fixed in Phase 2)',
-    () => {
-      solveFully();
-      expect(useGame.getState().status).toBe('won');
-      expect(useGame.getState().score).toBeGreaterThan(0);
+  // Phase 2: undo clears the finished score and redo recomputes it, both via the
+  // shared finalizeIfDone() reducer, so status and score never drift apart.
+  it('undo clears the finished score and redo restores it', () => {
+    solveFully();
+    expect(useGame.getState().status).toBe('won');
+    expect(useGame.getState().score).toBeGreaterThan(0);
 
-      useGame.getState().undo();
-      expect(useGame.getState().status).toBe('playing');
-      expect(useGame.getState().score).toBe(0); // stale (non-zero) today -> throws
+    useGame.getState().undo();
+    expect(useGame.getState().status).toBe('playing');
+    expect(useGame.getState().score).toBe(0);
 
-      useGame.getState().redo();
-      expect(useGame.getState().status).toBe('won');
-      expect(useGame.getState().score).toBeGreaterThan(0);
-    },
-  );
+    useGame.getState().redo();
+    expect(useGame.getState().status).toBe('won');
+    expect(useGame.getState().score).toBeGreaterThan(0);
+  });
+
+  it('does not persist undo/redo history to localStorage', () => {
+    const cell = firstEmptyCell();
+    useGame.getState().selectCell(cell);
+    useGame.getState().inputDigit(useGame.getState().solution[cell]);
+    // In memory there is now undo history...
+    expect(useGame.getState().past.length).toBeGreaterThan(0);
+    // ...but the persisted snapshot omits it (the board itself is still saved).
+    const persisted = JSON.parse(localStorage.getItem('sudoku-game')!).state;
+    expect(persisted.past).toBeUndefined();
+    expect(persisted.future).toBeUndefined();
+    expect(persisted.values[cell]).toBe(useGame.getState().solution[cell]);
+  });
 });
