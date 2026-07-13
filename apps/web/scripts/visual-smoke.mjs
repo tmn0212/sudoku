@@ -21,13 +21,16 @@ import { readdirSync, mkdirSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, '.visual-smoke');
 const URL = process.env.SMOKE_URL ?? 'http://localhost:5173';
 
-// playwright-core must be imported by absolute path from here, and it's CommonJS.
-const pw = (await import(join(ROOT, 'node_modules/playwright-core/index.js'))).default;
+// Resolve playwright-core (CommonJS) via require.resolve so it's found wherever the
+// package manager hoists it (root node_modules under pnpm workspaces, or app-local).
+const require = createRequire(import.meta.url);
+const pw = (await import(require.resolve('playwright-core'))).default;
 const { chromium } = pw;
 
 /** Locate the cached Chromium the harness installed (version dir varies). */

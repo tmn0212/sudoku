@@ -16,11 +16,14 @@ import { readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const URL = process.env.SMOKE_URL ?? 'http://localhost:5173';
 
-const pw = (await import(join(ROOT, 'node_modules/playwright-core/index.js'))).default;
+// Resolve playwright-core wherever the package manager hoists it (see visual-smoke.mjs).
+const require = createRequire(import.meta.url);
+const pw = (await import(require.resolve('playwright-core'))).default;
 
 const findChromium = () => {
   if (process.env.PLAYWRIGHT_CHROMIUM) return process.env.PLAYWRIGHT_CHROMIUM;

@@ -31,3 +31,6 @@ coverage
 
 # PWA generated
 dev-dist
+
+# Monorepo (Turborepo cache)
+.turbo
