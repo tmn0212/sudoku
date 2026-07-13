@@ -7,10 +7,29 @@
 import { getDb, type GameRecord } from './idb';
 import { DIFFICULTIES, type Difficulty } from '../engine/types';
 
+/** Keep completed-game history bounded on the device. Years of play stays well
+ *  under this; the oldest records are evicted first. */
+export const MAX_GAME_RECORDS = 2000;
+
 /** Persist a completed (won or lost) game. Returns the new record id. */
 export const recordGame = async (record: GameRecord): Promise<number> => {
   const db = await getDb();
-  return db.add('games', record);
+  const id = await db.add('games', record);
+
+  const total = await db.count('games');
+  if (total > MAX_GAME_RECORDS) {
+    const tx = db.transaction('games', 'readwrite');
+    // Oldest-first via the completedAt index; drop just enough to hit the cap.
+    let cursor = await tx.store.index('by-completedAt').openCursor();
+    let toDelete = total - MAX_GAME_RECORDS;
+    while (cursor && toDelete > 0) {
+      await cursor.delete();
+      toDelete--;
+      cursor = await cursor.continue();
+    }
+    await tx.done;
+  }
+  return id;
 };
 
 /** Highest score achieved for a mode+difficulty (0 if none yet). */

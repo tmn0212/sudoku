@@ -2,8 +2,8 @@
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { __resetDbForTests, type GameRecord } from './idb';
-import { computeStats, getStats, recordGame } from './stats';
+import { __resetDbForTests, getDb, type GameRecord } from './idb';
+import { computeStats, getStats, recordGame, MAX_GAME_RECORDS } from './stats';
 
 const game = (over: Partial<GameRecord>): GameRecord => ({
   mode: 'good',
@@ -111,5 +111,28 @@ describe('getStats over IndexedDB', () => {
     expect(s.totalGames).toBe(2);
     expect(s.wins).toBe(1);
     expect(s.totalScore).toBe(200);
+  });
+
+  it('caps the games history and evicts the oldest records', async () => {
+    const db = await getDb();
+    // Seed exactly the cap directly (batched for speed), completedAt = 0..N-1.
+    const tx = db.transaction('games', 'readwrite');
+    for (let i = 0; i < MAX_GAME_RECORDS; i++) {
+      void tx.store.add(game({ completedAt: i, score: i }));
+    }
+    await tx.done;
+    expect(await db.count('games')).toBe(MAX_GAME_RECORDS);
+
+    // Three more recordGame calls each evict the single oldest, staying at the cap.
+    await recordGame(game({ completedAt: 1_000_001 }));
+    await recordGame(game({ completedAt: 1_000_002 }));
+    await recordGame(game({ completedAt: 1_000_003 }));
+
+    expect(await db.count('games')).toBe(MAX_GAME_RECORDS);
+    const times = (await db.getAll('games')).map((g) => g.completedAt);
+    expect(times).not.toContain(0); // three oldest gone
+    expect(times).not.toContain(2);
+    expect(times).toContain(3);
+    expect(times).toContain(1_000_003); // newest kept
   });
 });
