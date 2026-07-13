@@ -55,3 +55,17 @@ export const generatePuzzleAsync = (
     w.postMessage({ id, difficulty, seed });
   });
 };
+
+/**
+ * Puzzle-generation port. The web binding runs generation in a Worker with a
+ * synchronous main-thread fallback; a native app can drop in a JS-thread or
+ * native impl of the same interface.
+ */
+export interface PuzzleGenerator {
+  generateAsync(difficulty: Difficulty, seed?: number): Promise<Puzzle>;
+}
+
+/** The active generator (web today; a native port swaps this binding). */
+export const puzzleGenerator: PuzzleGenerator = {
+  generateAsync: generatePuzzleAsync,
+};

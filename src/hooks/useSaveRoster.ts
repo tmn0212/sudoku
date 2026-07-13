@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useGame, type GameState } from '../game/store';
 import { savedGamesRepo } from '../db/repositories';
+import { appVisibility } from '../platform/visibility';
 import type { SavedGame } from '../db/idb';
 
 const SAVE_DEBOUNCE_MS = 700;
@@ -66,17 +67,14 @@ export const useSaveRoster = (): void => {
       }
     });
 
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') flush();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('pagehide', flush);
+    // Flush immediately when the app is backgrounded or the page is unloading —
+    // that's the moment a save is most likely to be lost.
+    const unsubHide = appVisibility.onHide(flush);
 
     return () => {
       flush();
       unsub();
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('pagehide', flush);
+      unsubHide();
     };
   }, []);
 };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './NewGameSheet.css';
 import { DIFFICULTIES, type Difficulty } from '../engine/types';
 import { useGame } from '../game/store';
-import { generatePuzzleAsync } from '../workers/client';
+import { puzzleGenerator } from '../workers/client';
 
 interface NewGameSheetProps {
   open: boolean;
@@ -30,7 +30,7 @@ export const NewGameSheet = ({ open, onClose }: NewGameSheetProps) => {
     if (busy) return;
     setBusy(difficulty);
     try {
-      const puzzle = await generatePuzzleAsync(difficulty);
+      const puzzle = await puzzleGenerator.generateAsync(difficulty);
       useGame.getState().startGame(puzzle, mode);
       onClose();
     } finally {

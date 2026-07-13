@@ -19,7 +19,7 @@ import { useSaveRoster } from '../hooks/useSaveRoster';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { PACK_SIZES } from '../data/challenges';
 import { progressRepo } from '../db/repositories';
-import { generatePuzzleAsync } from '../workers/client';
+import { puzzleGenerator } from '../workers/client';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 
@@ -61,7 +61,7 @@ export const Game = () => {
         }
         await startChallenge(s.mode, s.difficulty, next);
       } else {
-        const puzzle = await generatePuzzleAsync(s.difficulty);
+        const puzzle = await puzzleGenerator.generateAsync(s.difficulty);
         useGame.getState().startGame(puzzle, s.mode);
       }
     } finally {

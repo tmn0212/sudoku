@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useGame } from '../game/store';
+import { appVisibility } from '../platform/visibility';
 
 /**
  * Advances the game timer once per second while a game is in progress and the
@@ -14,7 +15,7 @@ export const useGameTimer = (): void => {
 
     let last = performance.now();
     const interval = setInterval(() => {
-      if (document.hidden) {
+      if (appVisibility.isHidden()) {
         last = performance.now();
         return;
       }

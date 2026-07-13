@@ -35,13 +35,6 @@ export const THEMES: ThemeDef[] = [
 export const isThemeId = (value: string): value is ThemeId =>
   THEMES.some((t) => t.id === value);
 
-/**
- * Apply a theme by setting (or clearing, for `system`) the `data-theme`
- * attribute on the document root. Safe to call in non-DOM environments.
- */
-export const applyTheme = (id: ThemeId): void => {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  if (id === 'system') root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', id);
-};
+// Applying a theme is a platform concern (web sets `data-theme`), so it lives
+// behind the ThemeApplier port in `platform/theme.ts` — this module stays a
+// portable, DOM-free registry.

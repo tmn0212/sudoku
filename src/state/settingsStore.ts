@@ -5,8 +5,9 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { applyTheme, isThemeId, type ThemeId } from '../theme/themes';
+import { isThemeId, type ThemeId } from '../theme/themes';
 import { keyValueStore } from '../platform/keyValueStore';
+import { themeApplier } from '../platform/theme';
 
 export interface SettingsState {
   theme: ThemeId;
@@ -56,7 +57,7 @@ export const useSettings = create<SettingsState>()(
       celebrateCompletions: true,
 
       setTheme: (theme) => {
-        applyTheme(theme);
+        themeApplier.apply(theme);
         set({ theme });
       },
       toggle: (key) => set({ [key]: !get()[key] } as Partial<SettingsState>),
@@ -82,5 +83,5 @@ export const initSettings = (): void => {
       /* ignore malformed storage */
     }
   }
-  applyTheme(theme);
+  themeApplier.apply(theme);
 };
