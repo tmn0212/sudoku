@@ -3,7 +3,7 @@ import './Difficulties.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { IconCheck, IconChevronRight } from '../components/icons';
 import { PACK_SIZES } from '../data/challenges';
-import { getChallengeProgress } from '../db/progress';
+import { progressRepo } from '../db/repositories';
 import { useUi } from '../state/uiStore';
 import { DIFFICULTIES, type Difficulty } from '../engine/types';
 import type { Mode } from '../db/idb';
@@ -30,7 +30,7 @@ export const Difficulties = () => {
     let alive = true;
     Promise.all(
       DIFFICULTIES.map((d) =>
-        getChallengeProgress(mode, d).then(
+        progressRepo.get(mode, d).then(
           (m) => [d, [...m.values()].filter((p) => p.solved).length] as const,
         ),
       ),

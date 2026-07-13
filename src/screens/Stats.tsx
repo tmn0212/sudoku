@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import './Stats.css';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { getStats, type Stats as StatsData } from '../db/stats';
+import { statsRepo } from '../db/repositories';
+import { type Stats as StatsData } from '../db/stats';
 import { formatTime } from '../utils/format';
 
 const DIFF_LABEL: Record<string, string> = {
@@ -54,7 +55,7 @@ export const Stats = () => {
 
   useEffect(() => {
     let alive = true;
-    getStats().then((s) => alive && setStats(s));
+    statsRepo.getStats().then((s) => alive && setStats(s));
     return () => {
       alive = false;
     };

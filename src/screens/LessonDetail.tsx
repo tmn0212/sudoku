@@ -13,7 +13,7 @@ import {
   runTechnique,
 } from '../engine/techniques';
 import { gradeDifficulty } from '../engine/generator';
-import { getLearned, markLearned, unmarkLearned } from '../db/learned';
+import { learnedRepo } from '../db/repositories';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 import type { Grid, Step } from '../engine/types';
@@ -67,7 +67,7 @@ export const LessonDetail = () => {
     setI(0);
     if (!lesson) return;
     let alive = true;
-    getLearned().then((s) => alive && setIsLearned(s.has(lesson.id)));
+    learnedRepo.list().then((s) => alive && setIsLearned(s.has(lesson.id)));
     return () => {
       alive = false;
     };
@@ -86,10 +86,10 @@ export const LessonDetail = () => {
 
   const toggleLearned = async () => {
     if (isLearned) {
-      await unmarkLearned(lesson.id);
+      await learnedRepo.unmark(lesson.id);
       setIsLearned(false);
     } else {
-      await markLearned(lesson.id);
+      await learnedRepo.mark(lesson.id);
       setIsLearned(true);
     }
   };

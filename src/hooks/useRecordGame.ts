@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
-import { recordGame } from '../db/stats';
-import { recordChallengeResult } from '../db/progress';
+import { statsRepo, progressRepo } from '../db/repositories';
 
 /**
  * Records a game to IndexedDB exactly once when it ends (won or lost). Resets
@@ -23,7 +22,7 @@ export const useRecordGame = (): void => {
     const s = useGame.getState();
     const won = s.status === 'won';
 
-    void recordGame({
+    void statsRepo.record({
       mode: s.mode,
       difficulty: s.difficulty,
       timeMs: s.elapsedMs,
@@ -37,7 +36,7 @@ export const useRecordGame = (): void => {
     });
 
     if (s.challenge) {
-      void recordChallengeResult({
+      void progressRepo.record({
         mode: s.mode,
         difficulty: s.difficulty,
         index: s.challenge.index,

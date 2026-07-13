@@ -3,7 +3,7 @@ import './Learn.css';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { IconCheck, IconChevronRight, IconGrid } from '../components/icons';
 import { LESSONS, TIERS } from '../data/lessons';
-import { getLearned } from '../db/learned';
+import { learnedRepo } from '../db/repositories';
 import { useUi } from '../state/uiStore';
 
 export const Learn = () => {
@@ -12,7 +12,7 @@ export const Learn = () => {
 
   useEffect(() => {
     let alive = true;
-    getLearned().then((s) => alive && setLearned(s));
+    learnedRepo.list().then((s) => alive && setLearned(s));
     return () => {
       alive = false;
     };

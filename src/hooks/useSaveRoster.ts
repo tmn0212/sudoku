@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useGame, type GameState } from '../game/store';
-import { saveGame, deleteSavedGame } from '../db/savedGames';
+import { savedGamesRepo } from '../db/repositories';
 import type { SavedGame } from '../db/idb';
 
 const SAVE_DEBOUNCE_MS = 700;
@@ -52,12 +52,12 @@ export const useSaveRoster = (): void => {
         timer = undefined;
       }
       const s = useGame.getState();
-      if (s.status === 'playing' && hasProgress(s)) void saveGame(serialize(s));
+      if (s.status === 'playing' && hasProgress(s)) void savedGamesRepo.save(serialize(s));
     };
 
     const unsub = useGame.subscribe((s, prev) => {
       if (s.status !== 'playing' && prev.status === 'playing') {
-        void deleteSavedGame(prev.gameId); // finished — drop from Continue
+        void savedGamesRepo.delete(prev.gameId); // finished — drop from Continue
         return;
       }
       if (s.status === 'playing' && s.values !== prev.values) {

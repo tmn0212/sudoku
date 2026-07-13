@@ -18,7 +18,7 @@ import { useAutoBanWrong } from '../hooks/useAutoBanWrong';
 import { useSaveRoster } from '../hooks/useSaveRoster';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { PACK_SIZES } from '../data/challenges';
-import { getChallengeProgress } from '../db/progress';
+import { progressRepo } from '../db/repositories';
 import { generatePuzzleAsync } from '../workers/client';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
@@ -50,7 +50,7 @@ export const Game = () => {
     try {
       if (s.challenge) {
         const count = PACK_SIZES[s.difficulty];
-        const progress = await getChallengeProgress(s.mode, s.difficulty);
+        const progress = await progressRepo.get(s.mode, s.difficulty);
         let next = (s.challenge.index + 1) % count;
         for (let k = 1; k <= count; k++) {
           const i = (s.challenge.index + k) % count;

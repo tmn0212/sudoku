@@ -4,8 +4,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { IconCheck, IconDice, IconClock } from '../components/icons';
 import { formatTime } from '../utils/format';
 import { loadChallengePack } from '../data/challenges';
-import { getChallengeProgress } from '../db/progress';
-import { listSavedGames } from '../db/savedGames';
+import { progressRepo, savedGamesRepo } from '../db/repositories';
 import { useStartChallenge } from '../hooks/useStartChallenge';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
@@ -50,8 +49,8 @@ export const Challenges = () => {
     setLoading(true);
     Promise.all([
       loadChallengePack(difficulty),
-      getChallengeProgress(mode, difficulty),
-      listSavedGames(),
+      progressRepo.get(mode, difficulty),
+      savedGamesRepo.list(),
     ]).then(([pack, prog, saved]) => {
       if (!alive) return;
       setCount(pack.puzzles.length);

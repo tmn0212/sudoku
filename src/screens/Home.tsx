@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { useGame } from '../game/store';
 import { useUi } from '../state/uiStore';
 import { useStartChallenge } from '../hooks/useStartChallenge';
-import { getChallengeProgress } from '../db/progress';
-import { listSavedGames } from '../db/savedGames';
+import { progressRepo, savedGamesRepo } from '../db/repositories';
 import { PACK_SIZES } from '../data/challenges';
 import { formatTime } from '../utils/format';
 import { IconGrid, IconBolt, IconChevronRight, IconDice } from '../components/icons';
@@ -67,7 +66,7 @@ export const Home = () => {
 
   useEffect(() => {
     let alive = true;
-    listSavedGames().then((rows) => alive && setSaved(rows));
+    savedGamesRepo.list().then((rows) => alive && setSaved(rows));
     return () => {
       alive = false;
     };
@@ -116,7 +115,7 @@ export const Home = () => {
       const m = pick<Mode>(['good', 'arcade']);
       const diff = pick(DIFFICULTIES);
       const count = PACK_SIZES[diff];
-      const progress = await getChallengeProgress(m, diff);
+      const progress = await progressRepo.get(m, diff);
       const pool: number[] = [];
       for (let i = 0; i < count; i++) if (!progress.get(i)?.solved) pool.push(i);
       const index = pool.length ? pick(pool) : Math.floor(Math.random() * count);
