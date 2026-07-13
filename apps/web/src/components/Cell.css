@@ -76,16 +76,27 @@
   background: color-mix(in srgb, var(--m-accent, var(--primary)) 22%, transparent);
   box-shadow: inset 0 0 0 2px var(--m-accent, var(--primary));
 }
-/* Crossroad-scan anchor: when the selected cell is the one whose digit drives
-   the scan, the faint blue selection tint would blend into a dark surface. Swap
-   it for a solid, richer amber — two opaque washes of the theme's own
-   --cross-bg over the surface, so it's the darkest/strongest amber on the board
-   and reads as the deliberate "here's the digit I'm scanning" anchor while the
-   radiating lines stay the lighter translucent wash. Derived from --cross-bg so
-   it tracks every theme's amber automatically. The selection ring (from
-   .cell--selected above) stays on top. */
+/* Crossroad-scan focus. A scan shades three tiers of amber, all derived from the
+   theme's own --cross-bg so they track every palette automatically:
+     • lines from *other* copies of the digit -> .cell--cross, the light
+       translucent wash (one layer of --cross-bg over the cell surface);
+     • the *selected* cell's own row/column/box -> .cell--cross-self, a darker
+       solid amber (two opaque washes over the surface) — this is your active
+       crosshair, so it reads apart from the rest of the scan instead of blending
+       in as the light-blue peer wash;
+     • the anchor cell itself -> .cell--cross-selected, the strongest amber
+       (three washes) plus its selection ring, so it stays the focal point.
+   Stacking opaque washes deepens the amber without shifting its hue and stops a
+   dark surface bleeding through. */
+.cell--cross-self {
+  background:
+    linear-gradient(var(--cross-bg), var(--cross-bg)),
+    linear-gradient(var(--cross-bg), var(--cross-bg)),
+    var(--surface);
+}
 .cell--cross-selected {
   background:
+    linear-gradient(var(--cross-bg), var(--cross-bg)),
     linear-gradient(var(--cross-bg), var(--cross-bg)),
     linear-gradient(var(--cross-bg), var(--cross-bg)),
     var(--surface);

@@ -113,6 +113,20 @@ export const Board = () => {
     return set;
   }, [highlightCrosshatch, selectedDigit, values]);
 
+  // The selected cell's own row/column/box are the lines you're actively
+  // scanning from. During a live scan they get a darker amber than the lines
+  // radiating from *other* copies of the digit, so your current crosshair reads
+  // apart from the rest of the scan (and no longer blends in as the light-blue
+  // peer wash). Only while a scan is live (crosshatch on + a filled single
+  // selection — selectedDigit is 0 otherwise).
+  const crossSelfSet = useMemo(
+    () =>
+      selected == null || !highlightCrosshatch || selectedDigit === 0
+        ? new Set<number>()
+        : new Set(PEERS[selected]),
+    [selected, highlightCrosshatch, selectedDigit],
+  );
+
   const clearPressTimer = () => {
     if (pressTimer.current) {
       clearTimeout(pressTimer.current);
@@ -234,6 +248,7 @@ export const Board = () => {
           selected={selectionSet.has(i)}
           peer={peerSet.has(i)}
           cross={crossSet.has(i)}
+          crossSelf={crossSelfSet.has(i)}
           crossBanned={
             crossSet.has(i) &&
             selectedDigit !== 0 &&
