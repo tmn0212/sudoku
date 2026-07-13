@@ -1,0 +1,46 @@
+/* Board grid + pop-out ghosts (colocated with Board.tsx / GhostLayer.tsx). */
+
+.board {
+  container-type: inline-size;
+  /* The board is the fixed anchor: it always fills the available width and stays
+     square, regardless of screen height. The docked tray below shrinks to fit
+     the remaining space (see shell.css), so the board never gets squeezed or
+     clipped on short screens. */
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  display: grid;
+  /* Pin BOTH axes to nine equal fractions of the (definite, square) board so a
+     cell's note content can never grow its row past the square (which grew and
+     clipped the board on iOS Safari). */
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  background: var(--surface);
+  border: 2.5px solid var(--grid-strong);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  position: relative;
+  touch-action: none; /* no page scroll while drag-selecting on the board */
+}
+
+/* Pop-out ghosts float above the grid, each sized to one cell (1/9 of board). */
+.board__ghosts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.board__ghost {
+  position: absolute;
+  width: calc(100% / 9);
+  height: calc(100% / 9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popOut 0.28s ease forwards;
+}
+.board__ghost--wrong {
+  color: var(--error-fg);
+}

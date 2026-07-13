@@ -1,0 +1,92 @@
+/* Number pad — 3x3 docked dial-pad (colocated with NumberPad.tsx). Includes the
+   per-input-mode digit/outline preview and the banned/locked key states. */
+
+.numberpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: clamp(5px, 1.8vw, 11px);
+  flex: 1 1 auto;
+  min-height: 0;
+  align-self: stretch;
+}
+.numberpad__key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: 108px;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: auto;
+  justify-self: center;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 13px;
+  background: var(--bg);
+  color: var(--primary);
+  box-shadow: none;
+  container-type: size;
+  transition: transform 0.07s ease, opacity 0.2s ease;
+}
+.numberpad__key:active:not(:disabled) {
+  transform: scale(0.96);
+  background: var(--sel);
+  border-color: var(--primary);
+}
+.numberpad__key:disabled {
+  opacity: 0.32;
+}
+.numberpad__digit {
+  font-size: min(2.9rem, 52cqmin);
+  font-weight: 700;
+  line-height: 1;
+}
+.numberpad__count {
+  position: absolute;
+  top: auto;
+  bottom: 8px;
+  right: 11px;
+  font-size: min(0.78rem, 22cqmin);
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The pad digits preview the colour the tap will produce. */
+.app[data-mode='note'] .numberpad__digit {
+  color: var(--note-primary);
+}
+.app[data-mode='noteAlt'] .numberpad__digit {
+  color: var(--note-alt);
+}
+.app[data-mode='ban'] .numberpad__digit {
+  color: var(--ban);
+}
+/* Each marking mode restyles the whole pad so it's clear a tap won't place a
+   final digit: notes get a dashed outline, Ban a dotted red one. */
+.app[data-mode='note'] .numberpad__key:not(:disabled),
+.app[data-mode='noteAlt'] .numberpad__key:not(:disabled) {
+  outline: 2px dashed var(--m-accent);
+  outline-offset: -3px;
+}
+.app[data-mode='ban'] .numberpad__key:not(:disabled) {
+  outline: 2.5px dotted var(--ban);
+  outline-offset: -3px;
+}
+
+/* A user-banned digit is flagged red but stays tappable — tapping it asks for
+   confirmation before overriding the ban. */
+.numberpad__key--banned {
+  background: var(--ban-bg);
+}
+.numberpad__key--banned .numberpad__digit {
+  color: var(--ban);
+}
+/* A locked digit (a wrong entry that got auto-banned) is greyed out and disabled
+   in every mode, so the same mistake can't be made twice in that cell. */
+.numberpad__key--locked:disabled {
+  opacity: 0.4;
+}

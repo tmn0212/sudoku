@@ -1,0 +1,48 @@
+/* Radial mode picker — hold a cell to open (colocated with RadialMenu.tsx). */
+
+.radial {
+  position: fixed;
+  z-index: 100;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation: fade 0.12s ease;
+}
+.radial__hub {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+}
+.radial__opt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--grid-thin);
+  box-shadow: var(--shadow);
+  font-size: 0.56rem;
+  font-weight: 700;
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+}
+.radial__opt--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.radial__label {
+  line-height: 1;
+}

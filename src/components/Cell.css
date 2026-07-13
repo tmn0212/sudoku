@@ -1,0 +1,255 @@
+/* Cells, cell states, highlights, animations, and pencil-mark notes
+   (colocated with Cell.tsx). Cell keyframes live here; they're global, so
+   Board.tsx's ghosts reuse popOut. */
+
+.cell {
+  aspect-ratio: 1;
+  /* A grid item's default min-height/min-width is `auto` (its content's min size),
+     which is what let note content expand the track and grow the board on iOS.
+     Pin them to 0 so a cell can never push its 1fr row/column bigger. */
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  border-right: 1px solid var(--grid-thin);
+  border-bottom: 1px solid var(--grid-thin);
+  background: var(--surface);
+  color: var(--cell-user);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.12s ease;
+  position: relative;
+}
+/* Remove the trailing internal lines on the last column / row. */
+.cell:nth-child(9n) {
+  border-right: none;
+}
+.cell:nth-child(n + 73) {
+  border-bottom: none;
+}
+/* Thicker separators between 3x3 boxes. */
+.cell--box-right {
+  border-right: 2.5px solid var(--grid-strong);
+}
+.cell--box-bottom {
+  border-bottom: 2.5px solid var(--grid-strong);
+}
+
+.cell--given {
+  color: var(--cell-given);
+}
+/* Givens are the puzzle's fixed clues: heaviest weight so they always read as
+   "not mine to change", clearly distinct from the lighter digits you fill in. */
+.cell--given .cell__value {
+  font-weight: 900;
+}
+
+/* Crossroad scan: rows/columns already holding the selected digit get a warm
+   wash, so the empty cells where no line crosses stand out as candidates. */
+.cell--cross {
+  background: var(--cross-bg);
+}
+/* A crossroad cell where you've already banned the selected digit turns red
+   instead of amber — a reminder it definitely can't go here. */
+.cell--cross-banned {
+  background: var(--cross-banned-bg);
+}
+/* The board peer wash (the selected cell's own row/column/box) is a tint of the
+   theme accent over the surface — NOT the shared --peer token, which is a very
+   subtle "pressed" grey that is near-invisible against dark theme surfaces. */
+.cell--peer {
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
+}
+.cell--same {
+  background: var(--same);
+}
+/* Same-number cells stand out more than plain peers: bolder, tinted digit. */
+.cell--same .cell__value {
+  font-weight: 800;
+}
+.cell--selected {
+  /* Selection is tinted + ringed by the active input mode so you always know
+     whether a tap will place a digit, a note, or a ban (--m-accent is set on
+     .app[data-mode]). */
+  background: color-mix(in srgb, var(--m-accent, var(--primary)) 22%, transparent);
+  box-shadow: inset 0 0 0 2px var(--m-accent, var(--primary));
+}
+/* In the note modes the selection ring switches to a dashed outline, an
+   at-a-glance "this is pencil, not ink" cue. Drawn as an inset pseudo-element
+   border (not `outline`) so all four edges render. */
+.app[data-mode='note'] .cell--selected,
+.app[data-mode='noteAlt'] .cell--selected {
+  box-shadow: none;
+}
+.app[data-mode='note'] .cell--selected::after,
+.app[data-mode='noteAlt'] .cell--selected::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2.5px dashed var(--m-accent, var(--primary));
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 1;
+}
+.cell--error {
+  background: var(--error-bg);
+}
+.cell--error .cell__value {
+  color: var(--error-fg);
+}
+.cell--hint {
+  background: var(--hint-bg);
+  box-shadow: inset 0 0 0 2px var(--hint-fg);
+}
+
+/* Completion flash: a finished row/column/box — or a digit now placed in all nine
+   of its cells — lights up green in a quick diagonal wave. --flash-delay (set per
+   cell) staggers it. The green wash + glow live on a ::before layer whose opacity
+   and transform are the only things that animate, so the wave runs on the GPU
+   compositor (no per-frame background/box-shadow repaint = no jank). */
+.cell--flash {
+  z-index: 3;
+}
+.cell--flash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: #22c55e;
+  box-shadow: 0 0 12px 2px rgba(34, 197, 94, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  animation: cellFlash 0.5s ease var(--flash-delay, 0ms) both;
+}
+/* Digit sits above the green wash and gets a quick, clean pop. */
+.cell--flash .cell__value {
+  position: relative;
+  z-index: 1;
+  animation: cellPopValue 0.5s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellFlash {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  35% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@keyframes cellPopValue {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell--flash::before,
+  .cell--flash .cell__value {
+    animation: none;
+  }
+}
+
+/* Pop-in: freshly placed digits and marks spring into the cell. */
+.cell--pop .cell__value {
+  animation: popIn 0.26s ease;
+}
+.cell--pop .cell__notes {
+  animation: popIn 0.22s ease;
+}
+@keyframes popIn {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* Pop-out: a ghost of just-removed content shrinks away where the cell was. */
+@keyframes popOut {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell--pop .cell__value,
+  .cell--pop .cell__notes,
+  .board__ghost {
+    animation: none;
+  }
+}
+
+.cell__value {
+  font-size: 6.2cqw;
+  line-height: 1;
+  /* Digits you place read lighter than the bold puzzle givens. */
+  font-weight: 500;
+}
+
+.cell__notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 4%;
+}
+.cell__note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.7cqw;
+  line-height: 1;
+  color: var(--muted);
+}
+
+/* Note-layer colours in the 3x3 mini-grid. Primary notes are violet (not the
+   brand blue) to stay distinct from placed digits — see --note-primary. */
+.cell__note--blue {
+  color: var(--note-primary);
+  font-weight: 600;
+}
+.cell__note--grey {
+  color: var(--note-alt);
+}
+.cell__note--ban {
+  color: var(--ban);
+  font-weight: 600;
+  /* A thin diagonal slash across the digit reads as "ruled out". */
+  background-image: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.45px),
+    currentColor calc(50% - 0.45px),
+    currentColor calc(50% + 0.45px),
+    transparent calc(50% + 0.45px)
+  );
+}
+/* When a filled digit is selected, its matching pencil mark lights up inside
+   every cell that notes it, so you can see where a number can still go. */
+.cell__note--match {
+  background: color-mix(in srgb, var(--primary) 32%, transparent);
+  border-radius: 4px;
+  font-weight: 800;
+  transform: scale(1.12);
+}

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { InputMode } from '../game/store';
 import type { RadialState } from './radial';
 import { IconPencil, IconNotes, IconNotesAlt, IconBan } from './icons';
+import './RadialMenu.css';
 
 type Pos = 'up' | 'right' | 'down' | 'left';
 

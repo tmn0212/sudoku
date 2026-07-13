@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useGame, type InputMode } from '../game/store';
 import { IconPencil, IconNotes, IconNotesAlt, IconBan } from './icons';
+import './InputModeBar.css';
 
 const MODES: { id: InputMode; label: string; icon: ReactNode }[] = [
   { id: 'normal', label: 'Digit', icon: <IconPencil size={20} /> },

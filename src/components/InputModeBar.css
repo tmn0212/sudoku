@@ -1,0 +1,105 @@
+/* Input-mode bar: Digit / Notes / Notes 2 / Ban stacked in a column, plus the
+   per-mode colour identity (colocated with InputModeBar.tsx). --m-accent is set
+   here on .app[data-mode] and consumed by the selection ring (Cell.css) and pad. */
+
+.mode-bar {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.3vh, 9px);
+  width: clamp(64px, 19vw, 82px);
+  flex: 0 0 auto;
+}
+.mode-bar__btn {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  /* Four stacked buttons are shorter than the pad's three rows, so keep the
+     icon + label compact enough to fit without clipping. */
+  gap: clamp(1px, 0.5vh, 3px);
+  padding: clamp(2px, 0.5vh, 5px) 4px;
+  border: 1.5px solid var(--grid-thin);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: clamp(0.55rem, 1.25vh, 0.7rem);
+  font-weight: 700;
+  overflow: hidden;
+  /* Size container so the label can be dropped when the button is truly short. */
+  container-type: size;
+  transition: border-color 0.15s ease, transform 0.07s ease;
+}
+.mode-bar__btn:active {
+  transform: scale(0.95);
+}
+.mode-bar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.mode-bar__icon svg {
+  width: clamp(16px, 2.5vh, 20px);
+  height: clamp(16px, 2.5vh, 20px);
+}
+.mode-bar__label {
+  line-height: 1;
+}
+/* When a mode button is too short to hold both, keep the icon fully visible and
+   drop the label rather than clipping both (only bites on very short screens). */
+@container (max-height: 33px) {
+  .mode-bar__label {
+    display: none;
+  }
+}
+
+/* ---------- Input-mode colour identity ----------
+   Each mode owns a distinct accent so the selection, the active mode button, and
+   the number pad all agree on "what a tap does right now". The primary note layer
+   is violet (--note-primary), deliberately not the theme's blue --primary. */
+.app[data-mode='note'] {
+  --m-accent: var(--note-primary); /* Notes */
+}
+.app[data-mode='noteAlt'] {
+  --m-accent: var(--note-alt); /* Notes 2 (grey) */
+}
+.app[data-mode='ban'] {
+  --m-accent: var(--ban); /* Ban (red) */
+}
+
+/* Active mode button fills with its own accent. */
+.mode-bar__btn--active {
+  color: #fff;
+  border-color: transparent;
+  box-shadow: none;
+}
+.mode-bar__btn--active[data-mode='normal'] {
+  background: var(--primary);
+}
+.mode-bar__btn--active[data-mode='note'] {
+  background: var(--note-primary);
+}
+.mode-bar__btn--active[data-mode='noteAlt'] {
+  background: var(--note-alt);
+}
+.mode-bar__btn--active[data-mode='ban'] {
+  background: var(--ban);
+}
+.mode-bar__btn--active .mode-bar__icon {
+  color: #fff;
+}
+/* Inactive: each mode's icon carries its own accent, so the row shows at a glance
+   which tool a tap will use (digit / notes / notes-2 / ban). */
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='normal'] .mode-bar__icon {
+  color: var(--primary);
+}
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='note'] .mode-bar__icon {
+  color: var(--note-primary);
+}
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='noteAlt'] .mode-bar__icon {
+  color: var(--note-alt);
+}
+.mode-bar__btn:not(.mode-bar__btn--active)[data-mode='ban'] .mode-bar__icon {
+  color: var(--ban);
+}

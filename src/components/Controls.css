@@ -1,0 +1,39 @@
+/* Bottom control row: Undo / Redo / Erase / Hint (colocated with Controls.tsx). */
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(4px, 1.5vw, 10px);
+  flex: 0 0 auto;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(3px, 0.7vh, 5px);
+  padding: clamp(5px, 1vh, 9px) 4px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font-size: clamp(0.64rem, 1.5vh, 0.82rem);
+  font-weight: 600;
+  transition: transform 0.07s ease, background 0.15s ease, color 0.15s ease;
+}
+.control:active:not(:disabled) {
+  transform: scale(0.93);
+  background: var(--peer);
+}
+.control:disabled {
+  opacity: 0.35;
+}
+.control--active {
+  color: var(--primary);
+  background: var(--sel);
+}
+/* Control icons scale with the (shrinking) tray height. */
+.control svg {
+  width: clamp(20px, 3.6vh, 26px);
+  height: clamp(20px, 3.6vh, 26px);
+}

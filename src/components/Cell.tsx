@@ -1,5 +1,6 @@
 import { memo, type CSSProperties } from 'react';
 import { colOf, hasCandidate, rowOf } from '../engine/board';
+import './Cell.css';
 
 export interface CellProps {
   index: number;

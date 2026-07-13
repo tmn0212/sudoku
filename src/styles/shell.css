@@ -1,0 +1,68 @@
+/* App shell + docked control-tray layout. Loaded globally via main.tsx.
+   The board is the fixed anchor; .app__pad / .pad-row shrink to fit below it. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* Guarantee full standalone-PWA height even if the `height: 100%` chain under
+     iOS doesn't resolve to the whole screen (see #root in index.css). */
+  min-height: var(--app-height, 100vh);
+  max-width: 520px;
+  margin: 0 auto;
+  /* Respect the iOS safe area (notch + sides). The bottom inset is handled by
+     the docked control tray so it can bleed to the screen edge. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0
+    env(safe-area-inset-left);
+  --m-accent: var(--primary); /* current input-mode accent; set per data-mode (see InputModeBar.css) */
+}
+
+.app__main {
+  /* Grow to centre the board on tall screens, but never shrink below the board's
+     own (width-driven) size — so the board keeps a fixed size and the tray below
+     absorbs any shortfall instead. */
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vh, 16px);
+  padding: 10px clamp(10px, 3vw, 18px);
+  min-height: 0;
+}
+
+/* The controls dock at the bottom as a single cohesive tray (kills the large
+   empty gap on tall phones); it takes whatever vertical space is left under the
+   fixed board and shrinks its own contents to fit. */
+.app__pad {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  gap: clamp(8px, 1.4vh, 12px);
+  padding: clamp(10px, 1.8vh, 15px) clamp(10px, 3.5vw, 18px)
+    calc(clamp(10px, 1.6vh, 14px) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--grid-thin);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.07);
+}
+
+/* On shorter screens, tighten the tray's own spacing a touch so the height-driven
+   pad has more room to breathe. */
+@media (max-height: 760px) {
+  .app__pad {
+    gap: 7px;
+    padding-top: 9px;
+  }
+}
+
+/* The tray's main row: mode buttons on the left, the big square pad to their
+   right. Its basis scales with viewport height and shrinks when space is tight. */
+.pad-row {
+  display: flex;
+  gap: clamp(8px, 2.4vw, 12px);
+  align-items: stretch;
+  flex: 1 1 clamp(140px, 32vh, 224px);
+  min-height: 0;
+}

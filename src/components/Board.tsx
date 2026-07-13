@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import './Board.css';
 import {
   CELL_COUNT,
   PEERS,

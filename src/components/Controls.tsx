@@ -1,5 +1,6 @@
 import { useGame } from '../game/store';
 import { IconUndo, IconRedo, IconEraser, IconHint } from './icons';
+import './Controls.css';
 
 export const Controls = () => {
   const undo = useGame((s) => s.undo);
