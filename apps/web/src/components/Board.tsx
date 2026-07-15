@@ -259,6 +259,11 @@ export const Board = () => {
             selectedDigit !== 0 &&
             hasCandidate(bans[i] | lockedBans[i], selectedDigit)
           }
+          // During a scan every already-filled cell (any digit — your fills and
+          // the puzzle's givens) takes the light same-number wash, so occupied
+          // cells read apart from the amber eliminated lines and the plain
+          // candidate cells. Same scan gate as crossBanned.
+          crossFilled={highlightCrosshatch && selectedDigit !== 0 && values[i] !== 0}
           same={selectedValue !== 0 && values[i] === selectedValue}
           conflict={conflicts.has(i)}
           wrong={checking && !given[i] && values[i] !== 0 && values[i] !== solution[i]}

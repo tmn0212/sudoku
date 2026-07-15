@@ -91,6 +91,24 @@ describe('<Board> interaction', () => {
     useSettings.setState({ highlightCrosshatch: true }); // restore for other tests
   });
 
+  it('gives every filled cell the yellow same-number wash during a scan, even with same-number off', () => {
+    // Scanned digit 5 at index 0; a different digit (7) sits at index 40. With
+    // "Highlight same number" off, the 7 must still take the same-number wash
+    // because it is filled — occupied cells are never scan candidates.
+    const values = new Array(81).fill(0);
+    const given = new Array(81).fill(false);
+    values[0] = 5;
+    given[0] = true;
+    values[40] = 7;
+    useGame.setState({ values, given, bans: new Array(81).fill(0), selection: [0], selected: 0 });
+    useSettings.setState({ highlightSame: false });
+
+    renderGame();
+    expect(screen.getByTestId('cell-40').className).toContain('cell--cross-filled');
+
+    useSettings.setState({ highlightSame: true }); // restore for other tests
+  });
+
   it('disables a number pad key once all nine are placed', () => {
     const { solution, given } = useGame.getState();
     for (let i = 0; i < 81; i++) {

@@ -20,6 +20,9 @@ export interface CellProps {
   crossSelf: boolean;
   /** During a scan, any cell where the selected digit is banned — flag it red. */
   crossBanned: boolean;
+  /** During a scan, any already-filled cell (any digit) — give it the yellow
+   *  same-number wash so occupied cells read apart from the amber scan lines. */
+  crossFilled: boolean;
   same: boolean;
   conflict: boolean;
   wrong: boolean;
@@ -52,6 +55,7 @@ const CellComponent = ({
   cross,
   crossSelf,
   crossBanned,
+  crossFilled,
   same,
   conflict,
   wrong,
@@ -66,14 +70,17 @@ const CellComponent = ({
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
-  // Background precedence: selected > same-number > banned-crossroad >
-  // crossroad-self > peer > crossroad. During a scan the selected cell's own
-  // row/column/box (crossroad-self) paint a *darker* amber than the lines
-  // radiating from other copies of the digit (crossroad), so your active
-  // crosshair reads apart from the rest of the scan. crossroad-self beats peer,
-  // so those lines turn amber instead of the light-blue peer wash while a scan
-  // is live; with no scan running, crossSelf is empty and peer shows as before.
-  // Cells left untouched (plain) are the candidates.
+  // Background precedence: selected > same-number > filled-in-scan >
+  // banned-crossroad > crossroad-self > peer > crossroad. During a scan the
+  // selected cell's own row/column/box (crossroad-self) paint a *darker* amber
+  // than the lines radiating from other copies of the digit (crossroad), so your
+  // active crosshair reads apart from the rest of the scan. crossroad-self beats
+  // peer, so those lines turn amber instead of the light-blue peer wash while a
+  // scan is live; with no scan running, crossSelf is empty and peer shows as
+  // before. crossFilled (any filled cell during a scan) sits just under same and
+  // above the banned/amber tiers, so occupied cells always read yellow — a filled
+  // cell can't be a candidate, so it never wants the red or amber wash. Cells
+  // left untouched (plain) are the candidates.
   if (selected) {
     classes.push('cell--selected');
     // The anchor cell of a crossroad scan (`cross` is only set while a scan is
@@ -82,6 +89,7 @@ const CellComponent = ({
     // surface. The selection ring stays.
     if (cross) classes.push('cell--cross-selected');
   } else if (same) classes.push('cell--same');
+  else if (crossFilled) classes.push('cell--cross-filled');
   else if (crossBanned) classes.push('cell--cross-banned');
   else if (crossSelf) classes.push('cell--cross-self');
   else if (peer) classes.push('cell--peer');
