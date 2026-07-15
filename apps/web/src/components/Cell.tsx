@@ -70,17 +70,18 @@ const CellComponent = ({
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
-  // Background precedence: selected > same-number > filled-in-scan >
-  // banned-crossroad > crossroad-self > peer > crossroad. During a scan the
+  // Background precedence: selected > same-number > banned-crossroad >
+  // crossroad-self > filled-in-scan > peer > crossroad. During a scan the
   // selected cell's own row/column/box (crossroad-self) paint a *darker* amber
   // than the lines radiating from other copies of the digit (crossroad), so your
   // active crosshair reads apart from the rest of the scan. crossroad-self beats
   // peer, so those lines turn amber instead of the light-blue peer wash while a
   // scan is live; with no scan running, crossSelf is empty and peer shows as
-  // before. crossFilled (any filled cell during a scan) sits just under same and
-  // above the banned/amber tiers, so occupied cells always read yellow — a filled
-  // cell can't be a candidate, so it never wants the red or amber wash. Cells
-  // left untouched (plain) are the candidates.
+  // before. It also beats crossFilled, so the crosshair stays one unbroken amber
+  // cross even where a filled cell sits on it — only filled cells *off* the
+  // crosshair take the yellow filled wash. Banned still beats the crosshair so a
+  // ruled-out cell reads red anywhere. A filled cell can't be a candidate, so it
+  // never wants the plain-candidate look. Cells left untouched are the candidates.
   if (selected) {
     classes.push('cell--selected');
     // The anchor cell of a crossroad scan (`cross` is only set while a scan is
@@ -89,9 +90,9 @@ const CellComponent = ({
     // surface. The selection ring stays.
     if (cross) classes.push('cell--cross-selected');
   } else if (same) classes.push('cell--same');
-  else if (crossFilled) classes.push('cell--cross-filled');
   else if (crossBanned) classes.push('cell--cross-banned');
   else if (crossSelf) classes.push('cell--cross-self');
+  else if (crossFilled) classes.push('cell--cross-filled');
   else if (peer) classes.push('cell--peer');
   else if (cross) classes.push('cell--cross');
   if (conflict || wrong) classes.push('cell--error');

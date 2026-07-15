@@ -109,6 +109,24 @@ describe('<Board> interaction', () => {
     useSettings.setState({ highlightSame: true }); // restore for other tests
   });
 
+  it('keeps the selected cell crosshair amber even where a filled cell sits on it', () => {
+    // Select a 5 at index 0; a different digit (3) at index 3 lies on that cell's
+    // row (its crosshair). It must stay the amber crosshair (cross-self), not take
+    // the yellow filled wash — the crosshair reads as one unbroken cross.
+    const values = new Array(81).fill(0);
+    const given = new Array(81).fill(false);
+    values[0] = 5;
+    given[0] = true;
+    values[3] = 3; // row 0 = the selected cell's crosshair
+    given[3] = true;
+    useGame.setState({ values, given, bans: new Array(81).fill(0), selection: [0], selected: 0 });
+
+    renderGame();
+    const cls = screen.getByTestId('cell-3').className;
+    expect(cls).toContain('cell--cross-self');
+    expect(cls).not.toContain('cell--cross-filled');
+  });
+
   it('disables a number pad key once all nine are placed', () => {
     const { solution, given } = useGame.getState();
     for (let i = 0; i < 81; i++) {
