@@ -30,6 +30,7 @@
   --ban-bg: #ffe3e3;
   --cross-bg: rgba(245, 165, 36, 0.22);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
+  --cross-filled-bg: rgba(255, 205, 30, 0.42);
   --shadow: 0 6px 24px rgba(20, 25, 40, 0.12);
 }
 
@@ -57,6 +58,7 @@
   --ban-bg: #3a2023;
   --cross-bg: rgba(255, 184, 84, 0.34);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+  --cross-filled-bg: rgba(255, 210, 66, 0.56);
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
@@ -84,6 +86,7 @@
   --ban-bg: #f6dcd0;
   --cross-bg: rgba(200, 120, 24, 0.26);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
+  --cross-filled-bg: rgba(235, 175, 25, 0.42);
   --shadow: 0 6px 20px rgba(90, 70, 40, 0.18);
 }
 
@@ -111,6 +114,7 @@
   --ban-bg: #3a2023;
   --cross-bg: rgba(255, 184, 84, 0.32);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+  --cross-filled-bg: rgba(255, 210, 66, 0.56);
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
 }
 
@@ -138,6 +142,7 @@
   --ban-bg: #f6dcd0;
   --cross-bg: rgba(230, 150, 30, 0.24);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
+  --cross-filled-bg: rgba(255, 205, 30, 0.42);
   --shadow: 0 6px 20px rgba(30, 50, 25, 0.14);
 }
 
@@ -165,6 +170,7 @@
   --ban-bg: #3a2028;
   --cross-bg: rgba(255, 184, 84, 0.32);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+  --cross-filled-bg: rgba(255, 210, 66, 0.56);
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
 }
 
@@ -192,5 +198,6 @@
   --ban-bg: #ffd6d6;
   --cross-bg: rgba(255, 120, 0, 0.3);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 30%, transparent);
+  --cross-filled-bg: rgba(255, 214, 0, 0.55);
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }

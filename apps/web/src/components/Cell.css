@@ -69,12 +69,14 @@
 .cell--same .cell__value {
   font-weight: 800;
 }
-/* During a crossroad scan every already-filled cell (any digit) takes the same
-   light "same number" wash, so occupied cells read apart from the amber
-   eliminated lines and the plain candidate cells. Background only — the digit
-   keeps its own weight (givens stay heaviest) unlike the bolded same-number. */
+/* During a crossroad scan every already-filled cell (any digit) takes a yellow
+   wash, so occupied cells read apart from the amber eliminated lines and the
+   plain candidate cells. Its own theme-scoped token (pale yellow on light
+   surfaces, a readable gold on dark) — deliberately NOT --same, whose blue would
+   be confused with the peer wash. Background only — the digit keeps its own
+   weight (givens stay heaviest) unlike the bolded same-number. */
 .cell--cross-filled {
-  background: var(--same);
+  background: var(--cross-filled-bg);
 }
 .cell--selected {
   /* Selection is tinted + ringed by the active input mode so you always know

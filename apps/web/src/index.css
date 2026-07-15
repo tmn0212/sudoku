@@ -38,6 +38,9 @@
      visible on dark surfaces, where a faint amber tint used to wash out. */
   --cross-bg: rgba(245, 165, 36, 0.22);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
+  /* Scan wash for already-filled cells: a clear pale yellow, distinct from the
+     amber eliminated wash and the blue peer/same washes. */
+  --cross-filled-bg: rgba(255, 205, 30, 0.42);
 
   --shadow: 0 6px 24px rgba(20, 25, 40, 0.12);
 
@@ -78,6 +81,9 @@
     /* Brighter amber + more opacity so the wash reads on the dark surface. */
     --cross-bg: rgba(255, 184, 84, 0.34);
     --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+    /* A brighter, more opaque gold so filled cells read as yellow (not olive)
+       on the dark surface, still legible under light digits. */
+    --cross-filled-bg: rgba(255, 210, 66, 0.56);
 
     --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   }
