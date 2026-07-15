@@ -127,6 +127,24 @@ describe('<Board> interaction', () => {
     expect(cls).not.toContain('cell--cross-filled');
   });
 
+  it('shows the crosshair amber, not banned red, where a ban sits on the selected cell lines', () => {
+    // Select a 5 at index 0; ban 5 at index 3, which is on that cell's row (its
+    // crosshair). The crosshair amber outranks the ban red there (the ban is
+    // redundant on a line the crosshair already rules out).
+    const values = new Array(81).fill(0);
+    const given = new Array(81).fill(false);
+    const bans = new Array(81).fill(0);
+    values[0] = 5;
+    given[0] = true;
+    bans[3] = 1 << 5; // row 0 = the selected cell's crosshair
+    useGame.setState({ values, given, bans, selection: [0], selected: 0 });
+
+    renderGame();
+    const cls = screen.getByTestId('cell-3').className;
+    expect(cls).toContain('cell--cross-self');
+    expect(cls).not.toContain('cell--cross-banned');
+  });
+
   it('disables a number pad key once all nine are placed', () => {
     const { solution, given } = useGame.getState();
     for (let i = 0; i < 81; i++) {

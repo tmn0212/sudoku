@@ -70,18 +70,19 @@ const CellComponent = ({
 
   const classes = ['cell'];
   if (given) classes.push('cell--given');
-  // Background precedence: selected > same-number > banned-crossroad >
-  // crossroad-self > filled-in-scan > peer > crossroad. During a scan the
+  // Background precedence: selected > same-number > crossroad-self >
+  // banned-crossroad > filled-in-scan > peer > crossroad. During a scan the
   // selected cell's own row/column/box (crossroad-self) paint a *darker* amber
   // than the lines radiating from other copies of the digit (crossroad), so your
-  // active crosshair reads apart from the rest of the scan. crossroad-self beats
-  // peer, so those lines turn amber instead of the light-blue peer wash while a
-  // scan is live; with no scan running, crossSelf is empty and peer shows as
-  // before. It also beats crossFilled, so the crosshair stays one unbroken amber
-  // cross even where a filled cell sits on it — only filled cells *off* the
-  // crosshair take the yellow filled wash. Banned still beats the crosshair so a
-  // ruled-out cell reads red anywhere. A filled cell can't be a candidate, so it
-  // never wants the plain-candidate look. Cells left untouched are the candidates.
+  // active crosshair reads apart from the rest of the scan. crossroad-self is the
+  // top scan tier: it beats peer (so the lines turn amber, not the light-blue peer
+  // wash), it beats crossFilled (so the crosshair stays one unbroken amber cross
+  // through any filled cell on it), and it beats the banned red — a ban on the
+  // crosshair is redundant (the crosshair already rules the digit out on those
+  // lines), so the cross wins there while bans *off* the crosshair still read red.
+  // With no scan running, crossSelf is empty and peer shows as before. A filled
+  // cell can't be a candidate, so it never wants the plain look. Cells left
+  // untouched are the candidates.
   if (selected) {
     classes.push('cell--selected');
     // The anchor cell of a crossroad scan (`cross` is only set while a scan is
@@ -90,8 +91,8 @@ const CellComponent = ({
     // surface. The selection ring stays.
     if (cross) classes.push('cell--cross-selected');
   } else if (same) classes.push('cell--same');
-  else if (crossBanned) classes.push('cell--cross-banned');
   else if (crossSelf) classes.push('cell--cross-self');
+  else if (crossBanned) classes.push('cell--cross-banned');
   else if (crossFilled) classes.push('cell--cross-filled');
   else if (peer) classes.push('cell--peer');
   else if (cross) classes.push('cell--cross');
