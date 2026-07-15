@@ -249,8 +249,13 @@ export const Board = () => {
           peer={peerSet.has(i)}
           cross={crossSet.has(i)}
           crossSelf={crossSelfSet.has(i)}
+          // A ban turns red for the whole scan: EVERY cell where you've ruled the
+          // scanned digit out, not only those already inside the shaded crossroad
+          // — so all your eliminations for that digit read at once. Gated on the
+          // scan being live (crosshatch on; selectedDigit is 0 unless a filled
+          // single cell is selected), which is why crossSet.has(i) isn't needed.
           crossBanned={
-            crossSet.has(i) &&
+            highlightCrosshatch &&
             selectedDigit !== 0 &&
             hasCandidate(bans[i] | lockedBans[i], selectedDigit)
           }

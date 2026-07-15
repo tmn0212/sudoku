@@ -18,7 +18,7 @@ export interface CellProps {
   cross: boolean;
   /** On the *selected* cell's own row/column/box during a scan (its focus lines). */
   crossSelf: boolean;
-  /** A crossroad cell where the selected digit is banned — flag it red. */
+  /** During a scan, any cell where the selected digit is banned — flag it red. */
   crossBanned: boolean;
   same: boolean;
   conflict: boolean;

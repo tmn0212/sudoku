@@ -7,6 +7,7 @@ import { NumberPad } from './NumberPad';
 import { Controls } from './Controls';
 import { InputModeBar } from './InputModeBar';
 import { useGame } from '../game/store';
+import { useSettings } from '../state/settingsStore';
 
 const renderGame = () =>
   render(
@@ -55,6 +56,39 @@ describe('<Board> interaction', () => {
 
     expect(useGame.getState().notes[cell] & (1 << 2)).toBeTruthy();
     expect(useGame.getState().values[cell]).toBe(0);
+  });
+
+  it('flags every banned cell red during a scan, even outside the shaded lines', () => {
+    // A single 5 sits at index 0; ban 5 at index 40 (a different row, column, and
+    // box, so it is NOT inside the shaded crossroad). Selecting the 5 starts a
+    // scan, and the ban must still turn red — every elimination for the digit.
+    const values = new Array(81).fill(0);
+    const given = new Array(81).fill(false);
+    const bans = new Array(81).fill(0);
+    values[0] = 5;
+    given[0] = true;
+    bans[40] = 1 << 5;
+    useGame.setState({ values, given, bans, selection: [0], selected: 0 });
+
+    renderGame();
+
+    expect(screen.getByTestId('cell-40').className).toContain('cell--cross-banned');
+  });
+
+  it('does not flag banned cells red when crosshatch scanning is off', () => {
+    const values = new Array(81).fill(0);
+    const given = new Array(81).fill(false);
+    const bans = new Array(81).fill(0);
+    values[0] = 5;
+    given[0] = true;
+    bans[40] = 1 << 5;
+    useGame.setState({ values, given, bans, selection: [0], selected: 0 });
+    useSettings.setState({ highlightCrosshatch: false });
+
+    renderGame();
+
+    expect(screen.getByTestId('cell-40').className).not.toContain('cell--cross-banned');
+    useSettings.setState({ highlightCrosshatch: true }); // restore for other tests
   });
 
   it('disables a number pad key once all nine are placed', () => {
