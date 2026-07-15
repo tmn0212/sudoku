@@ -76,7 +76,9 @@
   --cell-user: #b06a2c;
   --sel: #f0dcae;
   --peer: #f3ead2;
-  --same: #ecd9a6;
+  /* Deeper than the old #ecd9a6: on the cream sepia surface a light tan same-wash
+     was near-invisible. This reads clearly while staying in the sepia palette. */
+  --same: #dcc47d;
   --error-bg: #f6dcd0;
   --error-fg: #b3402f;
   --hint-bg: #f6e3a1;
@@ -86,7 +88,9 @@
   --ban-bg: #f6dcd0;
   --cross-bg: rgba(200, 120, 24, 0.26);
   --cross-banned-bg: color-mix(in srgb, var(--ban) 24%, transparent);
-  --cross-filled-bg: rgba(235, 175, 25, 0.42);
+  /* Deeper + more opaque than the other light themes: a pale yellow washed out
+     against the warm cream surface. */
+  --cross-filled-bg: rgba(226, 156, 12, 0.5);
   --shadow: 0 6px 20px rgba(90, 70, 40, 0.18);
 }
 
