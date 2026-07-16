@@ -21,7 +21,7 @@ import {
 import { findStep } from '@sudoku/core';
 import { generatePuzzle } from '@sudoku/core';
 import { computeScore } from '@sudoku/core';
-import type { Difficulty, Grid, Mode, Puzzle, Step } from '@sudoku/core';
+import type { CandidateMask, Difficulty, Grid, Mode, Puzzle, Step } from '@sudoku/core';
 import type { KeyValueStore } from '../ports';
 
 /**
@@ -250,6 +250,28 @@ export const isCellLocked = (s: GameState, i: number): boolean =>
   s.values[i] !== 0 &&
   s.values[i] === s.solution[i];
 
+/**
+ * Digits already resolved in cell `i`'s row, column, or box: a peer holds that
+ * digit and that peer is *confirmed correct* — a given, or (while the game is
+ * validating) a player entry that matches the solution. Such a digit can no
+ * longer legally be placed, noted, or banned in cell `i`. Returned as a
+ * candidate bitmask.
+ *
+ * Gated on `checking` (auto-check on, or Arcade) so Good mode with auto-check
+ * off never leaks whether one of *your* entries is right — only givens, which
+ * are known-correct clues, count there.
+ */
+export const resolvedPeerDigits = (s: GameState, i: number): CandidateMask => {
+  const checking = s.autoCheck || s.mode === 'arcade';
+  let mask = 0;
+  for (const p of PEERS[i]) {
+    const v = s.values[p];
+    if (v === 0) continue;
+    if (s.given[p] || (checking && v === s.solution[p])) mask = addCandidate(mask, v);
+  }
+  return mask;
+};
+
 /** Cells a digit/erase acts on: the multi-selection, or the single anchor.
  *  Givens and locked-correct cells are never editable, so they're filtered out. */
 export const targetCells = (s: GameState): number[] => {
@@ -384,15 +406,24 @@ export const createGameStore = (deps: GameStoreDeps) =>
           for (const i of targets) {
             if (hasCandidate(s.lockedBans[i], digit)) continue; // permanently blocked
             if (values[i] === digit && targets.length === 1) {
-              values[i] = 0; // tapping the same digit clears it
+              values[i] = 0; // tapping the same digit clears it (even a wrong one)
             } else {
+              // A peer already resolves this digit (a given, or a validated
+              // correct entry), so it can never go here — refuse the placement.
+              if (hasCandidate(resolvedPeerDigits(s, i), digit)) continue;
               values[i] = digit;
               notes[i] = 0;
               notesAlt[i] = 0;
               bans[i] = 0;
-              if (autoClean) {
+              // A confirmed-correct placement resolves this digit for the whole
+              // row/column/box, so sweep it out of every peer's notes, alt-notes,
+              // and bans. Gated on `checking` so an unvalidated Good-mode entry
+              // (which we can't know is right) never silently rewrites peers.
+              if (autoClean && checking && digit === s.solution[i]) {
                 for (const p of PEERS[i]) {
-                  if (notes[p]) notes[p] = removeCandidate(notes[p], digit);
+                  notes[p] = removeCandidate(notes[p], digit);
+                  notesAlt[p] = removeCandidate(notesAlt[p], digit);
+                  bans[p] = removeCandidate(bans[p], digit);
                 }
               }
               if (checking && values[i] !== s.solution[i]) mistakes++;
@@ -406,6 +437,9 @@ export const createGameStore = (deps: GameStoreDeps) =>
           for (const i of targets) {
             if (values[i] !== 0) continue; // marks only make sense on empty cells
             if (hasCandidate(s.lockedBans[i], digit)) continue; // permanently blocked
+            // A peer already resolves this digit — noting or banning it here is
+            // meaningless, so refuse it (mirrors the pad greying the key out).
+            if (hasCandidate(resolvedPeerDigits(s, i), digit)) continue;
             const current =
               s.inputMode === 'note' ? notes : s.inputMode === 'noteAlt' ? notesAlt : bans;
             const alreadyHere = hasCandidate(current[i], digit);
@@ -584,13 +618,20 @@ export const createGameStore = (deps: GameStoreDeps) =>
         const notes = s.notes.slice();
         const notesAlt = s.notesAlt.slice();
         const bans = s.bans.slice();
+        const autoClean = deps.getSettings().autoCleanupNotes;
         for (const { cell, value } of step.placements) {
           values[cell] = value;
           notes[cell] = 0;
           notesAlt[cell] = 0;
           bans[cell] = 0;
-          for (const p of PEERS[cell]) {
-            if (notes[p]) notes[p] = removeCandidate(notes[p], value);
+          // A hint always places a correct digit, so it resolves `value` for the
+          // whole row/column/box — sweep it from every peer's marks.
+          if (autoClean) {
+            for (const p of PEERS[cell]) {
+              notes[p] = removeCandidate(notes[p], value);
+              notesAlt[p] = removeCandidate(notesAlt[p], value);
+              bans[p] = removeCandidate(bans[p], value);
+            }
           }
         }
         const { status, score } = finalizeIfDone(values, {

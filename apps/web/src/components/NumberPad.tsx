@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useGame, isCellLocked } from '../game/store';
+import { useGame, isCellLocked, resolvedPeerDigits } from '../game/store';
 import './NumberPad.css';
 import { requestDigit } from '../game/inputActions';
 import { useSettings } from '../state/settingsStore';
@@ -36,6 +36,15 @@ export const NumberPad = () => {
   const bannedMask = single ? bans[selected] : 0;
   const lockedMask = single ? lockedBans[selected] : 0;
 
+  // Digits a peer already resolves (a given, or a validated correct entry): they
+  // can never go in the selected cell, so the pad greys them out — the hard-rule
+  // complement of sweeping a digit from peers' marks when it's placed correctly.
+  const resolvedMask = useGame((s) =>
+    s.selection.length <= 1 && s.selected != null
+      ? resolvedPeerDigits(s, s.selected)
+      : 0,
+  );
+
   // How many of each digit still need placing. While the game is validating, a
   // key only counts as "done" once all nine copies are placed *correctly*, so a
   // wrong entry never greys out the digit you still need; otherwise fall back to
@@ -55,11 +64,14 @@ export const NumberPad = () => {
       {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
         const done = remaining[n] <= 0;
         const fixedOut = fixedDigit !== 0 && n !== fixedDigit;
+        // Resolved: a peer already holds this digit correctly — illegal here.
         // Locked: a wrong-entry ban — greyed out and disabled in every mode.
         // Banned: a user ban — red, still tappable (a confirm follows).
-        const locked = hasCandidate(lockedMask, n);
-        const banned = !locked && hasCandidate(bannedMask, n);
-        const cls = locked
+        const resolved = hasCandidate(resolvedMask, n);
+        const lockedBan = hasCandidate(lockedMask, n);
+        const blocked = resolved || lockedBan; // grey + disabled: can't go here
+        const banned = !blocked && hasCandidate(bannedMask, n);
+        const cls = blocked
           ? ' numberpad__key--locked'
           : banned
             ? ' numberpad__key--banned'
@@ -69,13 +81,19 @@ export const NumberPad = () => {
             key={n}
             type="button"
             className={`numberpad__key${cls}`}
-            disabled={done || fixedOut || locked || status !== 'playing'}
+            disabled={done || fixedOut || blocked || status !== 'playing'}
             onClick={() => {
               haptics.tap();
               requestDigit(n);
             }}
             aria-label={`Enter ${n}, ${Math.max(remaining[n], 0)} remaining${
-              locked ? ' (blocked for the selected cell)' : banned ? ' (banned in the selected cell)' : ''
+              resolved
+                ? ' (already placed in this row, column, or box)'
+                : lockedBan
+                  ? ' (blocked for the selected cell)'
+                  : banned
+                    ? ' (banned in the selected cell)'
+                    : ''
             }`}
           >
             <span className="numberpad__digit">{n}</span>

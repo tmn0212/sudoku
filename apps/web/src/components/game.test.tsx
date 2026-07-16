@@ -6,7 +6,7 @@ import { Board } from './Board';
 import { NumberPad } from './NumberPad';
 import { Controls } from './Controls';
 import { InputModeBar } from './InputModeBar';
-import { useGame } from '../game/store';
+import { useGame, resolvedPeerDigits } from '../game/store';
 import { useSettings } from '../state/settingsStore';
 
 const renderGame = () =>
@@ -20,6 +20,13 @@ const renderGame = () =>
   );
 
 const firstEmptyCell = () => useGame.getState().given.findIndex((g) => !g);
+
+// A digit a peer already resolves is disabled on the pad, so pick one the rule
+// still allows for the (randomly generated) puzzle.
+const placeable = (cell: number): number[] => {
+  const resolved = resolvedPeerDigits(useGame.getState(), cell);
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => !(resolved & (1 << d)));
+};
 
 describe('<Board> interaction', () => {
   beforeEach(() => {
@@ -37,24 +44,26 @@ describe('<Board> interaction', () => {
     const user = userEvent.setup();
     renderGame();
     const cell = firstEmptyCell();
+    const d = placeable(cell)[0];
     useGame.getState().selectCell(cell);
 
-    await user.click(screen.getByRole('button', { name: /Enter 6/ }));
-    expect(useGame.getState().values[cell]).toBe(6);
-    expect(screen.getByTestId(`cell-${cell}`)).toHaveTextContent('6');
+    await user.click(screen.getByRole('button', { name: new RegExp(`Enter ${d},`) }));
+    expect(useGame.getState().values[cell]).toBe(d);
+    expect(screen.getByTestId(`cell-${cell}`)).toHaveTextContent(String(d));
   });
 
   it('writes blue pencil marks when Notes mode is on', async () => {
     const user = userEvent.setup();
     renderGame();
     const cell = firstEmptyCell();
+    const d = placeable(cell)[0];
     useGame.getState().selectCell(cell);
 
     // Switch to the blue "Notes" mode via the mode bar (second button).
     await user.click(screen.getAllByRole('button', { name: /Notes/ })[0]);
-    await user.click(screen.getByRole('button', { name: /Enter 2/ }));
+    await user.click(screen.getByRole('button', { name: new RegExp(`Enter ${d},`) }));
 
-    expect(useGame.getState().notes[cell] & (1 << 2)).toBeTruthy();
+    expect(useGame.getState().notes[cell] & (1 << d)).toBeTruthy();
     expect(useGame.getState().values[cell]).toBe(0);
   });
 
@@ -143,6 +152,31 @@ describe('<Board> interaction', () => {
     const cls = screen.getByTestId('cell-3').className;
     expect(cls).toContain('cell--cross-self');
     expect(cls).not.toContain('cell--cross-banned');
+  });
+
+  it('greys out a pad digit already resolved in the selected cell\'s row/column/box', () => {
+    // A given 7 sits at index 1; cell 0 shares its row and box, so the pad's 7
+    // must be disabled while cell 0 is selected.
+    const values = new Array(81).fill(0);
+    const given = new Array(81).fill(false);
+    values[1] = 7;
+    given[1] = true;
+    useGame.setState({
+      values,
+      given,
+      notes: new Array(81).fill(0),
+      notesAlt: new Array(81).fill(0),
+      bans: new Array(81).fill(0),
+      lockedBans: new Array(81).fill(0),
+      selection: [0],
+      selected: 0,
+    });
+    renderGame();
+    const key = screen.getByRole('button', { name: /Enter 7,/ });
+    expect(key).toBeDisabled();
+    expect(key.getAttribute('aria-label')).toContain(
+      'already placed in this row, column, or box',
+    );
   });
 
   it('disables a number pad key once all nine are placed', () => {
