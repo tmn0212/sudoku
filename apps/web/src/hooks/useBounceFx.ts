@@ -3,8 +3,9 @@ import { addCandidate } from '@sudoku/core';
 import { useGame } from '../game/store';
 import { useFx, type Ghost } from '../state/fxStore';
 
-/** How long a bounce ghost lives — a touch past the 0.5s bounce animation. */
-const BOUNCE_TTL_MS = 560;
+/** How long a bounce ghost lives — a touch past the 1s bounce animation (pop in,
+ *  ~0.5s hold, pop out). */
+const BOUNCE_TTL_MS = 1050;
 
 /**
  * Bounces a note back out of any cell that refused it because a peer already

@@ -45,20 +45,26 @@
   color: var(--error-fg);
 }
 /* A rejected note (a peer already resolves the digit): it pops in like a normal
-   mark, then springs straight back out — the "you can't note that here" feedback. */
+   mark, holds for ~0.5s so you can read it, then springs back out — the "you
+   can't note that here" feedback. */
 .board__ghost--bounce {
-  animation: bounceGhost 0.5s ease forwards;
+  animation: bounceGhost 1s ease forwards;
 }
 @keyframes bounceGhost {
   0% {
     transform: scale(0.2);
     opacity: 0;
   }
-  32% {
+  12% {
     transform: scale(1.18);
     opacity: 1;
   }
-  52% {
+  18% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  68% {
+    /* hold at full size (~0.5s) before popping out */
     transform: scale(1);
     opacity: 1;
   }
