@@ -10,6 +10,7 @@
   flex: 0 0 auto;
 }
 .mode-bar__btn {
+  position: relative;
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -102,4 +103,36 @@
 }
 .mode-bar__btn:not(.mode-bar__btn--active)[data-mode='ban'] .mode-bar__icon {
   color: var(--ban);
+}
+
+/* ---------- Committed-tool indicator ----------
+   The committed tool (the mode-bar choice a transient gesture tool snaps back to)
+   is shown only while it differs from the active tool — i.e. a gesture has
+   temporarily switched tools. It reads as an outlined "home": an accent border,
+   a faint accent wash, and a corner pin, versus the active tool's solid fill. */
+.mode-bar__btn--committed:not(.mode-bar__btn--active)[data-mode='normal'] {
+  --m-committed: var(--primary);
+}
+.mode-bar__btn--committed:not(.mode-bar__btn--active)[data-mode='note'] {
+  --m-committed: var(--note-primary);
+}
+.mode-bar__btn--committed:not(.mode-bar__btn--active)[data-mode='noteAlt'] {
+  --m-committed: var(--note-alt);
+}
+.mode-bar__btn--committed:not(.mode-bar__btn--active)[data-mode='ban'] {
+  --m-committed: var(--ban);
+}
+.mode-bar__btn--committed:not(.mode-bar__btn--active) {
+  border-width: 2px;
+  border-color: var(--m-committed);
+  background: color-mix(in srgb, var(--m-committed) 12%, var(--bg));
+}
+.mode-bar__pin {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--m-committed);
 }

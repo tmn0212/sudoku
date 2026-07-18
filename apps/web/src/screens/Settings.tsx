@@ -39,6 +39,7 @@ export const Settings = () => {
   const warnOnBanned = useSettings((s) => s.warnOnBanned);
   const showRemaining = useSettings((s) => s.showRemaining);
   const celebrateCompletions = useSettings((s) => s.celebrateCompletions);
+  const autoRevertMode = useSettings((s) => s.autoRevertMode);
   const toggle = useSettings((s) => s.toggle);
 
   const autoCheck = useGame((s) => s.autoCheck);
@@ -110,6 +111,12 @@ export const Settings = () => {
             desc="Confirm before placing a digit you've banned in that cell"
             checked={warnOnBanned}
             onChange={() => toggle('warnOnBanned')}
+          />
+          <ToggleRow
+            label="Auto-revert tool"
+            desc="A drag, double-tap, or hold picks a tool for the next entry only, then snaps back to your selected tool"
+            checked={autoRevertMode}
+            onChange={() => toggle('autoRevertMode')}
           />
           <ToggleRow
             label="Auto-clean notes"
