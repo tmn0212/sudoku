@@ -10,8 +10,6 @@ import { requestDigit } from './inputActions';
 // ban: a fix that conflated the two shipped as a regression the owner caught on
 // device (git 6a3623e). See docs/architecture/05-testing.md.
 
-const firstEmptyCell = () => useGame.getState().given.findIndex((g) => !g);
-
 // The puzzle is random per test, and a digit a peer already resolves can't be
 // placed/noted/banned in a cell. Pick digits/cells the rule permits so these
 // tests stay robust across seeds.
