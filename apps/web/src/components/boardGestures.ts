@@ -103,12 +103,14 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
       const { index, x, y, now, inMultiSelection } = event;
       if (index == null) return noChange(state);
 
-      // Double-tap the same cell → collapse to it and cycle the input mode.
+      // Double-tap the same cell → cycle the input mode. The selection is left
+      // to the store's cycle, which keeps a multi-selection (showing only its
+      // first cell while the cycle sits on Digit) instead of collapsing it here.
       const tap = state.lastTap;
       if (tap && tap.cell === index && now - tap.time < DOUBLE_TAP_MS) {
         return {
           state: { ...state, phase: 'idle', lastTap: null },
-          effects: [{ type: 'selectSingle', index }, { type: 'cycleMode' }],
+          effects: [{ type: 'cycleMode' }],
         };
       }
 

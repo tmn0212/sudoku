@@ -52,7 +52,8 @@ describe('gestureReducer — double-tap to cycle mode', () => {
     });
     expect(r.state.phase).toBe('idle');
     expect(r.state.lastTap).toBeNull();
-    expect(r.effects).toEqual([{ type: 'selectSingle', index: 7 }, { type: 'cycleMode' }]);
+    // No selectSingle: the store's cycle preserves a multi-selection.
+    expect(r.effects).toEqual([{ type: 'cycleMode' }]);
   });
 
   it('treats a too-slow second tap as a fresh press, not a double-tap', () => {

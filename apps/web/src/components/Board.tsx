@@ -48,7 +48,7 @@ export const Board = () => {
   const hint = useGame((s) => s.hint);
   const setSelection = useGame((s) => s.setSelection);
   const addToSelection = useGame((s) => s.addToSelection);
-  const setInputMode = useGame((s) => s.setInputMode);
+  const setInputModeTransient = useGame((s) => s.setInputModeTransient);
   const cycleInputMode = useGame((s) => s.cycleInputMode);
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
@@ -159,7 +159,7 @@ export const Board = () => {
           addToSelection(fx.index);
           break;
         case 'setMode':
-          setInputMode(fx.mode);
+          setInputModeTransient(fx.mode);
           break;
         case 'cycleMode':
           cycleInputMode();
