@@ -15,7 +15,12 @@ const GhostView = ({ g }: { g: Ghost }) => {
     top: `${(rowOf(g.cell) / 9) * 100}%`,
   };
   return (
-    <div className={`board__ghost${g.wrong ? ' board__ghost--wrong' : ''}`} style={style}>
+    <div
+      className={`board__ghost${g.wrong ? ' board__ghost--wrong' : ''}${
+        g.bounce ? ' board__ghost--bounce' : ''
+      }`}
+      style={style}
+    >
       {g.value !== 0 ? (
         <span className="cell__value">{g.value}</span>
       ) : (

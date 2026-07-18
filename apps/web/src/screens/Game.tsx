@@ -14,6 +14,7 @@ import { useRecordGame } from '../hooks/useRecordGame';
 import { useGameFeedback } from '../hooks/useGameFeedback';
 import { useCompletionFx } from '../hooks/useCompletionFx';
 import { usePops } from '../hooks/usePops';
+import { useBounceFx } from '../hooks/useBounceFx';
 import { useAutoBanWrong } from '../hooks/useAutoBanWrong';
 import { useSaveRoster } from '../hooks/useSaveRoster';
 import { useStartChallenge } from '../hooks/useStartChallenge';
@@ -37,6 +38,7 @@ export const Game = () => {
   useGameFeedback();
   useCompletionFx();
   usePops();
+  useBounceFx();
   useAutoBanWrong();
   useSaveRoster();
 

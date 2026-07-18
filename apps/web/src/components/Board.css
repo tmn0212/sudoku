@@ -44,3 +44,31 @@
 .board__ghost--wrong {
   color: var(--error-fg);
 }
+/* A rejected note (a peer already resolves the digit): it pops in like a normal
+   mark, then springs straight back out — the "you can't note that here" feedback. */
+.board__ghost--bounce {
+  animation: bounceGhost 0.5s ease forwards;
+}
+@keyframes bounceGhost {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  32% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  52% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .board__ghost--bounce {
+    animation: none;
+  }
+}
