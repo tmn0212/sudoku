@@ -354,6 +354,34 @@ describe('game store', () => {
     });
   });
 
+  describe('removeFromSelection (radial Deselect)', () => {
+    const threeEmpties = () =>
+      useGame.getState().given.map((g, i) => (g ? -1 : i)).filter((i) => i >= 0).slice(0, 3);
+
+    it('drops the cell and re-anchors selected on what remains', () => {
+      const [a, b, c] = threeEmpties();
+      useGame.getState().setSelection([a, b, c]);
+      useGame.getState().removeFromSelection(b);
+      expect(useGame.getState().selection).toEqual([a, c]);
+      expect(useGame.getState().selected).toBe(c); // last remaining is the anchor
+    });
+
+    it('clears selected when the last cell is removed', () => {
+      const [a] = threeEmpties();
+      useGame.getState().setSelection([a]);
+      useGame.getState().removeFromSelection(a);
+      expect(useGame.getState().selection).toEqual([]);
+      expect(useGame.getState().selected).toBeNull();
+    });
+
+    it('is a no-op for a cell that is not selected', () => {
+      const [a, b, other] = threeEmpties();
+      useGame.getState().setSelection([a, b]);
+      useGame.getState().removeFromSelection(other);
+      expect(useGame.getState().selection).toEqual([a, b]);
+    });
+  });
+
   describe('note/ban on a peer-resolved digit', () => {
     // An empty cell + a digit that one of its peers already resolves (a given),
     // so the note-here rule rejects it.

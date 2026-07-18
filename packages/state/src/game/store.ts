@@ -166,6 +166,8 @@ export interface GameState {
   selectCell: (index: number | null) => void;
   setSelection: (cells: number[]) => void;
   addToSelection: (index: number) => void;
+  /** Drop one cell from the current multi-selection (the radial "Deselect"). */
+  removeFromSelection: (index: number) => void;
   inputDigit: (digit: number) => void;
   /** Convert a lingering wrong entry into a ban (fired ~1s after it's placed). */
   autoBanWrong: (cell: number, digit: number) => void;
@@ -457,6 +459,20 @@ export const createGameStore = (deps: GameStoreDeps) =>
           if (s.selection.includes(index)) return { selected: index };
           // Extending into a fresh group invalidates any stashed one.
           return { selection: [...s.selection, index], selected: index, savedSelection: null };
+        }),
+
+      removeFromSelection: (index) =>
+        set((s) => {
+          if (!s.selection.includes(index)) return {};
+          const selection = s.selection.filter((i) => i !== index);
+          // Prune a stashed group too (defensive — a live multi keeps none), and
+          // re-anchor `selected` on whatever remains.
+          const saved = s.savedSelection?.filter((i) => i !== index) ?? null;
+          return {
+            selection,
+            selected: selection.length ? selection[selection.length - 1] : null,
+            savedSelection: saved && saved.length ? saved : null,
+          };
         }),
 
       // A mode-bar tap commits the tool. Switching to Digit collapses a
