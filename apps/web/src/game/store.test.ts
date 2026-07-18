@@ -330,6 +330,61 @@ describe('game store', () => {
     });
   });
 
+  describe('note/ban on a peer-resolved digit', () => {
+    // An empty cell + a digit that one of its peers already resolves (a given),
+    // so the note-here rule rejects it.
+    const resolvedCellDigit = () => {
+      const s = useGame.getState();
+      for (let i = 0; i < 81; i++) {
+        if (s.given[i] || s.values[i] !== 0) continue;
+        const mask = resolvedPeerDigits(s, i);
+        for (let d = 1; d <= 9; d++) if (mask & (1 << d)) return { cell: i, digit: d };
+      }
+      throw new Error('no empty cell with a resolved peer digit');
+    };
+
+    it('bounces a note instead of storing it when a peer resolves the digit', () => {
+      const { cell, digit } = resolvedCellDigit();
+      useGame.getState().selectCell(cell);
+      useGame.getState().setInputMode('note');
+      useGame.getState().inputDigit(digit);
+      const s = useGame.getState();
+      expect(s.notes[cell] & (1 << digit)).toBeFalsy(); // not noted
+      expect(s.bounce).not.toBeNull();
+      expect(s.bounce?.cells).toContain(cell);
+      expect(s.bounce?.digit).toBe(digit);
+      expect(s.bounce?.layer).toBe('note');
+    });
+
+    it('lets you ban a peer-resolved digit (no bounce)', () => {
+      const { cell, digit } = resolvedCellDigit();
+      useGame.getState().selectCell(cell);
+      useGame.getState().setInputMode('ban');
+      useGame.getState().inputDigit(digit);
+      const s = useGame.getState();
+      expect(s.bans[cell] & (1 << digit)).toBeTruthy(); // ban recorded
+      expect(s.bounce).toBeNull(); // a ban never bounces
+    });
+
+    it('notes the legal cells and bounces only the illegal ones in a multi-selection', () => {
+      const s0 = useGame.getState();
+      const { cell: illegal, digit } = resolvedCellDigit();
+      let legal = -1;
+      for (let i = 0; i < 81; i++) {
+        if (s0.given[i] || s0.values[i] !== 0 || i === illegal) continue;
+        if (!(resolvedPeerDigits(s0, i) & (1 << digit))) { legal = i; break; }
+      }
+      expect(legal).toBeGreaterThanOrEqual(0);
+      useGame.getState().setSelection([legal, illegal]);
+      useGame.getState().setInputMode('note');
+      useGame.getState().inputDigit(digit);
+      const s = useGame.getState();
+      expect(s.notes[legal] & (1 << digit)).toBeTruthy(); // legal cell keeps the note
+      expect(s.notes[illegal] & (1 << digit)).toBeFalsy(); // illegal cell bounces
+      expect(s.bounce?.cells).toEqual([illegal]);
+    });
+  });
+
   it('produces a correct, applicable hint', () => {
     useGame.getState().requestHint();
     const hint = useGame.getState().hint;
@@ -440,7 +495,7 @@ describe('game store', () => {
 
   const zeros = () => new Array(81).fill(0);
 
-  it('refuses a digit a given peer already resolves (place / note / ban)', () => {
+  it('refuses to place or note a digit a given peer resolves, but allows banning it', () => {
     // Cell 1 is a given 7; cell 0 shares its row and box, so 7 is dead there.
     const values = zeros();
     const given = new Array(81).fill(false);
@@ -464,11 +519,12 @@ describe('game store', () => {
 
     useGame.getState().setInputMode('note');
     useGame.getState().inputDigit(7);
-    expect(useGame.getState().notes[0] & (1 << 7)).toBeFalsy(); // note refused
+    expect(useGame.getState().notes[0] & (1 << 7)).toBeFalsy(); // note not stored...
+    expect(useGame.getState().bounce?.cells).toContain(0); // ...it bounced back out
 
     useGame.getState().setInputMode('ban');
     useGame.getState().inputDigit(7);
-    expect(useGame.getState().bans[0] & (1 << 7)).toBeFalsy(); // ban refused
+    expect(useGame.getState().bans[0] & (1 << 7)).toBeTruthy(); // ban IS allowed now
   });
 
   it('sweeps a correctly placed digit from peers\' notes, alt-notes, and bans', () => {

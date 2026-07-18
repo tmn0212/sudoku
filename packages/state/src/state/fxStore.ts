@@ -17,6 +17,8 @@ export interface Ghost {
   bans: number;
   /** A wrong entry being auto-converted to a ban leaves in red. */
   wrong: boolean;
+  /** A rejected note: pops in then straight back out (vs a plain pop-out). */
+  bounce?: boolean;
 }
 
 interface FxState {
@@ -28,7 +30,9 @@ interface FxState {
   pop: (cells: number[]) => void;
   /** Snapshots of just-removed content, animating out then discarded. */
   ghosts: Ghost[];
-  addGhosts: (ghosts: Omit<Ghost, 'id'>[]) => void;
+  /** `ttl` is how long (ms) the ghosts live before removal — long enough for the
+   *  bounce (pop in + out) to finish; defaults to the plain pop-out duration. */
+  addGhosts: (ghosts: Omit<Ghost, 'id'>[], ttl?: number) => void;
 }
 
 let clearTimer: ReturnType<typeof setTimeout> | undefined;
@@ -52,14 +56,11 @@ export const useFx = create<FxState>()((set, get) => ({
     popTimer = setTimeout(() => set({ popCells: [] }), 340);
   },
   ghosts: [],
-  addGhosts: (list) => {
+  addGhosts: (list, ttl = 300) => {
     if (list.length === 0) return;
     const added = list.map((g) => ({ ...g, id: ++ghostId }));
     set({ ghosts: [...get().ghosts, ...added] });
     const ids = new Set(added.map((g) => g.id));
-    setTimeout(
-      () => set({ ghosts: get().ghosts.filter((g) => !ids.has(g.id)) }),
-      300,
-    );
+    setTimeout(() => set({ ghosts: get().ghosts.filter((g) => !ids.has(g.id)) }), ttl);
   },
 }));

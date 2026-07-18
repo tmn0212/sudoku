@@ -16,6 +16,7 @@ export type {
   InputMode,
   GameStatus,
   HintState,
+  BounceFx,
   ChallengeRef,
   SavedGame,
 } from '@sudoku/state';

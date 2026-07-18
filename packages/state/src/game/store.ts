@@ -81,6 +81,17 @@ export interface HintState {
   step: Step | null;
 }
 
+/**
+ * A note that couldn't stick (a peer already resolves the digit) so the UI should
+ * bounce it back out of `cells`. Ephemeral fx signal — set by `inputDigit`, read
+ * by the web `useBounceFx` hook, never persisted.
+ */
+export interface BounceFx {
+  cells: number[];
+  digit: number;
+  layer: 'note' | 'noteAlt';
+}
+
 /** Identifies which challenge-bank puzzle is being played (null for free play). */
 export interface ChallengeRef {
   difficulty: Difficulty;
@@ -137,6 +148,8 @@ export interface GameState {
   score: number;
   autoCheck: boolean;
   hint: HintState | null;
+  /** Ephemeral: cells that just bounced a note back out (peer-resolved digit). */
+  bounce: BounceFx | null;
 
   // --- undo/redo ---
   past: Snapshot[];
@@ -251,6 +264,7 @@ const buildGame = (
   hints: 0,
   score: 0,
   hint: null as HintState | null,
+  bounce: null as BounceFx | null,
   past: [] as Snapshot[],
   future: [] as Snapshot[],
 });
@@ -402,6 +416,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
           hints: g.hints,
           score: g.score,
           hint: null,
+          bounce: null,
           past: [],
           future: [],
           autoCheck: s.autoCheck,
@@ -467,6 +482,9 @@ export const createGameStore = (deps: GameStoreDeps) =>
         const settings = deps.getSettings();
         const autoClean = settings.autoCleanupNotes;
         let mistakes = s.mistakes;
+        // Cells that refused a note because a peer already resolves the digit — the
+        // UI bounces the mark back out of them (see useBounceFx).
+        const bounced: number[] = [];
 
         // Arcade always validates entries (that's the mode); Good respects the
         // auto-check setting.
@@ -504,14 +522,20 @@ export const createGameStore = (deps: GameStoreDeps) =>
           // most one layer, so switching mode and tapping the same digit MOVES
           // it (e.g. a blue note becomes a grey note) instead of being hidden
           // behind another layer.
+          const isBan = s.inputMode === 'ban';
           for (const i of targets) {
             if (values[i] !== 0) continue; // marks only make sense on empty cells
             if (hasCandidate(s.lockedBans[i], digit)) continue; // permanently blocked
-            // A peer already resolves this digit — noting or banning it here is
-            // meaningless, so refuse it (mirrors the pad greying the key out).
-            if (hasCandidate(resolvedPeerDigits(s, i), digit)) continue;
-            const current =
-              s.inputMode === 'note' ? notes : s.inputMode === 'noteAlt' ? notesAlt : bans;
+            // A peer already resolves this digit. It can't be *noted* here — that
+            // pencil mark would be provably false — so the note bounces back out
+            // as feedback instead of sticking (collected for the UI). But you may
+            // still BAN it: a ban is your own "not here" mark, valid even when the
+            // engine already knows the digit is impossible here.
+            if (!isBan && hasCandidate(resolvedPeerDigits(s, i), digit)) {
+              bounced.push(i);
+              continue;
+            }
+            const current = isBan ? bans : s.inputMode === 'note' ? notes : notesAlt;
             const alreadyHere = hasCandidate(current[i], digit);
             notes[i] = removeCandidate(notes[i], digit);
             notesAlt[i] = removeCandidate(notesAlt[i], digit);
@@ -531,6 +555,10 @@ export const createGameStore = (deps: GameStoreDeps) =>
         // Finalizing an entry snaps a transient gesture tool back to the committed
         // one (collapsing a lingering multi-selection if that lands on Digit).
         const revert = settings.autoRevertMode ? modeChange(s, s.committedMode, false) : null;
+        // A fresh object each time (or null) so the fx hook fires once per bounce.
+        const bounce: BounceFx | null = bounced.length
+          ? { cells: bounced, digit, layer: s.inputMode === 'noteAlt' ? 'noteAlt' : 'note' }
+          : null;
         set({
           ...revert,
           values,
@@ -543,6 +571,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
           mistakes,
           score,
           status,
+          bounce,
         });
       },
 
