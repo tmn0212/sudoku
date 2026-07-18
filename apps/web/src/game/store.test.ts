@@ -252,6 +252,84 @@ describe('game store', () => {
     expect(useGame.getState().selected).toBe(empties[0]);
   });
 
+  describe('committed vs transient input mode', () => {
+    const threeEmpties = () =>
+      useGame.getState().given.map((g, i) => (g ? -1 : i)).filter((i) => i >= 0).slice(0, 3);
+
+    beforeEach(() => {
+      useSettings.setState({ autoRevertMode: true });
+    });
+
+    it('a mode-bar tap commits the tool, which survives a digit entry', () => {
+      const cell = freeCell();
+      useGame.getState().selectCell(cell);
+      useGame.getState().setInputMode('note');
+      expect(useGame.getState().committedMode).toBe('note');
+      useGame.getState().inputDigit(placeable(cell)[0]);
+      expect(useGame.getState().inputMode).toBe('note');
+      expect(useGame.getState().committedMode).toBe('note');
+    });
+
+    it('a transient tool snaps back to the committed tool after a digit entry', () => {
+      const cell = freeCell();
+      useGame.getState().selectCell(cell);
+      useGame.getState().setInputModeTransient('ban'); // gesture, committed stays normal
+      expect(useGame.getState().inputMode).toBe('ban');
+      expect(useGame.getState().committedMode).toBe('normal');
+      useGame.getState().inputDigit(placeable(cell)[0]);
+      expect(useGame.getState().inputMode).toBe('normal'); // snapped back
+    });
+
+    it('with auto-revert off, a transient tool commits and sticks past an entry', () => {
+      useSettings.setState({ autoRevertMode: false });
+      const cell = freeCell();
+      useGame.getState().selectCell(cell);
+      useGame.getState().setInputModeTransient('note');
+      expect(useGame.getState().committedMode).toBe('note'); // commits when off
+      useGame.getState().inputDigit(placeable(cell)[0]);
+      expect(useGame.getState().inputMode).toBe('note'); // no snap-back
+    });
+
+    it('cycling through Digit keeps the multi-selection and restores it on exit', () => {
+      const empties = threeEmpties();
+      useGame.getState().setSelection(empties);
+      useGame.getState().setInputMode('note');
+      useGame.getState().cycleInputMode(); // note -> noteAlt
+      expect(useGame.getState().selection).toHaveLength(3);
+      useGame.getState().cycleInputMode(); // noteAlt -> ban
+      expect(useGame.getState().selection).toHaveLength(3);
+      useGame.getState().cycleInputMode(); // ban -> normal, collapse to first cell
+      expect(useGame.getState().inputMode).toBe('normal');
+      expect(useGame.getState().selection).toEqual([empties[0]]);
+      useGame.getState().cycleInputMode(); // normal -> note, restore the group
+      expect(useGame.getState().inputMode).toBe('note');
+      expect(useGame.getState().selection).toEqual(empties);
+    });
+
+    it('restores the group after a plain-tap collapse then a double-tap cycle', () => {
+      const empties = threeEmpties();
+      useGame.getState().setSelection(empties);
+      useGame.getState().setInputMode('note');
+      // A plain tap inside the group collapses to one cell but stashes the group.
+      useGame.getState().setSelection([empties[1]]);
+      expect(useGame.getState().selection).toEqual([empties[1]]);
+      // The double-tap cycle then restores the group as it cycles the mode.
+      useGame.getState().cycleInputMode();
+      expect(useGame.getState().selection).toEqual(empties);
+      expect(useGame.getState().inputMode).toBe('noteAlt');
+    });
+
+    it('drops the stashed group once a fresh cell is selected', () => {
+      const empties = threeEmpties();
+      useGame.getState().setSelection(empties);
+      useGame.getState().setSelection([empties[0]]); // collapse-member stashes group
+      const other = useGame.getState().given.findIndex((g, i) => !g && !empties.includes(i));
+      useGame.getState().selectCell(other);
+      useGame.getState().cycleInputMode(); // normal -> note, nothing to restore
+      expect(useGame.getState().selection).toEqual([other]);
+    });
+  });
+
   it('produces a correct, applicable hint', () => {
     useGame.getState().requestHint();
     const hint = useGame.getState().hint;

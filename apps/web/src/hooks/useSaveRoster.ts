@@ -29,7 +29,9 @@ const serialize = (s: GameState): SavedGame => ({
   notesAlt: s.notesAlt,
   bans: s.bans,
   lockedBans: s.lockedBans,
-  inputMode: s.inputMode,
+  // A save has no transient state, so persist the committed tool as both.
+  inputMode: s.committedMode,
+  committedMode: s.committedMode,
   status: s.status,
   elapsedMs: s.elapsedMs,
   mistakes: s.mistakes,

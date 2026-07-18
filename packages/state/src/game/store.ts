@@ -44,6 +44,9 @@ export interface SavedGame {
   /** Optional for backward compat with saves made before wrong-entry locks. */
   lockedBans?: number[];
   inputMode: string;
+  /** The committed tool (mode-bar choice). Optional for saves made before the
+   *  committed/active split; falls back to `inputMode`. */
+  committedMode?: string;
   status: string;
   elapsedMs: number;
   mistakes: number;
@@ -59,8 +62,9 @@ export interface SavedGame {
 export interface GameStoreDeps {
   /** Backs the Zustand `persist` middleware (web: localStorage). */
   storage: KeyValueStore;
-  /** Reads the current settings that affect gameplay (auto-clean notes). */
-  getSettings: () => { autoCleanupNotes: boolean };
+  /** Reads the current settings that affect gameplay (auto-clean notes, and
+   *  whether a gesture-picked tool snaps back to the committed one after entry). */
+  getSettings: () => { autoCleanupNotes: boolean; autoRevertMode: boolean };
 }
 
 /** What a digit press does to the selected cells. */
@@ -115,7 +119,14 @@ export interface GameState {
   selection: number[];
   /** Convenience anchor = last selected cell (or null). */
   selected: number | null;
+  /** A multi-selection stashed while Digit mode shows only its first cell, so a
+   *  mode cycle can pass through Digit and restore the group (null when none). */
+  savedSelection: number[] | null;
+  /** What a digit press does right now — may be a transient gesture override. */
   inputMode: InputMode;
+  /** The user's chosen tool (mode-bar buttons). A transient gesture leaves this
+   *  alone so the next digit entry can snap `inputMode` back to it. */
+  committedMode: InputMode;
 
   // --- meta ---
   status: GameStatus;
@@ -147,6 +158,9 @@ export interface GameState {
   autoBanWrong: (cell: number, digit: number) => void;
   erase: () => void;
   setInputMode: (mode: InputMode) => void;
+  /** A gesture-driven mode change (drag / radial): transient unless auto-revert
+   *  is off, in which case it commits like a mode-bar tap. */
+  setInputModeTransient: (mode: InputMode) => void;
   cycleInputMode: () => void;
   undo: () => void;
   redo: () => void;
@@ -228,7 +242,9 @@ const buildGame = (
   lockedBans: zeros(),
   selection: [] as number[],
   selected: null as number | null,
+  savedSelection: null as number[] | null,
   inputMode: 'normal' as InputMode,
+  committedMode: 'normal' as InputMode,
   status: 'playing' as GameStatus,
   elapsedMs: 0,
   mistakes: 0,
@@ -283,6 +299,49 @@ export const targetCells = (s: GameState): number[] => {
   return cells.filter((i) => !s.given[i] && !isCellLocked(s, i));
 };
 
+/**
+ * A mode change carrying the committed/active split and the multi-selection rule.
+ *
+ * `commit` marks this as the user's chosen tool (a mode-bar tap, or any gesture
+ * when auto-revert is off) so it becomes the new "home"; a transient gesture
+ * leaves `committedMode` untouched so the next digit entry can snap back to it.
+ *
+ * Selection: entering Digit with a multi-selection collapses to the first-picked
+ * cell (you can't place one digit across many) but *stashes* the group; leaving
+ * Digit restores it. That lets a double-tap cycle pass through Digit without
+ * losing the multi-selection.
+ */
+const modeChange = (
+  s: GameState,
+  next: InputMode,
+  commit: boolean,
+): Partial<GameState> => {
+  const committedMode = commit ? next : s.committedMode;
+  // The group in play is either one stashed earlier or the current live multi.
+  const multi = s.savedSelection ?? (s.selection.length > 1 ? s.selection : null);
+  if (next === 'normal') {
+    return multi
+      ? {
+          inputMode: next,
+          committedMode,
+          selection: [multi[0]],
+          selected: multi[0],
+          savedSelection: multi,
+        }
+      : { inputMode: next, committedMode, savedSelection: null };
+  }
+  // Leaving Digit with a stashed group restores it; otherwise leave selection be.
+  return s.savedSelection
+    ? {
+        inputMode: next,
+        committedMode,
+        selection: s.savedSelection,
+        selected: s.savedSelection[s.savedSelection.length - 1],
+        savedSelection: null,
+      }
+    : { inputMode: next, committedMode };
+};
+
 export const createGameStore = (deps: GameStoreDeps) =>
   create<GameState>()(
   persist(
@@ -332,7 +391,11 @@ export const createGameStore = (deps: GameStoreDeps) =>
           lockedBans: g.lockedBans?.slice() ?? zeros(),
           selection: [],
           selected: null,
-          inputMode: g.inputMode as InputMode,
+          savedSelection: null,
+          // No transient state survives a reload, so the active tool comes back as
+          // the committed one (falling back to `inputMode` for pre-split saves).
+          inputMode: (g.committedMode ?? g.inputMode) as InputMode,
+          committedMode: (g.committedMode ?? g.inputMode) as InputMode,
           status: g.status as GameStatus,
           elapsedMs: g.elapsedMs,
           mistakes: g.mistakes,
@@ -348,37 +411,43 @@ export const createGameStore = (deps: GameStoreDeps) =>
         set({
           selection: index == null ? [] : [index],
           selected: index,
+          savedSelection: null,
           hint: null,
         }),
 
       setSelection: (cells) =>
-        set({
-          selection: cells,
-          selected: cells.length ? cells[cells.length - 1] : null,
-          hint: null,
+        set((s) => {
+          // Collapsing a multi-selection down to one of its own cells (a plain tap
+          // inside the group) stashes the group so a follow-up double-tap cycle can
+          // restore it; any other selection change drops the stash.
+          const collapsingMember =
+            cells.length === 1 && s.selection.length > 1 && s.selection.includes(cells[0]);
+          return {
+            selection: cells,
+            selected: cells.length ? cells[cells.length - 1] : null,
+            savedSelection: collapsingMember ? s.selection : null,
+            hint: null,
+          };
         }),
 
       addToSelection: (index) =>
         set((s) => {
           if (s.selection.includes(index)) return { selected: index };
-          return { selection: [...s.selection, index], selected: index };
+          // Extending into a fresh group invalidates any stashed one.
+          return { selection: [...s.selection, index], selected: index, savedSelection: null };
         }),
 
-      // Switching to Digit collapses a multi-selection back to the cell the drag
-      // started from — you can't place one final digit across many cells.
-      setInputMode: (mode) =>
-        set((s) =>
-          mode === 'normal' && s.selection.length > 1
-            ? { inputMode: mode, selection: [s.selection[0]], selected: s.selection[0] }
-            : { inputMode: mode },
-        ),
+      // A mode-bar tap commits the tool. Switching to Digit collapses a
+      // multi-selection back to its first cell (see modeChange).
+      setInputMode: (mode) => set((s) => modeChange(s, mode, true)),
+      // Drag / radial: transient unless auto-revert is off (then it sticks).
+      setInputModeTransient: (mode) =>
+        set((s) => modeChange(s, mode, !deps.getSettings().autoRevertMode)),
       cycleInputMode: () =>
         set((s) => {
           const order: InputMode[] = ['normal', 'note', 'noteAlt', 'ban'];
           const next = order[(order.indexOf(s.inputMode) + 1) % order.length];
-          return next === 'normal' && s.selection.length > 1
-            ? { inputMode: next, selection: [s.selection[0]], selected: s.selection[0] }
-            : { inputMode: next };
+          return modeChange(s, next, !deps.getSettings().autoRevertMode);
         }),
 
       setAutoCheck: (on) => set({ autoCheck: on }),
@@ -395,7 +464,8 @@ export const createGameStore = (deps: GameStoreDeps) =>
         const notes = s.notes.slice();
         const notesAlt = s.notesAlt.slice();
         const bans = s.bans.slice();
-        const autoClean = deps.getSettings().autoCleanupNotes;
+        const settings = deps.getSettings();
+        const autoClean = settings.autoCleanupNotes;
         let mistakes = s.mistakes;
 
         // Arcade always validates entries (that's the mode); Good respects the
@@ -458,7 +528,11 @@ export const createGameStore = (deps: GameStoreDeps) =>
           mistakes,
           hints: s.hints,
         });
+        // Finalizing an entry snaps a transient gesture tool back to the committed
+        // one (collapsing a lingering multi-selection if that lands on Digit).
+        const revert = settings.autoRevertMode ? modeChange(s, s.committedMode, false) : null;
         set({
+          ...revert,
           values,
           notes,
           notesAlt,
@@ -584,6 +658,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
             },
             selection: [wrongCells[0]],
             selected: wrongCells[0],
+            savedSelection: null,
           });
           return;
         }
@@ -605,6 +680,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
           hint: { message: step.reason, cells: step.highlights, step },
           selection: target != null ? [target] : s.selection,
           selected: target ?? s.selected,
+          savedSelection: target != null ? null : s.savedSelection,
           hints: s.hints + 1,
         });
       },
@@ -663,12 +739,14 @@ export const createGameStore = (deps: GameStoreDeps) =>
     }),
     {
       name: 'sudoku-game',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => deps.storage),
       migrate: (persisted, version) => {
         const p = persisted as Partial<GameState>;
         if (version < 3 && !p.gameId) p.gameId = newId(); // gameId added in v3
         if (version < 4 && !p.lockedBans) p.lockedBans = new Array(CELL_COUNT).fill(0);
+        // committedMode added in v5: seed it from the old single input mode.
+        if (version < 5 && !p.committedMode) p.committedMode = p.inputMode ?? 'normal';
         return p as GameState;
       },
       // Persist the game, not transient UI (selection/hint).
@@ -685,7 +763,10 @@ export const createGameStore = (deps: GameStoreDeps) =>
         notesAlt: s.notesAlt,
         bans: s.bans,
         lockedBans: s.lockedBans,
-        inputMode: s.inputMode,
+        // A reload has no transient state, so persist the active tool as the
+        // committed one — both rehydrate to the committed choice.
+        inputMode: s.committedMode,
+        committedMode: s.committedMode,
         status: s.status,
         elapsedMs: s.elapsedMs,
         mistakes: s.mistakes,

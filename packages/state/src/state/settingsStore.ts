@@ -33,6 +33,9 @@ export interface SettingsState {
   showRemaining: boolean;
   /** Play the green celebration flash when a row/column/box or digit is finished. */
   celebrateCompletions: boolean;
+  /** A tool picked by a gesture (drag, double-tap, hold) lasts only for the next
+   *  entry, then snaps back to the committed mode-bar tool. */
+  autoRevertMode: boolean;
 
   setTheme: (theme: ThemeId) => void;
   toggle: (key: BooleanSettingKey) => void;
@@ -46,7 +49,8 @@ type BooleanSettingKey =
   | 'autoCleanupNotes'
   | 'warnOnBanned'
   | 'showRemaining'
-  | 'celebrateCompletions';
+  | 'celebrateCompletions'
+  | 'autoRevertMode';
 
 /**
  * Instantiate the settings store + its startup initializer, wired to injected
@@ -65,6 +69,7 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
         warnOnBanned: true,
         showRemaining: true,
         celebrateCompletions: true,
+        autoRevertMode: true,
 
         setTheme: (theme) => {
           deps.themeApplier.apply(theme);
