@@ -17,6 +17,7 @@ export const NumberPad = () => {
   const status = useGame((s) => s.status);
   const autoCheck = useGame((s) => s.autoCheck);
   const mode = useGame((s) => s.mode);
+  const inputMode = useGame((s) => s.inputMode);
   const showRemaining = useSettings((s) => s.showRemaining);
 
   const checking = autoCheck || mode === 'arcade';
@@ -64,12 +65,14 @@ export const NumberPad = () => {
       {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
         const done = remaining[n] <= 0;
         const fixedOut = fixedDigit !== 0 && n !== fixedDigit;
-        // Resolved: a peer already holds this digit correctly — illegal here.
+        // Resolved: a peer already holds this digit correctly. That's a hard block
+        // only for *placing* it (Digit mode); in note/ban modes the key stays live
+        // — a note taps to bounce back out, a ban records your own "not here" mark.
         // Locked: a wrong-entry ban — greyed out and disabled in every mode.
         // Banned: a user ban — red, still tappable (a confirm follows).
-        const resolved = hasCandidate(resolvedMask, n);
+        const resolvedBlocks = hasCandidate(resolvedMask, n) && inputMode === 'normal';
         const lockedBan = hasCandidate(lockedMask, n);
-        const blocked = resolved || lockedBan; // grey + disabled: can't go here
+        const blocked = resolvedBlocks || lockedBan;
         const banned = !blocked && hasCandidate(bannedMask, n);
         const cls = blocked
           ? ' numberpad__key--locked'
@@ -87,7 +90,7 @@ export const NumberPad = () => {
               requestDigit(n);
             }}
             aria-label={`Enter ${n}, ${Math.max(remaining[n], 0)} remaining${
-              resolved
+              resolvedBlocks
                 ? ' (already placed in this row, column, or box)'
                 : lockedBan
                   ? ' (blocked for the selected cell)'
