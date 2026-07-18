@@ -48,6 +48,7 @@ export const Board = () => {
   const hint = useGame((s) => s.hint);
   const setSelection = useGame((s) => s.setSelection);
   const addToSelection = useGame((s) => s.addToSelection);
+  const removeFromSelection = useGame((s) => s.removeFromSelection);
   const setInputModeTransient = useGame((s) => s.setInputModeTransient);
   const cycleInputMode = useGame((s) => s.cycleInputMode);
   const highlightPeers = useSettings((s) => s.highlightPeers);
@@ -158,6 +159,9 @@ export const Board = () => {
         case 'addToSelection':
           addToSelection(fx.index);
           break;
+        case 'removeFromSelection':
+          removeFromSelection(fx.index);
+          break;
         case 'setMode':
           setInputModeTransient(fx.mode);
           break;
@@ -177,11 +181,11 @@ export const Board = () => {
           }, LONG_PRESS_MS);
           break;
         case 'openRadial':
-          setRadial({ x: fx.x, y: fx.y, active: null });
+          setRadial({ x: fx.x, y: fx.y, active: null, deselect: fx.deselect });
           haptics.tap();
           break;
         case 'updateRadial':
-          setRadial((r) => (r ? { ...r, active: fx.mode } : r));
+          setRadial((r) => (r ? { ...r, active: fx.action } : r));
           break;
         case 'closeRadial':
           setRadial(null);

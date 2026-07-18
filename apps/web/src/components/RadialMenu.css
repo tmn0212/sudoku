@@ -43,6 +43,15 @@
   color: #fff;
   border-color: var(--primary);
 }
+/* Deselect reads as a removal, not a mode: muted at rest, red when armed. */
+.radial__opt--danger {
+  color: var(--muted);
+}
+.radial__opt--danger.radial__opt--active {
+  background: var(--error-fg);
+  border-color: var(--error-fg);
+  color: #fff;
+}
 .radial__label {
   line-height: 1;
 }

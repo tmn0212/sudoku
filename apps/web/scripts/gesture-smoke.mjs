@@ -127,6 +127,33 @@ const run = async () => {
   const radialClosed = await page.locator('.radial').count();
   check('long-press opens radial, release closes it', radialOpen === 1 && radialClosed === 0, `open=${radialOpen} closed=${radialClosed}`);
 
+  // 5) Holding a cell inside a multi-selection offers Deselect (down-left), which
+  //    drops just that cell. Seed a 3-cell selection, then hold+drag the middle
+  //    one toward the down-left option.
+  await page.waitForTimeout(400); await reset();
+  const trio = await page.evaluate(() => {
+    const given = window.__stores.game.getState().given;
+    const out = [];
+    for (let i = 0; i < 81 && out.length < 3; i++) if (!given[i]) out.push(i);
+    window.__stores.game.getState().setSelection(out);
+    return out;
+  });
+  const pm = await centre(trio[1]);
+  await page.mouse.move(pm.x, pm.y); await page.mouse.down();
+  await page.waitForTimeout(560);
+  const deselectShown = await page.locator('.radial__opt--danger').count();
+  // Drag toward down-left (dx<0, dy>0) past the dead zone to arm Deselect.
+  await page.mouse.move(pm.x - 55, pm.y + 55, { steps: 6 });
+  await page.waitForTimeout(60);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  const sel = (await g()).selection;
+  check(
+    'hold in multi-selection deselects just the held cell',
+    deselectShown === 1 && sel.length === 2 && !sel.includes(trio[1]),
+    `shown=${deselectShown} sel=[${sel}] removed=${trio[1]}`,
+  );
+
   await browser.close();
 
   const failed = results.filter((ok) => !ok).length;

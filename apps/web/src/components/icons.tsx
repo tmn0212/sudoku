@@ -130,6 +130,14 @@ export const IconBan = ({ size = 24, ...rest }: IconProps) => (
   </svg>
 );
 
+/** A cell crossed out — remove it from the multi-selection (radial "Deselect"). */
+export const IconDeselect = ({ size = 24, ...rest }: IconProps) => (
+  <svg {...svg(size, rest)}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" {...stroke} strokeWidth={1.6} />
+    <path {...stroke} strokeWidth={1.8} d="M9 9l6 6M15 9l-6 6" />
+  </svg>
+);
+
 /** Sudoku grid — marks the untimed "Good" mode. */
 export const IconGrid = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>

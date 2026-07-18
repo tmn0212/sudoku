@@ -13,7 +13,7 @@
  */
 
 import type { InputMode } from '../game/store';
-import { radialModeFromPointer } from './radial';
+import { radialActionFromPointer, type RadialAction } from './radial';
 
 /** How long a hold must last (ms) before the radial mode picker opens. The host
  *  owns the actual timer; this is exported so both agree on the duration. */
@@ -36,10 +36,13 @@ export interface GestureState {
   lastIdx: number | null;
   /** The previous tap, for double-tap detection. */
   lastTap: { cell: number; time: number } | null;
+  /** Whether the press landed inside an existing multi-selection — gates whether
+   *  the radial offers the "deselect this cell" option. Set on pointerDown. */
+  pressInMulti: boolean;
   /** Radial anchor (held-cell centre, viewport coords) while phase === 'radial'. */
   radialAnchor: { x: number; y: number } | null;
-  /** Mode currently under the finger in the radial (null = dead zone / cancel). */
-  radialMode: InputMode | null;
+  /** Action currently under the finger in the radial (null = dead zone / cancel). */
+  radialAction: RadialAction | null;
 }
 
 export const initialGestureState: GestureState = {
@@ -49,21 +52,25 @@ export const initialGestureState: GestureState = {
   pressCell: null,
   lastIdx: null,
   lastTap: null,
+  pressInMulti: false,
   radialAnchor: null,
-  radialMode: null,
+  radialAction: null,
 };
 
 /** Intents the host carries out against the store / radial UI / long-press timer. */
 export type GestureEffect =
   | { type: 'selectSingle'; index: number }
   | { type: 'addToSelection'; index: number }
+  /** Drop one cell from the multi-selection (radial "Deselect"). */
+  | { type: 'removeFromSelection'; index: number }
   | { type: 'setMode'; mode: InputMode }
   | { type: 'cycleMode' }
   | { type: 'startPressTimer' }
   | { type: 'clearPressTimer' }
-  /** Open the radial at (x,y): host shows it and fires a haptic tap. */
-  | { type: 'openRadial'; x: number; y: number }
-  | { type: 'updateRadial'; mode: InputMode | null }
+  /** Open the radial at (x,y): host shows it and fires a haptic tap. `deselect`
+   *  is whether the held cell was in a multi-selection (offers the extra option). */
+  | { type: 'openRadial'; x: number; y: number; deselect: boolean }
+  | { type: 'updateRadial'; action: RadialAction | null }
   | { type: 'closeRadial' };
 
 /** Events the host feeds in, already hit-tested / measured. */
@@ -119,7 +126,15 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
       if (!inMultiSelection) effects.push({ type: 'selectSingle', index });
       effects.push({ type: 'startPressTimer' });
       return {
-        state: { ...state, phase: 'pending', startX: x, startY: y, pressCell: index, lastIdx: index },
+        state: {
+          ...state,
+          phase: 'pending',
+          startX: x,
+          startY: y,
+          pressCell: index,
+          lastIdx: index,
+          pressInMulti: inMultiSelection,
+        },
         effects,
       };
     }
@@ -132,9 +147,11 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
           ...state,
           phase: 'radial',
           radialAnchor: { x: event.anchorX, y: event.anchorY },
-          radialMode: null,
+          radialAction: null,
         },
-        effects: [{ type: 'openRadial', x: event.anchorX, y: event.anchorY }],
+        effects: [
+          { type: 'openRadial', x: event.anchorX, y: event.anchorY, deselect: state.pressInMulti },
+        ],
       };
     }
 
@@ -143,9 +160,9 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
       if (state.phase === 'idle') return noChange(state);
 
       if (state.phase === 'radial') {
-        const mode = radialModeFromPointer(state.radialAnchor, x, y);
-        if (mode === state.radialMode) return noChange(state);
-        return { state: { ...state, radialMode: mode }, effects: [{ type: 'updateRadial', mode }] };
+        const action = radialActionFromPointer(state.radialAnchor, x, y, state.pressInMulti);
+        if (action === state.radialAction) return noChange(state);
+        return { state: { ...state, radialAction: action }, effects: [{ type: 'updateRadial', action }] };
       }
 
       let next = state;
@@ -174,9 +191,16 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
       const effects: GestureEffect[] = [{ type: 'clearPressTimer' }];
 
       if (g === 'radial') {
-        if (state.radialMode) effects.push({ type: 'setMode', mode: state.radialMode });
+        const action = state.radialAction;
+        if (action === 'deselect') {
+          if (state.pressCell != null) {
+            effects.push({ type: 'removeFromSelection', index: state.pressCell });
+          }
+        } else if (action) {
+          effects.push({ type: 'setMode', mode: action });
+        }
         effects.push({ type: 'closeRadial' });
-        return { state: { ...base, radialAnchor: null, radialMode: null }, effects };
+        return { state: { ...base, radialAnchor: null, radialAction: null }, effects };
       }
 
       if (g === 'pending' && state.pressCell != null) {
@@ -190,7 +214,7 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
 
     case 'pointerCancel':
       return {
-        state: { ...state, phase: 'idle', radialAnchor: null, radialMode: null },
+        state: { ...state, phase: 'idle', radialAnchor: null, radialAction: null },
         effects: [{ type: 'clearPressTimer' }, { type: 'closeRadial' }],
       };
   }

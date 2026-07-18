@@ -91,7 +91,19 @@ describe('gestureReducer — long-press opens the radial', () => {
     const r = gestureReducer(pending, { type: 'pressTimerElapsed', anchorX: 55, anchorY: 60 });
     expect(r.state.phase).toBe('radial');
     expect(r.state.radialAnchor).toEqual({ x: 55, y: 60 });
-    expect(r.effects).toEqual([{ type: 'openRadial', x: 55, y: 60 }]);
+    expect(r.effects).toEqual([{ type: 'openRadial', x: 55, y: 60, deselect: false }]);
+  });
+
+  it('offers Deselect when the held cell was inside a multi-selection', () => {
+    // pointerDown inside a group records pressInMulti; the timer then opens the
+    // radial with the extra option enabled.
+    const { state, effects } = run(
+      S(),
+      { type: 'pointerDown', index: 5, x: 50, y: 50, now: 0, inMultiSelection: true },
+      { type: 'pressTimerElapsed', anchorX: 50, anchorY: 50 },
+    );
+    expect(state.pressInMulti).toBe(true);
+    expect(effects).toContainEqual({ type: 'openRadial', x: 50, y: 50, deselect: true });
   });
 
   it('ignores a stale timer once the gesture became a drag', () => {
@@ -154,23 +166,23 @@ describe('gestureReducer — drag to multi-select', () => {
 });
 
 describe('gestureReducer — radial tracking + commit', () => {
-  const radial = S({ phase: 'radial', radialAnchor: { x: 100, y: 100 }, radialMode: null });
+  const radial = S({ phase: 'radial', radialAnchor: { x: 100, y: 100 }, radialAction: null });
 
-  it('updates the highlighted mode as the finger moves into a sector', () => {
+  it('updates the highlighted action as the finger moves into a sector', () => {
     // straight up from the anchor = Digit ('normal')
     const r = gestureReducer(radial, { type: 'pointerMove', index: null, x: 100, y: 40, inputMode: 'note' });
-    expect(r.state.radialMode).toBe('normal');
-    expect(r.effects).toEqual([{ type: 'updateRadial', mode: 'normal' }]);
+    expect(r.state.radialAction).toBe('normal');
+    expect(r.effects).toEqual([{ type: 'updateRadial', action: 'normal' }]);
   });
 
   it('does not re-emit when the sector is unchanged', () => {
-    const onNormal = S({ ...radial, radialMode: 'normal' });
+    const onNormal = S({ ...radial, radialAction: 'normal' });
     const r = gestureReducer(onNormal, { type: 'pointerMove', index: null, x: 100, y: 40, inputMode: 'note' });
     expect(r.effects).toEqual([]);
   });
 
   it('commits the highlighted mode on release', () => {
-    const onBan = S({ ...radial, radialMode: 'ban' });
+    const onBan = S({ ...radial, radialAction: 'ban' });
     const r = gestureReducer(onBan, { type: 'pointerUp', selectionCount: 3, now: 0 });
     expect(r.state.phase).toBe('idle');
     expect(r.state.radialAnchor).toBeNull();
@@ -184,6 +196,29 @@ describe('gestureReducer — radial tracking + commit', () => {
   it('just closes (no mode change) when released in the dead zone', () => {
     const r = gestureReducer(radial, { type: 'pointerUp', selectionCount: 1, now: 0 });
     expect(r.effects).toEqual([{ type: 'clearPressTimer' }, { type: 'closeRadial' }]);
+  });
+
+  it('picks Deselect toward down-left only when the multi-selection option is armed', () => {
+    // down-left of the anchor (dx<0, dy>0). Without pressInMulti it falls to a
+    // mode sector (Ban/Notes 2); with it, that direction becomes Deselect.
+    const armed = S({ ...radial, pressInMulti: true });
+    const r = gestureReducer(armed, { type: 'pointerMove', index: null, x: 60, y: 140, inputMode: 'note' });
+    expect(r.state.radialAction).toBe('deselect');
+    expect(r.effects).toEqual([{ type: 'updateRadial', action: 'deselect' }]);
+
+    const plain = gestureReducer(radial, { type: 'pointerMove', index: null, x: 60, y: 140, inputMode: 'note' });
+    expect(plain.state.radialAction).not.toBe('deselect');
+  });
+
+  it('removes the held cell from the selection when Deselect is released', () => {
+    const onDeselect = S({ ...radial, pressCell: 12, pressInMulti: true, radialAction: 'deselect' });
+    const r = gestureReducer(onDeselect, { type: 'pointerUp', selectionCount: 3, now: 0 });
+    expect(r.state.phase).toBe('idle');
+    expect(r.effects).toEqual([
+      { type: 'clearPressTimer' },
+      { type: 'removeFromSelection', index: 12 },
+      { type: 'closeRadial' },
+    ]);
   });
 });
 
@@ -214,9 +249,9 @@ describe('gestureReducer — pointerUp tap resolution', () => {
 
 describe('gestureReducer — pointerCancel', () => {
   it('resets to idle and tears down the radial', () => {
-    const radial = S({ phase: 'radial', radialAnchor: { x: 1, y: 2 }, radialMode: 'ban' });
+    const radial = S({ phase: 'radial', radialAnchor: { x: 1, y: 2 }, radialAction: 'ban' });
     const r = gestureReducer(radial, { type: 'pointerCancel' });
-    expect(r.state).toMatchObject({ phase: 'idle', radialAnchor: null, radialMode: null });
+    expect(r.state).toMatchObject({ phase: 'idle', radialAnchor: null, radialAction: null });
     expect(r.effects).toEqual([{ type: 'clearPressTimer' }, { type: 'closeRadial' }]);
   });
 });
