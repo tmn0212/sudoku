@@ -328,6 +328,30 @@ describe('game store', () => {
       useGame.getState().cycleInputMode(); // normal -> note, nothing to restore
       expect(useGame.getState().selection).toEqual([other]);
     });
+
+    // A double-tap and a hold both re-select the shown cell (their selectSingle)
+    // *before* changing the mode. Re-selecting the collapsed Digit-mode anchor must
+    // keep the stash so cycling / picking a mode off Digit still restores the group.
+    it('restores the group when the collapsed Digit cell is re-selected then cycled (double-tap)', () => {
+      const empties = threeEmpties();
+      useGame.getState().setSelection(empties);
+      useGame.getState().setInputMode('normal'); // collapse to first cell, stash group
+      expect(useGame.getState().selection).toEqual([empties[0]]);
+      useGame.getState().setSelection([empties[0]]); // the double-tap's selectSingle
+      useGame.getState().cycleInputMode(); // normal -> note: restores the group
+      expect(useGame.getState().selection).toEqual(empties);
+      expect(useGame.getState().inputMode).toBe('note');
+    });
+
+    it('restores the group when the collapsed cell is re-selected then a mode is picked (hold)', () => {
+      const empties = threeEmpties();
+      useGame.getState().setSelection(empties);
+      useGame.getState().setInputMode('normal'); // collapse + stash
+      useGame.getState().setSelection([empties[0]]); // the hold's selectSingle
+      useGame.getState().setInputModeTransient('ban'); // the radial picks a mode
+      expect(useGame.getState().selection).toEqual(empties);
+      expect(useGame.getState().inputMode).toBe('ban');
+    });
   });
 
   describe('note/ban on a peer-resolved digit', () => {

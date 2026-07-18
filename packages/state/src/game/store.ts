@@ -432,15 +432,22 @@ export const createGameStore = (deps: GameStoreDeps) =>
 
       setSelection: (cells) =>
         set((s) => {
-          // Collapsing a multi-selection down to one of its own cells (a plain tap
-          // inside the group) stashes the group so a follow-up double-tap cycle can
-          // restore it; any other selection change drops the stash.
+          // Collapsing a live multi-selection down to one of its own cells (a plain
+          // tap inside the group) stashes the group so a follow-up cycle can restore
+          // it.
           const collapsingMember =
             cells.length === 1 && s.selection.length > 1 && s.selection.includes(cells[0]);
+          // Re-selecting the already-collapsed anchor of a stashed group — which is
+          // exactly what a double-tap or hold on the single cell Digit mode is
+          // showing does (its selectSingle re-picks that cell) — must KEEP the stash,
+          // so cycling the mode off Digit still restores the group. Any other
+          // selection change drops it.
+          const keepStash =
+            cells.length === 1 && s.savedSelection != null && cells[0] === s.savedSelection[0];
           return {
             selection: cells,
             selected: cells.length ? cells[cells.length - 1] : null,
-            savedSelection: collapsingMember ? s.selection : null,
+            savedSelection: collapsingMember ? s.selection : keepStash ? s.savedSelection : null,
             hint: null,
           };
         }),
