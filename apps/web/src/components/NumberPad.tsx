@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useGame, isCellLocked, resolvedPeerDigits } from '../game/store';
+import { useGame, isCellLocked, resolvedPeerDigits, targetCells } from '../game/store';
 import './NumberPad.css';
 import { requestDigit } from '../game/inputActions';
 import { useSettings } from '../state/settingsStore';
@@ -46,6 +46,19 @@ export const NumberPad = () => {
       : 0,
   );
 
+  // Note modes only: digits that can't be noted in ANY selected cell — every empty
+  // one has the digit resolved by a peer or locked out. Greyed out because the tap
+  // would be wholly futile. A MIXED selection (at least one cell can still take the
+  // note) keeps the key live: it notes the legal cells and bounces the rest.
+  const noteBlockedMask = useGame((s) => {
+    if (s.inputMode !== 'note' && s.inputMode !== 'noteAlt') return 0;
+    const empties = targetCells(s).filter((i) => s.values[i] === 0);
+    if (empties.length === 0) return 0;
+    let acceptable = 0;
+    for (const i of empties) acceptable |= ~(resolvedPeerDigits(s, i) | s.lockedBans[i]);
+    return 0b1111111110 & ~acceptable; // bits 1..9 that no selected cell accepts
+  });
+
   // How many of each digit still need placing. While the game is validating, a
   // key only counts as "done" once all nine copies are placed *correctly*, so a
   // wrong entry never greys out the digit you still need; otherwise fall back to
@@ -72,7 +85,9 @@ export const NumberPad = () => {
         // Banned: a user ban — red, still tappable (a confirm follows).
         const resolvedBlocks = hasCandidate(resolvedMask, n) && inputMode === 'normal';
         const lockedBan = hasCandidate(lockedMask, n);
-        const blocked = resolvedBlocks || lockedBan;
+        // In note modes, grey a digit no selected cell can take (see noteBlockedMask).
+        const noteBlocked = hasCandidate(noteBlockedMask, n);
+        const blocked = resolvedBlocks || lockedBan || noteBlocked;
         const banned = !blocked && hasCandidate(bannedMask, n);
         const cls = blocked
           ? ' numberpad__key--locked'
@@ -92,11 +107,13 @@ export const NumberPad = () => {
             aria-label={`Enter ${n}, ${Math.max(remaining[n], 0)} remaining${
               resolvedBlocks
                 ? ' (already placed in this row, column, or box)'
-                : lockedBan
-                  ? ' (blocked for the selected cell)'
-                  : banned
-                    ? ' (banned in the selected cell)'
-                    : ''
+                : noteBlocked
+                  ? ' (cannot be noted in the selected cells)'
+                  : lockedBan
+                    ? ' (blocked for the selected cell)'
+                    : banned
+                      ? ' (banned in the selected cell)'
+                      : ''
             }`}
           >
             <span className="numberpad__digit">{n}</span>
