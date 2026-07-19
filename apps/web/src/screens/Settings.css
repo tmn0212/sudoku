@@ -51,6 +51,49 @@
   color: var(--muted);
 }
 
+/* Typeface picker — same tile styling as the theme swatches, but each preview
+   renders sample numerals in its own font stack. Three columns give each face
+   room to show its personality. */
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.font-option {
+  border: none;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+.font-option__preview {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 2px solid var(--grid-thin);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color 0.15s ease, transform 0.07s ease;
+}
+.font-option:active .font-option__preview {
+  transform: scale(0.94);
+}
+.font-option--active .font-option__preview {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.font-option__label {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
 .setting-row {
   width: 100%;
   display: flex;

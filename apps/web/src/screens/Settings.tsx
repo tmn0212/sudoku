@@ -2,7 +2,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import './Settings.css';
 import { useSettings } from '../state/settingsStore';
 import { useGame } from '../game/store';
-import { THEMES } from '@sudoku/ui-tokens';
+import { THEMES, FONTS } from '@sudoku/ui-tokens';
 
 interface ToggleRowProps {
   label: string;
@@ -31,6 +31,8 @@ const ToggleRow = ({ label, desc, checked, onChange }: ToggleRowProps) => (
 export const Settings = () => {
   const theme = useSettings((s) => s.theme);
   const setTheme = useSettings((s) => s.setTheme);
+  const font = useSettings((s) => s.font);
+  const setFont = useSettings((s) => s.setFont);
   const highlightPeers = useSettings((s) => s.highlightPeers);
   const highlightSame = useSettings((s) => s.highlightSame);
   const highlightNotes = useSettings((s) => s.highlightNotes);
@@ -69,6 +71,29 @@ export const Settings = () => {
                   />
                 </span>
                 <span className="theme-swatch__label">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h2 className="settings-section__title">Typeface</h2>
+          <div className="font-grid">
+            {FONTS.map((f) => (
+              <button
+                key={f.id}
+                className={`font-option ${font === f.id ? 'font-option--active' : ''}`}
+                onClick={() => setFont(f.id)}
+                aria-pressed={font === f.id}
+              >
+                <span
+                  className="font-option__preview"
+                  style={{ fontFamily: f.stack }}
+                  aria-hidden="true"
+                >
+                  123
+                </span>
+                <span className="font-option__label">{f.label}</span>
               </button>
             ))}
           </div>

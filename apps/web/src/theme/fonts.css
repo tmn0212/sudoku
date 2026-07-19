@@ -1,0 +1,29 @@
+/*
+ * Variable display faces for the Typeface setting, declared latin-subset only.
+ *
+ * The fontsource `wght.css` entry bundles every subset (Cyrillic, Hebrew, …) that
+ * a latin-only puzzle never paints, which bloats the PWA precache by ~160KB. So
+ * we point `@font-face` straight at the latin variable woff2 instead (Vite hashes
+ * it and the SW precaches it). One file per family covers the whole weight axis,
+ * so the app's 500–900 weights render with no faux-bold. The static faces
+ * (Bungee, VT323, Space Mono) are already latin-only via their `/latin.css`
+ * entries, imported from fonts.ts.
+ */
+
+/* Fredoka — rounded, weight axis 300–700. Family: 'Fredoka Variable'. */
+@font-face {
+  font-family: 'Fredoka Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url('@fontsource-variable/fredoka/files/fredoka-latin-wght-normal.woff2') format('woff2');
+}
+
+/* Caveat — handwriting, weight axis 400–700. Family: 'Caveat Variable'. */
+@font-face {
+  font-family: 'Caveat Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('@fontsource-variable/caveat/files/caveat-latin-wght-normal.woff2') format('woff2');
+}

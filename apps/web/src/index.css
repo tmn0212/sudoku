@@ -45,8 +45,13 @@
   --shadow: 0 6px 24px rgba(20, 25, 40, 0.12);
 
   color-scheme: light dark;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+  /* The chosen typeface (Settings → Typeface). The FontApplier overrides
+     --app-font on <html> for non-default fonts; this value is the `system`
+     fallback (kept in sync with FONTS[0].stack in @sudoku/ui-tokens). Every
+     glyph, board digits included, inherits from here. */
+  --app-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif;
+  font-family: var(--app-font);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

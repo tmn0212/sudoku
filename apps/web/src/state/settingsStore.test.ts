@@ -5,8 +5,10 @@ import { useSettings } from './settingsStore';
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
+  document.documentElement.style.removeProperty('--app-font');
   useSettings.setState({
     theme: 'system',
+    font: 'system',
     highlightPeers: true,
     highlightSame: true,
     autoCleanupNotes: true,
@@ -26,6 +28,27 @@ describe('settingsStore', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('ocean');
     useSettings.getState().setTheme('system');
     expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('applies an explicit font as the --app-font var', () => {
+    useSettings.getState().setFont('mono');
+    expect(useSettings.getState().font).toBe('mono');
+    expect(document.documentElement.style.getPropertyValue('--app-font')).toContain(
+      'monospace',
+    );
+  });
+
+  it('clears the --app-font var for the system font', () => {
+    useSettings.getState().setFont('arcade');
+    expect(document.documentElement.style.getPropertyValue('--app-font')).toContain('VT323');
+    useSettings.getState().setFont('system');
+    expect(document.documentElement.style.getPropertyValue('--app-font')).toBe('');
+  });
+
+  it('persists the chosen font to localStorage', () => {
+    useSettings.getState().setFont('rounded');
+    const raw = localStorage.getItem('sudoku-settings');
+    expect(raw).toContain('rounded');
   });
 
   it('toggles boolean preferences', () => {
