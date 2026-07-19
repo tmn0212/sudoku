@@ -1,71 +1,55 @@
 import type { ReactNode } from 'react';
 import type { RadialAction, RadialState } from './radial';
+import { radialLayout } from './radial';
 import { IconPencil, IconNotes, IconNotesAlt, IconBan, IconDeselect } from './icons';
 import './RadialMenu.css';
 
-type Pos = 'up' | 'right' | 'down' | 'left' | 'downLeft';
-
-interface Option {
-  action: RadialAction;
+interface Meta {
   label: string;
   icon: ReactNode;
-  pos: Pos;
   /** A subtractive action, styled apart from the four mode picks. */
   danger?: boolean;
 }
 
-const MODES: Option[] = [
-  { action: 'normal', label: 'Digit', icon: <IconPencil size={22} />, pos: 'up' },
-  { action: 'note', label: 'Notes', icon: <IconNotes size={22} />, pos: 'right' },
-  { action: 'noteAlt', label: 'Notes 2', icon: <IconNotesAlt size={22} />, pos: 'down' },
-  { action: 'ban', label: 'Ban', icon: <IconBan size={22} />, pos: 'left' },
-];
-
-// Only offered when the held cell is part of a multi-selection.
-const DESELECT: Option = {
-  action: 'deselect',
-  label: 'Deselect',
-  icon: <IconDeselect size={22} />,
-  pos: 'downLeft',
-  danger: true,
+const META: Record<RadialAction, Meta> = {
+  normal: { label: 'Digit', icon: <IconPencil size={22} /> },
+  note: { label: 'Notes', icon: <IconNotes size={22} /> },
+  noteAlt: { label: 'Notes 2', icon: <IconNotesAlt size={22} /> },
+  ban: { label: 'Ban', icon: <IconBan size={22} /> },
+  deselect: { label: 'Deselect', icon: <IconDeselect size={22} />, danger: true },
 };
 
-const RADIUS = 60;
-const DIAG = RADIUS * Math.SQRT1_2;
-const OFFSET: Record<Pos, [number, number]> = {
-  up: [0, -RADIUS],
-  right: [RADIUS, 0],
-  down: [0, RADIUS],
-  left: [-RADIUS, 0],
-  downLeft: [-DIAG, DIAG],
-};
+/** How far each option sits from the hub (px). */
+const RADIUS = 62;
 
 /** Presentational radial mode picker. Pointer handling lives in the Board, which
- *  drives `state.active`; this layer just draws and ignores pointer events. */
-export const RadialMenu = ({ state }: { state: RadialState }) => {
-  const options = state.deselect ? [...MODES, DESELECT] : MODES;
-  return (
-    <div className="radial" style={{ left: state.x, top: state.y }} aria-hidden="true">
-      <span className="radial__hub" />
-      {options.map((o) => {
-        const [dx, dy] = OFFSET[o.pos];
-        const active = state.active === o.action;
-        const transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px)${
-          active ? ' scale(1.16)' : ''
-        }`;
-        return (
-          <span
-            key={o.action}
-            className={`radial__opt${o.danger ? ' radial__opt--danger' : ''}${
-              active ? ' radial__opt--active' : ''
-            }`}
-            style={{ transform }}
-          >
-            {o.icon}
-            <span className="radial__label">{o.label}</span>
-          </span>
-        );
-      })}
-    </div>
-  );
-};
+ *  drives `state.active`; this layer just draws (positions come from the shared
+ *  `radialLayout`, so icons and pointer sectors always line up) and ignores
+ *  pointer events. */
+export const RadialMenu = ({ state }: { state: RadialState }) => (
+  <div className="radial" style={{ left: state.x, top: state.y }} aria-hidden="true">
+    <span className="radial__hub" />
+    {radialLayout(state.deselect).map(({ action, angle }) => {
+      const meta = META[action];
+      const rad = (angle * Math.PI) / 180;
+      const dx = Math.cos(rad) * RADIUS;
+      const dy = Math.sin(rad) * RADIUS;
+      const active = state.active === action;
+      const transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px)${
+        active ? ' scale(1.16)' : ''
+      }`;
+      return (
+        <span
+          key={action}
+          className={`radial__opt${meta.danger ? ' radial__opt--danger' : ''}${
+            active ? ' radial__opt--active' : ''
+          }`}
+          style={{ transform }}
+        >
+          {meta.icon}
+          <span className="radial__label">{meta.label}</span>
+        </span>
+      );
+    })}
+  </div>
+);
