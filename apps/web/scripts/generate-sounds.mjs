@@ -1,14 +1,13 @@
 /**
- * Procedurally generates the game's sound-effect files (no external/licensed
- * audio). Each SFX is synthesized as PCM, written to a temp WAV, then encoded to
- * a small .ogg with ffmpeg into apps/web/src/assets/audio/. Re-run with:
+ * Procedurally generates the SFX packs (no external/licensed audio). Every pack
+ * plays the SAME musical cues (so each is recognisable) with a different timbre,
+ * written to apps/web/src/assets/audio/sfx/<pack>/<cue>.ogg. Re-run with:
  *
  *   node apps/web/scripts/generate-sounds.mjs
  *
- * The palette is a C-major pentatonic so every cue is consonant, using soft
- * pluck envelopes (exponential decay) with a couple of harmonics for warmth.
- * These are deliberately gentle/musical, not harsh "beeps". Swap in produced
- * audio later by replacing the .ogg files (same names) — the player loads by URL.
+ * Cues: place, note, erase, error, complete, win, lose — all on a C-major
+ * pentatonic so they stay consonant. Swap in produced audio later by replacing
+ * the .ogg files (same layout); the player loads them by URL via import.meta.glob.
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -16,111 +15,117 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const SR = 44100;
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'assets', 'audio');
-const TMP = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'node_modules', '.cache', 'sfx');
-mkdirSync(OUT, { recursive: true });
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, '..', 'src', 'assets', 'audio', 'sfx');
+const TMP = join(HERE, '..', '..', 'node_modules', '.cache', 'sfx');
 mkdirSync(TMP, { recursive: true });
 
-// Pentatonic-ish note frequencies (Hz).
-const N = {
-  C4: 261.63, D4: 293.66, E4: 329.63, G4: 392.0, A4: 440.0,
-  C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880.0, C6: 1046.5, E6: 1318.5,
+const F = {
+  D4: 293.66, E4: 329.63, G4: 392.0, A4: 440.0, C5: 523.25, D5: 587.33,
+  E5: 659.25, G5: 783.99, A5: 880.0, C6: 1046.5, E6: 1318.5, Eb4: 311.13, A2: 110,
 };
 
-/** One decaying pluck: fundamental + soft harmonics, exp amplitude decay. */
-const pluck = (buf, startSec, freq, durSec, gain = 0.9, decay = 16, harms = [1, 0.35, 0.14]) => {
+// A pack is a timbre: how one note is voiced. Musical content is shared below.
+const PACKS = {
+  chime: { harms: [1, 0.35, 0.14], decay: 16, detune: 0, soft: 1 }, // warm bell plucks
+  arcade: { harms: [1, 0, 0.34, 0, 0.2, 0, 0.13], decay: 11, detune: 0, soft: 0.8 }, // square blips
+  pop: { harms: [1, 0.5, 0.3, 0.16], decay: 13, detune: 1.008, soft: 0.9 }, // bright detuned synth
+  wood: { harms: [1, 0, 0, 0.7, 0, 0.15], decay: 26, detune: 0, soft: 1 }, // marimba (strong 4th)
+};
+
+/** Render one note of `pack`'s timbre into buf at startSec. */
+const note = (buf, pack, startSec, freq, durSec, gain = 0.9) => {
+  const p = PACKS[pack];
   const start = Math.floor(startSec * SR);
   const len = Math.floor(durSec * SR);
   for (let i = 0; i < len; i++) {
     const t = i / SR;
-    const env = Math.exp(-t * decay) * Math.min(1, t / 0.004); // 4ms attack, no click
+    const env = Math.exp(-t * p.decay) * Math.min(1, t / 0.004);
     let s = 0;
-    for (let h = 0; h < harms.length; h++) s += harms[h] * Math.sin(2 * Math.PI * freq * (h + 1) * t);
+    for (let h = 0; h < p.harms.length; h++) {
+      const a = p.harms[h];
+      if (!a) continue;
+      s += a * Math.sin(2 * Math.PI * freq * (h + 1) * t);
+      if (p.detune) s += a * 0.5 * Math.sin(2 * Math.PI * freq * (h + 1) * p.detune * t);
+    }
     const j = start + i;
-    if (j < buf.length) buf[j] += gain * env * s;
+    if (j < buf.length) buf[j] += gain * p.soft * env * s;
   }
 };
-
-/** A short frequency glide (chirp), triangle-ish. */
-const chirp = (buf, startSec, f0, f1, durSec, gain = 0.7) => {
+const chirp = (buf, pack, startSec, f0, f1, durSec, gain = 0.6) => {
   const start = Math.floor(startSec * SR);
   const len = Math.floor(durSec * SR);
-  let phase = 0;
+  let ph = 0;
+  const buzz = pack === 'arcade' ? 0.4 : 0.15;
   for (let i = 0; i < len; i++) {
     const t = i / SR;
-    const k = i / len;
-    const f = f0 + (f1 - f0) * k;
-    phase += (2 * Math.PI * f) / SR;
+    const f = f0 + (f1 - f0) * (i / len);
+    ph += (2 * Math.PI * f) / SR;
     const env = Math.min(1, t / 0.003) * Math.exp(-t * 10);
     const j = start + i;
-    if (j < buf.length) buf[j] += gain * env * (Math.sin(phase) + 0.18 * Math.sin(3 * phase));
+    if (j < buf.length) buf[j] += gain * PACKS[pack].soft * env * (Math.sin(ph) + buzz * Math.sin(3 * ph));
   }
 };
+const buf = (durSec) => new Float32Array(Math.ceil(durSec * SR));
 
-const buffer = (durSec) => new Float32Array(Math.ceil(durSec * SR));
-
-// ---- the sound set -------------------------------------------------------
-const SOUNDS = {
-  // A soft, bright pluck when a digit lands.
-  place: () => { const b = buffer(0.22); pluck(b, 0, N.E5, 0.22, 0.9, 18); return b; },
-  // Lighter, higher tick for a pencil note / ban mark.
-  note: () => { const b = buffer(0.16); pluck(b, 0, N.A5, 0.16, 0.55, 26, [1, 0.25]); return b; },
-  // Two gentle descending tones — a "not quite" rather than a harsh error.
-  error: () => {
-    const b = buffer(0.32);
-    pluck(b, 0, N.D4, 0.16, 0.7, 16, [1, 0.5, 0.25]);
-    pluck(b, 0.1, 220.0, 0.22, 0.7, 14, [1, 0.5, 0.25]);
+// Shared musical cues — a function of the pack (timbre) only.
+const CUES = {
+  place: (p) => { const b = buf(0.22); note(b, p, 0, F.E5, 0.22, 0.9); return b; },
+  note: (p) => { const b = buf(0.16); note(b, p, 0, F.A5, 0.16, 0.55); return b; },
+  error: (p) => {
+    const b = buf(0.32);
+    note(b, p, 0, F.D4, 0.16, 0.7);
+    note(b, p, 0.1, 220.0, 0.22, 0.7);
     return b;
   },
-  // Soft downward blip when clearing a cell.
-  erase: () => { const b = buffer(0.14); chirp(b, 0, 520, 190, 0.12, 0.5); return b; },
-  // Rising major arpeggio — a unit or digit is complete.
-  complete: () => {
-    const b = buffer(0.5);
-    [N.C5, N.E5, N.G5].forEach((f, i) => pluck(b, i * 0.06, f, 0.4, 0.8, 9));
-    pluck(b, 0.12, N.C6, 0.42, 0.5, 8, [1, 0.3]); // a little sparkle on top
+  erase: (p) => { const b = buf(0.14); chirp(b, p, 0, 520, 190, 0.12, 0.5); return b; },
+  complete: (p) => {
+    const b = buf(0.5);
+    [F.C5, F.E5, F.G5].forEach((f, i) => note(b, p, i * 0.06, f, 0.4, 0.8));
+    note(b, p, 0.12, F.C6, 0.42, 0.5);
     return b;
   },
-  // Triumphant four-note run for a solved puzzle.
-  win: () => {
-    const b = buffer(0.95);
-    [N.C5, N.E5, N.G5, N.C6].forEach((f, i) => pluck(b, i * 0.1, f, 0.6, 0.85, 6));
-    pluck(b, 0.4, N.E6, 0.55, 0.4, 6, [1, 0.4, 0.15]);
+  win: (p) => {
+    const b = buf(0.95);
+    [F.C5, F.E5, F.G5, F.C6].forEach((f, i) => note(b, p, i * 0.1, f, 0.6, 0.85));
+    note(b, p, 0.4, F.E6, 0.55, 0.4);
     return b;
   },
-  // Gentle descending minor — arcade run out of lives.
-  lose: () => {
-    const b = buffer(0.7);
-    [N.G4, 311.13, N.C4].forEach((f, i) => pluck(b, i * 0.14, f, 0.5, 0.75, 8, [1, 0.4]));
+  lose: (p) => {
+    const b = buf(0.7);
+    [F.G4, F.Eb4, 261.63].forEach((f, i) => note(b, p, i * 0.14, f, 0.5, 0.75));
     return b;
   },
 };
 
-/** Float32 [-inf,inf] -> normalized 16-bit WAV Buffer (mono). */
 const toWav = (samples) => {
   let peak = 0;
   for (const s of samples) peak = Math.max(peak, Math.abs(s));
   const norm = peak > 0 ? 0.92 / peak : 1;
   const n = samples.length;
-  const buf = Buffer.alloc(44 + n * 2);
-  buf.write('RIFF', 0); buf.writeUInt32LE(36 + n * 2, 4); buf.write('WAVE', 8);
-  buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20);
-  buf.writeUInt16LE(1, 22); buf.writeUInt32LE(SR, 24); buf.writeUInt32LE(SR * 2, 28);
-  buf.writeUInt16LE(2, 32); buf.writeUInt16LE(16, 34);
-  buf.write('data', 36); buf.writeUInt32LE(n * 2, 40);
+  const b = Buffer.alloc(44 + n * 2);
+  b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVE', 8);
+  b.write('fmt ', 12); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20);
+  b.writeUInt16LE(1, 22); b.writeUInt32LE(SR, 24); b.writeUInt32LE(SR * 2, 28);
+  b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34);
+  b.write('data', 36); b.writeUInt32LE(n * 2, 40);
   for (let i = 0; i < n; i++) {
     const v = Math.max(-1, Math.min(1, samples[i] * norm));
-    buf.writeInt16LE((v * 32767) | 0, 44 + i * 2);
+    b.writeInt16LE((v * 32767) | 0, 44 + i * 2);
   }
-  return buf;
+  return b;
 };
 
-for (const [name, gen] of Object.entries(SOUNDS)) {
-  const wav = join(TMP, `${name}.wav`);
-  const ogg = join(OUT, `${name}.ogg`);
-  writeFileSync(wav, toWav(gen()));
-  execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', wav, '-c:a', 'libvorbis', '-qscale:a', '3', ogg]);
-  console.log(`✓ ${name}.ogg`);
+rmSync(ROOT, { recursive: true, force: true });
+for (const pack of Object.keys(PACKS)) {
+  const dir = join(ROOT, pack);
+  mkdirSync(dir, { recursive: true });
+  for (const [cue, gen] of Object.entries(CUES)) {
+    const wav = join(TMP, `${pack}-${cue}.wav`);
+    writeFileSync(wav, toWav(gen(pack)));
+    execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', wav, '-c:a', 'libvorbis', '-qscale:a', '3', join(dir, `${cue}.ogg`)]);
+  }
+  console.log(`✓ pack ${pack}`);
 }
 rmSync(TMP, { recursive: true, force: true });
-console.log(`Done -> ${OUT}`);
+console.log(`Done -> ${ROOT}`);
