@@ -5,7 +5,7 @@
 .mode-bar {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1.3vh, 9px);
+  gap: clamp(5px, 1vh, 8px);
   width: clamp(64px, 19vw, 82px);
   flex: 0 0 auto;
 }
@@ -47,9 +47,11 @@
 .mode-bar__label {
   line-height: 1;
 }
-/* When a mode button is too short to hold both, keep the icon fully visible and
-   drop the label rather than clipping both (only bites on very short screens). */
-@container (max-height: 33px) {
+/* Keep the label as long as the icon + text genuinely fit; only drop it on a
+   truly tiny button (well below the guaranteed tray height) rather than clipping
+   both. The threshold is on the button's content box (see container-type above),
+   so it bites much later than the full button height suggests. */
+@container (max-height: 24px) {
   .mode-bar__label {
     display: none;
   }
