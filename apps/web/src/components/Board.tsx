@@ -128,6 +128,24 @@ export const Board = () => {
     [selected, highlightCrosshatch, selectedDigit],
   );
 
+  // The amber crosshair (the peer band for an empty anchor, or the cross-self band
+  // plus its anchor for a filled one) should read as one continuous bar, so every
+  // thin grid line *touching* it is blanked — Cell hides its border when this cell
+  // OR the neighbour across that line is in the band (a line owned by the outside
+  // neighbour is invisible to the band cell alone, which is why the band's top/left
+  // edges used to keep a stray line). Thick box separators are spared in Cell.css.
+  const { flushRight, flushBottom } = useMemo(() => {
+    const band = new Set<number>([...peerSet, ...crossSelfSet]);
+    if (crossSelfSet.size > 0 && selected != null) band.add(selected);
+    const right = new Set<number>();
+    const bottom = new Set<number>();
+    for (let i = 0; band.size > 0 && i < CELL_COUNT; i++) {
+      if (band.has(i) || (colOf(i) < 8 && band.has(i + 1))) right.add(i);
+      if (band.has(i) || (rowOf(i) < 8 && band.has(i + 9))) bottom.add(i);
+    }
+    return { flushRight: right, flushBottom: bottom };
+  }, [peerSet, crossSelfSet, selected]);
+
   const clearPressTimer = () => {
     if (pressTimer.current) {
       clearTimeout(pressTimer.current);
@@ -278,6 +296,10 @@ export const Board = () => {
           // cells read apart from the amber eliminated lines and the plain
           // candidate cells. Same scan gate as crossBanned.
           crossFilled={highlightCrosshatch && selectedDigit !== 0 && values[i] !== 0}
+          // Blank the thin grid lines touching the amber crosshair (kept off the
+          // thick box separators in Cell.css) so the band reads as a solid bar.
+          flushRight={flushRight.has(i)}
+          flushBottom={flushBottom.has(i)}
           same={selectedValue !== 0 && values[i] === selectedValue}
           conflict={conflicts.has(i)}
           wrong={checking && !given[i] && values[i] !== 0 && values[i] !== solution[i]}

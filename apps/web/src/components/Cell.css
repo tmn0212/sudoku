@@ -56,12 +56,10 @@
 .cell--cross-banned {
   background: var(--cross-banned-bg);
 }
-/* The board peer wash (the selected cell's own row/column/box) is a tint of the
-   theme accent over the surface — NOT the shared --peer token, which is a very
-   subtle "pressed" grey that is near-invisible against dark theme surfaces. */
-.cell--peer {
-  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
-}
+/* The board peer wash — the selected cell's own row/column/box when no digit scan
+   is live (an empty cell has nothing to scan). It shares .cell--cross-self's darker
+   "crosshair" amber (see below), so the crosshair reads identically whether or not
+   the selected cell holds a digit, instead of the old near-grid-coloured blue. */
 .cell--same {
   background: var(--same);
 }
@@ -91,13 +89,14 @@
        translucent wash (one layer of --cross-bg over the cell surface);
      • the *selected* cell's own row/column/box -> .cell--cross-self, a darker
        solid amber (two opaque washes over the surface) — this is your active
-       crosshair, so it reads apart from the rest of the scan instead of blending
-       in as the light-blue peer wash;
+       crosshair, so it reads apart from the rest of the scan. .cell--peer (no scan
+       running) borrows the very same amber so the crosshair is identical either way;
      • the anchor cell itself -> .cell--cross-selected, the strongest amber
        (three washes) plus its selection ring, so it stays the focal point.
    Stacking opaque washes deepens the amber without shifting its hue and stops a
    dark surface bleeding through. */
-.cell--cross-self {
+.cell--cross-self,
+.cell--peer {
   background:
     linear-gradient(var(--cross-bg), var(--cross-bg)),
     linear-gradient(var(--cross-bg), var(--cross-bg)),
@@ -109,6 +108,23 @@
     linear-gradient(var(--cross-bg), var(--cross-bg)),
     linear-gradient(var(--cross-bg), var(--cross-bg)),
     var(--surface);
+}
+/* Drop every thin grid line touching the amber crosshair so the band reads as one
+   continuous bar rather than a stack of separately-outlined cells — matching how the
+   wash used to swallow the lines back when it was a near-grid-coloured blue. Board.tsx
+   flags both cells on either side of such a line (a line the outside neighbour owns is
+   invisible to the band cell alone, which is why the band's top/left edges used to keep
+   a stray line). The :not() spares the thick box (quadrant) separators so the 3x3
+   structure still reads through the band.
+   NB: zero the WIDTH, not just the colour. A `transparent` 1px border still occupies a
+   1px track that, at fractional zoom/DPR, anti-aliases into a hairline of the cell's
+   own surface bleeding through (a light line on warm themes) — visible zoomed out, gone
+   zoomed in. Removing the track entirely lets the opaque amber cells abut seamlessly. */
+.cell--flush-right:not(.cell--box-right) {
+  border-right-width: 0;
+}
+.cell--flush-bottom:not(.cell--box-bottom) {
+  border-bottom-width: 0;
 }
 /* In the note modes the selection ring switches to a dashed outline, an
    at-a-glance "this is pencil, not ink" cue. Drawn as an inset pseudo-element

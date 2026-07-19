@@ -23,6 +23,11 @@ export interface CellProps {
   /** During a scan, any already-filled cell (any digit) — give it the yellow
    *  same-number wash so occupied cells read apart from the amber scan lines. */
   crossFilled: boolean;
+  /** Blank this cell's thin right / bottom grid line (a line touching the amber
+   *  crosshair on either side), so the band reads as one continuous bar. Thick
+   *  box separators are spared via :not(.cell--box-*) in Cell.css. */
+  flushRight: boolean;
+  flushBottom: boolean;
   same: boolean;
   conflict: boolean;
   wrong: boolean;
@@ -56,6 +61,8 @@ const CellComponent = ({
   crossSelf,
   crossBanned,
   crossFilled,
+  flushRight,
+  flushBottom,
   same,
   conflict,
   wrong,
@@ -102,6 +109,8 @@ const CellComponent = ({
   if (pop) classes.push('cell--pop');
   if (col % 3 === 2 && col !== 8) classes.push('cell--box-right');
   if (row % 3 === 2 && row !== 8) classes.push('cell--box-bottom');
+  if (flushRight) classes.push('cell--flush-right');
+  if (flushBottom) classes.push('cell--flush-bottom');
 
   // Diagonal wave: cells nearer the top-left fire first. Kept short so the wave
   // reads as snappy — a large stagger made the whole-board digit flash feel slow.
