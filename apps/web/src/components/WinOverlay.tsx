@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import './WinOverlay.css';
 import { scoreBreakdown } from '@sudoku/core';
 import { useGame } from '../game/store';
@@ -160,7 +160,7 @@ export const WinOverlay = ({ onNext, onRetry, onHome, busy }: WinOverlayProps) =
                 <div
                   key={r.key}
                   className={`overlay__break-row overlay__break-row--${r.kind}`}
-                  style={{ '--i': i } as React.CSSProperties}
+                  style={{ '--i': i } as CSSProperties}
                 >
                   <dt>
                     <span className="overlay__break-icon" aria-hidden="true">
