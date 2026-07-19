@@ -1,0 +1,92 @@
+/* Theme-preset picker (colocated with ThemePresetPicker.tsx). Each card renders
+   in its preset's own colours (--pbg/--pacc/--ptext) and font (--pfont). */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.preset-card {
+  position: relative;
+  background: var(--pbg);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+}
+.preset-card--active {
+  border-color: var(--pacc);
+  box-shadow: 0 0 0 2px var(--pacc), 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+.preset-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 13px 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.preset-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preset-card__name {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--ptext);
+}
+.preset-card__badge {
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pbg);
+  background: var(--pacc);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+.preset-card__sample {
+  font-family: var(--pfont);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--ptext);
+  font-variant-numeric: tabular-nums;
+}
+.preset-card__sample b {
+  color: var(--pacc);
+  font-weight: inherit;
+}
+.preset-card__sample em {
+  font-style: normal;
+  font-size: 1.2rem;
+  color: var(--pmuted);
+}
+.preset-card__meta {
+  font-size: 0.7rem;
+  color: var(--pmuted);
+  text-transform: capitalize;
+}
+.preset-card__music {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pacc);
+  background: transparent;
+  color: var(--pacc);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.preset-card__music--on {
+  background: var(--pacc);
+  color: var(--pbg);
+}

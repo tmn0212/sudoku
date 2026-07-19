@@ -76,6 +76,15 @@ export interface SettingsState {
   setMusicTrack: (musicTrack: MusicTrackId) => void;
   setSoundVolume: (v: number) => void;
   setMusicVolume: (v: number) => void;
+  /** Apply a theme preset — colour theme + font + animation + SFX + music at once.
+   *  Does NOT change the sound/music on-off toggles (respects the user's choice). */
+  applyPreset: (p: {
+    theme: ThemeId;
+    font: FontId;
+    anim: AnimStyleId;
+    sfx: SfxStyleId;
+    music: MusicTrackId;
+  }) => void;
   toggle: (key: BooleanSettingKey) => void;
 }
 
@@ -135,6 +144,18 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
         setMusicTrack: (musicTrack) => set({ musicTrack }),
         setSoundVolume: (v) => set({ soundVolume: Math.max(0, Math.min(1, v)) }),
         setMusicVolume: (v) => set({ musicVolume: Math.max(0, Math.min(1, v)) }),
+        applyPreset: (p) => {
+          deps.themeApplier.apply(p.theme);
+          deps.fontApplier.apply(p.font);
+          deps.animApplier.apply(p.anim);
+          set({
+            theme: p.theme,
+            font: p.font,
+            animStyle: p.anim,
+            soundStyle: p.sfx,
+            musicTrack: p.music,
+          });
+        },
         toggle: (key) => set({ [key]: !get()[key] } as Partial<SettingsState>),
       }),
       {
