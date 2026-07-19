@@ -3,8 +3,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// The site is served from a subpath on GitHub Pages
+// (https://tmn0212.github.io/sudoku/), so CI builds with VITE_BASE=/sudoku/.
+// Dev, preview, and the Playwright smokes default to '/' so nothing local changes.
+const base = process.env.VITE_BASE || '/';
+
 // https://vite.dev/config/
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -16,7 +22,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json,ogg}'],
         // The app is a single-page app; serve index.html for any navigation.
-        navigateFallback: 'index.html',
+        // Must include the base so the fallback resolves under the Pages subpath.
+        navigateFallback: `${base}index.html`,
       },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -27,8 +34,9 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        // Scope/start must match the deploy base or the installed PWA 404s.
+        start_url: base,
+        scope: base,
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
