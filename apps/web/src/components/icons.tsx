@@ -3,7 +3,7 @@
  * `currentColor`, so colour comes from the surrounding element. Kept in one
  * module so screens share the same visual language (replaces scattered emoji).
  */
-import type { SVGProps } from 'react';
+import { useId, type SVGProps } from 'react';
 
 type IconProps = { size?: number } & SVGProps<SVGSVGElement>;
 
@@ -177,20 +177,60 @@ export const IconTrophy = ({ size = 24, ...rest }: IconProps) => (
   </svg>
 );
 
+const HEART_D =
+  'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
+
+/**
+ * A pie wedge covering `frac` of a full turn, centred on the heart and swept
+ * clockwise from the top. Used to clip the heart fill so a partial heart empties
+ * radially (like a clock hand) rather than in a flat vertical slice. Radius 18
+ * comfortably covers the whole 24×24 glyph.
+ */
+const heartWedge = (frac: number): string => {
+  const cx = 12;
+  const cy = 12;
+  const r = 18;
+  const theta = frac * 2 * Math.PI;
+  const x = cx + r * Math.sin(theta);
+  const y = cy - r * Math.cos(theta);
+  const largeArc = frac > 0.5 ? 1 : 0;
+  return `M${cx} ${cy} L${cx} ${cy - r} A${r} ${r} 0 ${largeArc} 1 ${x.toFixed(3)} ${y.toFixed(3)} Z`;
+};
+
+/**
+ * Heart pip. `fraction` (0..1) draws a partial heart that empties as a radial
+ * wedge, for the quarter-life a hint costs in Arcade; `filled` is the boolean
+ * shorthand. Empty and partial hearts keep their outline so the shape reads.
+ */
 export const IconHeart = ({
   size = 24,
   filled = true,
+  fraction,
   ...rest
-}: IconProps & { filled?: boolean }) => (
-  <svg {...svg(size, rest)}>
-    <path
-      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth={filled ? 0 : 2}
-    />
-  </svg>
-);
+}: IconProps & { filled?: boolean; fraction?: number }) => {
+  const frac = Math.max(0, Math.min(1, fraction ?? (filled ? 1 : 0)));
+  const clipId = useId();
+  const clipped = frac > 0 && frac < 1;
+  return (
+    <svg {...svg(size, rest)}>
+      {frac < 1 && <path d={HEART_D} fill="none" stroke="currentColor" strokeWidth={2} />}
+      {frac > 0 && (
+        <>
+          {clipped && (
+            <clipPath id={clipId}>
+              <path d={heartWedge(frac)} />
+            </clipPath>
+          )}
+          <path
+            d={HEART_D}
+            fill="currentColor"
+            clipPath={clipped ? `url(#${clipId})` : undefined}
+          />
+        </>
+      )}
+    </svg>
+  );
+};
 
 export const IconUndo = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>

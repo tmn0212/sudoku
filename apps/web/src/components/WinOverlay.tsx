@@ -5,7 +5,7 @@ import { useGame } from '../game/store';
 import { useSettings } from '../state/settingsStore';
 import { formatTime } from '../utils/format';
 import { AnimatedNumber } from './AnimatedNumber';
-import { IconBolt, IconCheck, IconHeartBroken, IconHint, IconTrophy } from './icons';
+import { IconBolt, IconCheck, IconHeartBroken, IconTrophy } from './icons';
 
 interface WinOverlayProps {
   onNext: () => void;
@@ -36,21 +36,20 @@ export const WinOverlay = ({ onNext, onRetry, onHome, busy }: WinOverlayProps) =
   const status = useGame((s) => s.status);
   const elapsedMs = useGame((s) => s.elapsedMs);
   const mistakes = useGame((s) => s.mistakes);
-  const hints = useGame((s) => s.hints);
   const difficulty = useGame((s) => s.difficulty);
   const mode = useGame((s) => s.mode);
   const celebrate = useSettings((s) => s.celebrateCompletions);
 
   const won = status === 'won';
   const breakdown = useMemo(
-    () => scoreBreakdown({ difficulty, mode, timeMs: elapsedMs, mistakes, hints, won }),
-    [difficulty, mode, elapsedMs, mistakes, hints, won],
+    () => scoreBreakdown({ difficulty, mode, timeMs: elapsedMs, mistakes, won }),
+    [difficulty, mode, elapsedMs, mistakes, won],
   );
 
-  // Where the running counter starts: the base minus penalties — exactly the
-  // number the live HUD was showing at the moment of the solve. The bonuses
-  // (time + flawless) then count on from here.
-  const subtotal = Math.max(0, breakdown.base - breakdown.mistakePenalty - breakdown.hintPenalty);
+  // Where the running counter starts: the base minus the mistake penalty —
+  // exactly the number the live HUD was showing at the moment of the solve. The
+  // bonuses (time + flawless) then count on from here.
+  const subtotal = Math.max(0, breakdown.base - breakdown.mistakePenalty);
 
   const rows: BreakRow[] = [];
   rows.push({
@@ -66,15 +65,6 @@ export const WinOverlay = ({ onNext, onRetry, onHome, busy }: WinOverlayProps) =
       label: `Mistakes (${mistakes})`,
       amount: -breakdown.mistakePenalty,
       icon: <IconHeartBroken size={17} />,
-      kind: 'sub',
-    });
-  }
-  if (breakdown.hintPenalty > 0) {
-    rows.push({
-      key: 'hints',
-      label: `Hints (${hints})`,
-      amount: -breakdown.hintPenalty,
-      icon: <IconHint size={17} />,
       kind: 'sub',
     });
   }

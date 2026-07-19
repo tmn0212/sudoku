@@ -6,7 +6,7 @@ import { AnimatedNumber } from './AnimatedNumber';
 /**
  * The running Arcade score in the top bar. It can't include the time bonus (only
  * known once the clock stops), so it shows the base rating scaled by how much of
- * the board is correctly filled, minus mistake/hint penalties — a number that
+ * the board is correctly filled, minus the mistake penalty — a number that
  * climbs as you solve and dips when you slip. The value tweens; a brief tint
  * marks whether the last change was a gain or a loss. The win screen picks up
  * from here and animates the time bonus on top (see WinOverlay).
@@ -16,9 +16,7 @@ export const LiveScore = () => {
   const solution = useGame((s) => s.solution);
   const given = useGame((s) => s.given);
   const difficulty = useGame((s) => s.difficulty);
-  const mode = useGame((s) => s.mode);
   const mistakes = useGame((s) => s.mistakes);
-  const hints = useGame((s) => s.hints);
 
   const { filled, fillable } = useMemo(() => {
     let filled = 0;
@@ -31,7 +29,7 @@ export const LiveScore = () => {
     return { filled, fillable };
   }, [values, solution, given]);
 
-  const target = liveScore({ difficulty, mode, filled, fillable, mistakes, hints });
+  const target = liveScore({ difficulty, filled, fillable, mistakes });
 
   // Tint the number green on a gain, red on a loss, then settle back.
   const prev = useRef(target);

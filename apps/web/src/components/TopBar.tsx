@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './TopBar.css';
-import { useGame, ARCADE_LIVES } from '../game/store';
+import { useGame, ARCADE_LIVES, arcadeLivesLeft } from '../game/store';
 import { LiveScore } from './LiveScore';
 import { formatTime } from '../utils/format';
 import {
@@ -36,8 +36,10 @@ export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps
   const challenge = useGame((s) => s.challenge);
   const elapsedMs = useGame((s) => s.elapsedMs);
   const mistakes = useGame((s) => s.mistakes);
+  const hints = useGame((s) => s.hints);
   const autoCheck = useGame((s) => s.autoCheck);
-  const livesLeft = Math.max(0, ARCADE_LIVES - mistakes);
+  // Mistakes cost a whole heart, hints a quarter — so lives can be fractional.
+  const livesLeft = arcadeLivesLeft(mistakes, hints);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const run = (fn: () => void) => () => {
@@ -75,7 +77,7 @@ export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps
           {mode === 'arcade' ? (
             <span className="topbar__lives" aria-label={`${livesLeft} lives left`}>
               {Array.from({ length: ARCADE_LIVES }, (_, i) => (
-                <IconHeart key={i} size={22} filled={i < livesLeft} />
+                <IconHeart key={i} size={22} fraction={livesLeft - i} />
               ))}
             </span>
           ) : autoCheck && mistakes > 0 ? (

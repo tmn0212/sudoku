@@ -10,7 +10,14 @@ export const useGame = createGameStore({
   getSettings: () => useSettings.getState(),
 });
 
-export { isCellLocked, targetCells, resolvedPeerDigits, ARCADE_LIVES } from '@sudoku/state';
+export {
+  isCellLocked,
+  targetCells,
+  resolvedPeerDigits,
+  ARCADE_LIVES,
+  HINT_LIFE_COST,
+  arcadeLivesLeft,
+} from '@sudoku/state';
 export type {
   GameState,
   InputMode,

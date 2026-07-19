@@ -70,8 +70,18 @@ export interface GameStoreDeps {
 /** What a digit press does to the selected cells. */
 export type InputMode = 'normal' | 'note' | 'noteAlt' | 'ban';
 
-/** Mistakes allowed in Arcade mode before the game ends. */
+/** Lives you start Arcade with. A mistake spends a whole one. */
 export const ARCADE_LIVES = 3;
+/** A hint spends a quarter of a life in Arcade (Relaxed hints are free). */
+export const HINT_LIFE_COST = 0.25;
+
+/**
+ * Arcade lives remaining: mistakes cost one each, hints a quarter each. Floored
+ * at 0. All costs are exact quarters, so this needs no float fudging. The game
+ * is over once it hits 0.
+ */
+export const arcadeLivesLeft = (mistakes: number, hints: number): number =>
+  Math.max(0, ARCADE_LIVES - mistakes - HINT_LIFE_COST * hints);
 
 export type GameStatus = 'playing' | 'won' | 'lost';
 
@@ -224,7 +234,7 @@ const finalizeIfDone = (
   m: FinalizeMeta,
 ): { status: GameStatus; score: number } => {
   const won = isWin(values, m.solution);
-  const lost = m.mode === 'arcade' && m.mistakes >= ARCADE_LIVES;
+  const lost = m.mode === 'arcade' && arcadeLivesLeft(m.mistakes, m.hints) <= 0;
   const score =
     won || lost
       ? computeScore({
@@ -232,7 +242,6 @@ const finalizeIfDone = (
           mode: m.mode,
           timeMs: m.elapsedMs,
           mistakes: m.mistakes,
-          hints: m.hints,
           won,
         })
       : 0;
@@ -727,13 +736,29 @@ export const createGameStore = (deps: GameStoreDeps) =>
           });
           return;
         }
+        // A real hint spends a hint (a quarter-life in Arcade). Re-run the
+        // finalizer on the unchanged board so that quarter-life can be the one
+        // that ends an Arcade game — status/score never drift from the reducer.
+        const hints = s.hints + 1;
+        const { status, score } = finalizeIfDone(s.values, {
+          solution: s.solution,
+          difficulty: s.difficulty,
+          mode: s.mode,
+          elapsedMs: s.elapsedMs,
+          mistakes: s.mistakes,
+          hints,
+        });
         const target = step.placements[0]?.cell ?? step.highlights[0];
         set({
-          hint: { message: step.reason, cells: step.highlights, step },
+          // On a fatal hint the game's over, so drop the pointer and let the
+          // overlay take the screen.
+          hint: status === 'lost' ? null : { message: step.reason, cells: step.highlights, step },
           selection: target != null ? [target] : s.selection,
           selected: target ?? s.selected,
           savedSelection: target != null ? null : s.savedSelection,
-          hints: s.hints + 1,
+          hints,
+          status,
+          score,
         });
       },
 

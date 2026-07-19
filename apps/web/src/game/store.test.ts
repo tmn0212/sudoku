@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useGame, resolvedPeerDigits } from './store';
+import { useGame, resolvedPeerDigits, arcadeLivesLeft } from './store';
 import { useSettings } from '../state/settingsStore';
 
 const firstEmptyCell = () => {
@@ -496,6 +496,64 @@ describe('game store', () => {
     useGame.getState().selectCell(empties[0]);
     useGame.getState().inputDigit(5);
     expect(useGame.getState().values).toEqual(before);
+  });
+
+  // Arcade hints cost a quarter-life instead of docking points. On a fresh
+  // board there are no wrong cells and an easy puzzle always has a next step, so
+  // each requestHint() consumes one hint.
+  it('an arcade hint spends a quarter of a life', () => {
+    useGame.getState().newGame('easy', 'arcade');
+    useGame.getState().requestHint();
+    const s = useGame.getState();
+    expect(s.hints).toBe(1);
+    expect(arcadeLivesLeft(s.mistakes, s.hints)).toBe(2.75);
+    expect(s.status).toBe('playing');
+  });
+
+  it('four arcade hints spend a whole life', () => {
+    useGame.getState().newGame('easy', 'arcade');
+    for (let k = 0; k < 4; k++) useGame.getState().requestHint();
+    const s = useGame.getState();
+    expect(s.hints).toBe(4);
+    expect(arcadeLivesLeft(s.mistakes, s.hints)).toBe(2);
+    expect(s.status).toBe('playing');
+  });
+
+  it('a hint that drains the last quarter-life ends the arcade game', () => {
+    useGame.getState().newGame('easy', 'arcade');
+    // Bank two counted mistakes without leaving wrong digits on the board (each
+    // is popped back out, the same auto-ban flow a lingering wrong entry takes),
+    // so requestHint keeps offering technique steps rather than flagging a slip.
+    const { given, values } = useGame.getState();
+    const targets: number[] = [];
+    for (let i = 0; i < 81 && targets.length < 2; i++) {
+      if (!given[i] && values[i] === 0 && placeable(i).length >= 2) targets.push(i);
+    }
+    for (const cell of targets) {
+      const wrong = wrongPlaceable(cell);
+      useGame.getState().selectCell(cell);
+      useGame.getState().inputDigit(wrong);
+      useGame.getState().autoBanWrong(cell, wrong);
+    }
+    expect(useGame.getState().mistakes).toBe(2);
+
+    // 2 lives spent on mistakes; three hints leave a quarter, the fourth is fatal.
+    for (let k = 0; k < 3; k++) useGame.getState().requestHint();
+    expect(useGame.getState().status).toBe('playing');
+    expect(arcadeLivesLeft(useGame.getState().mistakes, useGame.getState().hints)).toBe(0.25);
+
+    useGame.getState().requestHint();
+    expect(useGame.getState().status).toBe('lost');
+    expect(useGame.getState().score).toBe(0);
+    // The fatal hint drops its pointer so the game-over overlay owns the screen.
+    expect(useGame.getState().hint).toBeNull();
+  });
+
+  it('relaxed hints never cost a life', () => {
+    useGame.getState().newGame('easy', 'relaxed');
+    for (let k = 0; k < 8; k++) useGame.getState().requestHint();
+    expect(useGame.getState().hints).toBe(8);
+    expect(useGame.getState().status).toBe('playing');
   });
 
   const solveFully = () => {

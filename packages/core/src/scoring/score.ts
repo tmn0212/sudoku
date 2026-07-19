@@ -1,7 +1,9 @@
 /**
  * Scoring. Modeled on well-documented app scoring (sudoku.com-style):
- *   score = difficultyRating + timeBonus − mistakePenalty − hintPenalty
- * Pure and dependency-free so it's trivially testable.
+ *   score = difficultyRating + timeBonus + flawlessBonus − mistakePenalty
+ * Hints don't touch the score: Relaxed hints are free, and Arcade spends a
+ * quarter-life per hint instead (see the game store's lives model). Pure and
+ * dependency-free so it's trivially testable.
  */
 
 import type { Difficulty, Mode } from '../engine/types';
@@ -39,18 +41,14 @@ export interface ScoreInput {
   mode: Mode;
   timeMs: number;
   mistakes: number;
-  hints: number;
   won: boolean;
 }
-
-/** Points docked per used hint in Arcade (Relaxed hints are free). */
-export const HINT_PENALTY = 100;
 
 /**
  * The final score, split into its named parts so the end-of-game screen can
  * reveal them one line at a time and animate the running total. `total` is the
- * clamped sum and is exactly what `computeScore` returns. Penalties are stored
- * as positive magnitudes (they *subtract* from the total).
+ * clamped sum and is exactly what `computeScore` returns. The mistake penalty is
+ * stored as a positive magnitude (it *subtracts* from the total).
  */
 export interface ScoreBreakdown {
   /** Flat award for completing the puzzle (the difficulty rating). */
@@ -61,9 +59,7 @@ export interface ScoreBreakdown {
   flawlessBonus: number;
   /** Positive magnitude subtracted for mistakes. */
   mistakePenalty: number;
-  /** Positive magnitude subtracted for hints (Arcade only). */
-  hintPenalty: number;
-  /** The clamped final score = base + bonuses − penalties. */
+  /** The clamped final score = base + bonuses − penalty. */
   total: number;
 }
 
@@ -76,56 +72,48 @@ export const scoreBreakdown = ({
   mode,
   timeMs,
   mistakes,
-  hints,
   won,
 }: ScoreInput): ScoreBreakdown => {
   if (!won) {
-    return { base: 0, timeBonus: 0, flawlessBonus: 0, mistakePenalty: 0, hintPenalty: 0, total: 0 };
+    return { base: 0, timeBonus: 0, flawlessBonus: 0, mistakePenalty: 0, total: 0 };
   }
   const base = RATING[difficulty];
   const seconds = Math.max(timeMs / 1000, 1);
   const timeBonus = Math.round(base * clamp(TARGET_TIME[difficulty] / seconds, 0, 3));
-  // Relaxed hints are free (a learning aid, not a penalised shortcut); Arcade
-  // still docks points each.
-  const hintPenalty = mode === 'relaxed' ? 0 : HINT_PENALTY * hints;
-  const mistakes_ = mistakePenalty(mistakes);
-  // Arcade rewards flawless, no-mistake solves.
+  const mPenalty = mistakePenalty(mistakes);
+  // Arcade rewards flawless, no-mistake solves (hints don't affect it — they
+  // cost lives, not accuracy).
   const flawlessBonus = mode === 'arcade' && mistakes === 0 ? Math.round(base * 0.5) : 0;
-  const total = Math.max(0, base + timeBonus + flawlessBonus - mistakes_ - hintPenalty);
-  return { base, timeBonus, flawlessBonus, mistakePenalty: mistakes_, hintPenalty, total };
+  const total = Math.max(0, base + timeBonus + flawlessBonus - mPenalty);
+  return { base, timeBonus, flawlessBonus, mistakePenalty: mPenalty, total };
 };
 
 export const computeScore = (input: ScoreInput): number => scoreBreakdown(input).total;
 
 export interface LiveScoreInput {
   difficulty: Difficulty;
-  mode: Mode;
   /** Non-given cells currently filled with the correct digit. */
   filled: number;
   /** Total non-given (solvable) cells in the puzzle. */
   fillable: number;
   mistakes: number;
-  hints: number;
 }
 
 /**
  * A running, in-progress score for the live HUD. The time bonus can't be known
  * until the clock stops, so this excludes it and instead awards the base rating
  * *in proportion to how much of the board is correctly filled* — the number
- * climbs as you make progress and dips on mistakes/hints. At full completion it
- * equals the final score's `base − penalties`, so the win screen can pick up
+ * climbs as you make progress and dips on mistakes. At full completion it equals
+ * the final score's `base − mistakePenalty`, so the win screen can pick up
  * exactly where the live counter left off and animate the time bonus on top.
  */
 export const liveScore = ({
   difficulty,
-  mode,
   filled,
   fillable,
   mistakes,
-  hints,
 }: LiveScoreInput): number => {
   const progress = fillable > 0 ? clamp(filled / fillable, 0, 1) : 0;
   const earned = Math.round(RATING[difficulty] * progress);
-  const hintPenalty = mode === 'relaxed' ? 0 : HINT_PENALTY * hints;
-  return Math.max(0, earned - mistakePenalty(mistakes) - hintPenalty);
+  return Math.max(0, earned - mistakePenalty(mistakes));
 };
