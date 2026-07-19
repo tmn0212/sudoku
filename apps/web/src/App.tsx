@@ -5,6 +5,7 @@ import { Game } from './screens/Game';
 import { ReloadPrompt } from './components/ReloadPrompt';
 import { requestPersistentStorage } from './db/idb';
 import { useAudio } from './hooks/useAudio';
+import { useUiClickSound } from './hooks/useUiClickSound';
 
 // Core screens load eagerly; everything else is a separate lazy chunk so the
 // initial bundle stays lean (challenge packs and lesson data ride along).
@@ -45,6 +46,7 @@ const SCREENS: Record<Screen, ComponentType> = {
 function App() {
   const screen = useUi((s) => s.screen);
   useAudio();
+  useUiClickSound();
 
   useEffect(() => {
     // Best-effort: keep the user's records from being evicted.

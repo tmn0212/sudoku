@@ -103,6 +103,7 @@ const mbox = (t, f, dur, g = 0.7) => [
 const PACKS = {
   // Warm music-box / celesta — soft attack, harmonic (not metallic), gentle.
   chime: {
+    click: () => mbox(0, N.G5, 0.12, 0.3),
     place: () => mbox(0, N.C5, 0.34, 0.7),
     note: () => mbox(0, N.G5, 0.24, 0.48),
     erase: () => mbox(0, N.G4, 0.24, 0.48),
@@ -113,6 +114,7 @@ const PACKS = {
   },
   // Warm marimba + woodblock knock.
   wood: {
+    click: () => marimba(0, N.G5, 0.1, 0.4),
     place: () => marimba(0, N.E5, 0.28, 0.85),
     note: () => marimba(0, N.A5, 0.2, 0.6),
     erase: () => marimba(0, N.A4, 0.18, 0.6),
@@ -123,6 +125,7 @@ const PACKS = {
   },
   // Bouncy synth "boops" with a pitch bend + tick.
   pop: {
+    click: () => [{ wave: 'tri', t: 0, f: 900, to: 760, dur: 0.06, g: 0.4, decay: 16 }],
     place: () => [{ wave: 'tri', t: 0, f: 720, to: 520, dur: 0.12, g: 0.7, decay: 10 }, { type: 'noise', t: 0, dur: 0.02, g: 0.14, decay: 200, tone: 1400 }],
     note: () => [{ wave: 'tri', t: 0, f: 980, to: 820, dur: 0.09, g: 0.5, decay: 12 }],
     erase: () => [{ wave: 'tri', t: 0, f: 520, to: 320, dur: 0.1, g: 0.5, decay: 12 }],
@@ -133,6 +136,7 @@ const PACKS = {
   },
   // Playful water-droplet pops (fast upward pitch bend).
   bubble: {
+    click: () => bloop(0, 820, 1200, 0.05, 0.4),
     place: () => [...bloop(0, 500, 1100, 0.08, 0.6), { wave: 'sine', t: 0.05, f: 1100, dur: 0.08, g: 0.3, decay: 16 }],
     note: () => bloop(0, 700, 1300, 0.06, 0.45),
     erase: () => bloop(0, 900, 400, 0.08, 0.45),
@@ -143,6 +147,7 @@ const PACKS = {
   },
   // High shimmering detuned bells — ethereal / magical.
   crystal: {
+    click: () => cbell(0, N.E6, 0.22, 0.28),
     place: () => cbell(0, N.E6, 0.7, 0.5),
     note: () => cbell(0, N.A6, 0.5, 0.35),
     erase: () => cbell(0, N.A5, 0.4, 0.4),
@@ -153,6 +158,7 @@ const PACKS = {
   },
   // Punchy 8-bit square blips with pitch sweeps.
   arcade: {
+    click: () => [{ wave: 'square', t: 0, f: N.A5, dur: 0.04, g: 0.32, decay: 14 }],
     place: () => [{ wave: 'square', t: 0, f: N.C5, to: N.G5, dur: 0.06, g: 0.5, decay: 6 }, { wave: 'square', t: 0.06, f: N.G5, dur: 0.07, g: 0.5, decay: 8 }],
     note: () => [{ wave: 'square', t: 0, f: N.G5, to: N.C6, dur: 0.05, g: 0.4, decay: 10 }],
     erase: () => [{ wave: 'square', t: 0, f: N.G4, to: N.C4, dur: 0.09, g: 0.4, decay: 8 }],
@@ -163,7 +169,7 @@ const PACKS = {
   },
 };
 
-const CUES = ['place', 'note', 'erase', 'error', 'complete', 'win', 'lose'];
+const CUES = ['click', 'place', 'note', 'erase', 'error', 'complete', 'win', 'lose'];
 
 const toWav = (samples) => {
   let peak = 0;

@@ -21,7 +21,7 @@ const FILES = import.meta.glob('../assets/audio/sfx/*/*.ogg', {
   import: 'default',
 }) as Record<string, string>;
 
-type Cue = 'place' | 'note' | 'erase' | 'error' | 'complete' | 'win' | 'lose';
+type Cue = 'click' | 'place' | 'note' | 'erase' | 'error' | 'complete' | 'win' | 'lose';
 
 // { "<pack>/<cue>": url }
 const URLS: Record<string, string> = {};
@@ -33,6 +33,8 @@ for (const [path, url] of Object.entries(FILES)) {
 }
 
 export interface Sound {
+  /** A subtle tick for a generic UI button press (not a game move). */
+  click(): void;
   place(): void;
   note(): void;
   erase(): void;
@@ -105,6 +107,7 @@ const play = (cue: Cue): void => {
 
 /** Web adapter over the Web Audio API. */
 export const webSound: Sound = {
+  click: () => play('click'),
   place: () => play('place'),
   note: () => play('note'),
   erase: () => play('erase'),

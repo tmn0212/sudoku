@@ -75,6 +75,7 @@ export const AudioSettings = () => {
                 className={`chip ${soundStyle === o.id ? 'chip--active' : ''}`}
                 onClick={() => pickSfx(o.id)}
                 aria-pressed={soundStyle === o.id}
+                data-no-click-sound
               >
                 {o.label}
               </button>
