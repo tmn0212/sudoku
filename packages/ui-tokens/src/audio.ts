@@ -6,7 +6,14 @@
  * folder / file names.
  */
 
-export type SfxStyleId = 'chime' | 'wood' | 'pop' | 'bubble' | 'crystal' | 'arcade';
+export type SfxStyleId =
+  | 'chime'
+  | 'clean'
+  | 'wood'
+  | 'pop'
+  | 'bubble'
+  | 'crystal'
+  | 'arcade';
 
 export interface SfxStyleDef {
   id: SfxStyleId;
@@ -15,7 +22,8 @@ export interface SfxStyleDef {
 }
 
 export const SFX_STYLES: SfxStyleDef[] = [
-  { id: 'chime', label: 'Chime', blurb: 'Soft glassy bells' },
+  { id: 'chime', label: 'Chime', blurb: 'Warm, soft music box' },
+  { id: 'clean', label: 'Clean', blurb: 'Crisp studio UI (Kenney)' },
   { id: 'wood', label: 'Wood', blurb: 'Warm marimba knocks' },
   { id: 'pop', label: 'Pop', blurb: 'Bouncy synth boops' },
   { id: 'bubble', label: 'Bubble', blurb: 'Playful water pops' },

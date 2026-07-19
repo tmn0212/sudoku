@@ -91,18 +91,25 @@ const cbell = (t, f, dur, g) => [ // detuned shimmer bell
   { type: 'bell', t, f: f * 1.005, dur, g: g * 0.6 },
 ];
 const bloop = (t, f0, f1, dur, g) => [{ t, f: f0, to: f1, dur, g, decay: 13, wave: 'sine' }];
+// Warm music-box / celesta voice: HARMONIC partials (not metallic), a smooth
+// ~12ms attack (no harsh transient), a gentle decay, and a faint fast-decaying
+// octave for soft sparkle. Kept in a mid register so it never gets piercing.
+const mbox = (t, f, dur, g = 0.7) => [
+  { t, f, dur, g, wave: 'sine', harms: [1, 0.26, 0.11, 0.05], attack: 0.012, decay: 7.5 },
+  { t, f: f * 2, dur: dur * 0.55, g: g * 0.11, wave: 'sine', attack: 0.012, decay: 12 },
+];
 
 // --- the six packs: each its own sound design ---
 const PACKS = {
-  // Soft glassy bells with a shimmer tail.
+  // Warm music-box / celesta — soft attack, harmonic (not metallic), gentle.
   chime: {
-    place: () => [{ type: 'bell', t: 0, f: N.E5, dur: 0.7, g: 0.9 }, { type: 'bell', t: 0.02, f: N.E6, dur: 0.5, g: 0.25 }],
-    note: () => [{ type: 'bell', t: 0, f: N.A5, dur: 0.4, g: 0.6 }],
-    erase: () => [{ type: 'bell', t: 0, f: N.A4, dur: 0.3, g: 0.5 }],
-    error: () => [{ type: 'bell', t: 0, f: N.D4, dur: 0.4, g: 0.6 }, { type: 'bell', t: 0.12, f: N.A3, dur: 0.5, g: 0.6 }],
-    complete: () => [N.C5, N.E5, N.G5, N.C6].map((f, i) => ({ type: 'bell', t: i * 0.08, f, dur: 0.6, g: 0.7 })).concat([{ type: 'bell', t: 0.1, f: N.E6, dur: 0.5, g: 0.22 }]),
-    win: () => [N.C5, N.E5, N.G5, N.C6, N.E6, N.G6].map((f, i) => ({ type: 'bell', t: i * 0.11, f, dur: 0.8, g: 0.7 })),
-    lose: () => [N.G4, N.Eb4, N.C4].map((f, i) => ({ type: 'bell', t: i * 0.14, f, dur: 0.5, g: 0.55 })),
+    place: () => mbox(0, N.C5, 0.34, 0.7),
+    note: () => mbox(0, N.G5, 0.24, 0.48),
+    erase: () => mbox(0, N.G4, 0.24, 0.48),
+    error: () => [...mbox(0, N.E4, 0.3, 0.55), ...mbox(0.11, N.C4, 0.36, 0.5)],
+    complete: () => [N.C5, N.E5, N.G5].flatMap((f, i) => mbox(i * 0.08, f, 0.42, 0.58)),
+    win: () => [N.C5, N.E5, N.G5, N.C6].flatMap((f, i) => mbox(i * 0.1, f, 0.5, 0.58)),
+    lose: () => [N.G4, N.E4, N.C4].flatMap((f, i) => mbox(i * 0.13, f, 0.42, 0.5)),
   },
   // Warm marimba + woodblock knock.
   wood: {
@@ -173,9 +180,11 @@ const toWav = (samples) => {
   return b;
 };
 
-rmSync(ROOT, { recursive: true, force: true });
+// Only (re)generate the synth packs below — the `clean` pack is committed static
+// Kenney CC0 assets (see assets/audio/CREDITS.md), so it is left untouched.
 for (const [pack, cues] of Object.entries(PACKS)) {
   const dir = join(ROOT, pack);
+  rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   for (const cue of CUES) {
     seed = 0x9e3779b9;
