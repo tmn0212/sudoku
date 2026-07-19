@@ -40,10 +40,23 @@
 .cell--given {
   color: var(--cell-given);
 }
-/* Givens are the puzzle's fixed clues: heaviest weight so they always read as
-   "not mine to change", clearly distinct from the lighter digits you fill in. */
+/* Givens are the puzzle's fixed clues, kept distinct from the digits you fill in
+   by TWO cues so the distinction survives every typeface:
+     1. colour  — givens use --cell-given (ink), your entries use --cell-user
+        (the accent). Font-independent: this always works, and is the primary cue.
+     2. weight  — font-weight:900 bolds givens on the multi-weight faces (System,
+        Rounded, Handwritten, Code, Mono). */
 .cell--given .cell__value {
   font-weight: 900;
+}
+/* The single-weight display fonts can't vary weight, so font-weight:900 is a
+   no-op on them and only colour separates givens. For the THIN ones (Arcade =
+   pixel, Retro = geometric) a hairline same-colour stroke stands in for weight.
+   The already-heavy faces (Chunky, Party) are bold by nature — a stroke there
+   just fills in the counters and muddies them — so they lean on colour alone. */
+:root[data-font='arcade'] .cell--given .cell__value,
+:root[data-font='retro'] .cell--given .cell__value {
+  -webkit-text-stroke: 0.03em currentColor;
 }
 
 /* Crossroad scan: rows/columns already holding the selected digit get a warm
