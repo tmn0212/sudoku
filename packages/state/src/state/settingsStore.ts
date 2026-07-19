@@ -5,17 +5,25 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { isThemeId, type ThemeId } from '@sudoku/ui-tokens';
-import type { KeyValueStore, ThemeApplier } from '../ports';
+import {
+  isThemeId,
+  isFontId,
+  type ThemeId,
+  type FontId,
+} from '@sudoku/ui-tokens';
+import type { KeyValueStore, ThemeApplier, FontApplier } from '../ports';
 
 /** Platform dependencies injected when the app instantiates the settings store. */
 export interface SettingsStoreDeps {
   storage: KeyValueStore;
   themeApplier: ThemeApplier;
+  fontApplier: FontApplier;
 }
 
 export interface SettingsState {
   theme: ThemeId;
+  /** Typeface applied across the app (board digits + UI chrome). */
+  font: FontId;
   /** Highlight the row/column/box of the selected cell. */
   highlightPeers: boolean;
   /** Highlight all cells sharing the selected cell's digit. */
@@ -38,6 +46,7 @@ export interface SettingsState {
   autoRevertMode: boolean;
 
   setTheme: (theme: ThemeId) => void;
+  setFont: (font: FontId) => void;
   toggle: (key: BooleanSettingKey) => void;
 }
 
@@ -61,6 +70,7 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
     persist(
       (set, get) => ({
         theme: 'system',
+        font: 'system',
         highlightPeers: true,
         highlightSame: true,
         highlightNotes: true,
@@ -75,6 +85,10 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
           deps.themeApplier.apply(theme);
           set({ theme });
         },
+        setFont: (font) => {
+          deps.fontApplier.apply(font);
+          set({ font });
+        },
         toggle: (key) => set({ [key]: !get()[key] } as Partial<SettingsState>),
       }),
       {
@@ -85,20 +99,25 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
     ),
   );
 
-  /** Apply the persisted theme once at startup (called from main.tsx). */
+  /** Apply the persisted theme + font once at startup (called from main.tsx),
+   *  before first paint, to avoid a flash of the defaults. */
   const initSettings = (): void => {
     const raw = deps.storage.getItem('sudoku-settings');
     let theme: ThemeId = 'system';
+    let font: FontId = 'system';
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        const stored = parsed?.state?.theme;
-        if (typeof stored === 'string' && isThemeId(stored)) theme = stored;
+        const storedTheme = parsed?.state?.theme;
+        const storedFont = parsed?.state?.font;
+        if (typeof storedTheme === 'string' && isThemeId(storedTheme)) theme = storedTheme;
+        if (typeof storedFont === 'string' && isFontId(storedFont)) font = storedFont;
       } catch {
         /* ignore malformed storage */
       }
     }
     deps.themeApplier.apply(theme);
+    deps.fontApplier.apply(font);
   };
 
   return { useSettings, initSettings };

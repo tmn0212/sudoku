@@ -4,7 +4,7 @@
  * injected when the app instantiates each store. A native app injects its own.
  */
 
-import type { ThemeId } from '@sudoku/ui-tokens';
+import type { ThemeId, FontId } from '@sudoku/ui-tokens';
 
 /** Synchronous key/value store backing the Zustand `persist` middleware. */
 export interface KeyValueStore {
@@ -16,4 +16,10 @@ export interface KeyValueStore {
 /** Applies a theme (web: sets `data-theme`; native: swaps a style provider). */
 export interface ThemeApplier {
   apply(id: ThemeId): void;
+}
+
+/** Applies a font choice (web: sets the `--app-font` var; native: swaps the
+ *  font-family in a style provider). */
+export interface FontApplier {
+  apply(id: FontId): void;
 }
