@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { computeScore, mistakePenalty, RATING, TARGET_TIME } from './score';
+import {
+  computeScore,
+  liveScore,
+  mistakePenalty,
+  RATING,
+  scoreBreakdown,
+  TARGET_TIME,
+} from './score';
 import type { ScoreInput } from './score';
 
 const base: ScoreInput = {
@@ -63,5 +70,75 @@ describe('computeScore', () => {
     expect(
       computeScore({ ...base, mistakes: 20, hints: 20, timeMs: 3_600_000 }),
     ).toBe(0);
+  });
+});
+
+describe('scoreBreakdown', () => {
+  it('.total equals computeScore for every input', () => {
+    const cases: ScoreInput[] = [
+      base,
+      { ...base, mode: 'arcade' },
+      { ...base, mode: 'arcade', mistakes: 2, hints: 1 },
+      { ...base, difficulty: 'impossible', timeMs: 30_000 },
+      { ...base, won: false },
+      { ...base, mistakes: 20, hints: 20, timeMs: 3_600_000 },
+    ];
+    for (const c of cases) {
+      expect(scoreBreakdown(c).total).toBe(computeScore(c));
+    }
+  });
+
+  it('parts sum to the (unclamped) total and are non-negative magnitudes', () => {
+    const b = scoreBreakdown({ ...base, mode: 'arcade', mistakes: 2, hints: 1 });
+    expect(b.base).toBe(RATING.medium);
+    expect(b.mistakePenalty).toBe(mistakePenalty(2));
+    expect(b.hintPenalty).toBe(100);
+    expect(b.flawlessBonus).toBe(0); // mistakes were made
+    expect(b.total).toBe(
+      b.base + b.timeBonus + b.flawlessBonus - b.mistakePenalty - b.hintPenalty,
+    );
+  });
+
+  it('awards the flawless bonus only to a clean arcade solve', () => {
+    expect(scoreBreakdown({ ...base, mode: 'arcade' }).flawlessBonus).toBeGreaterThan(0);
+    expect(scoreBreakdown({ ...base, mode: 'arcade', mistakes: 1 }).flawlessBonus).toBe(0);
+    expect(scoreBreakdown({ ...base, mode: 'relaxed' }).flawlessBonus).toBe(0);
+  });
+});
+
+describe('liveScore', () => {
+  const live = {
+    difficulty: 'medium' as const,
+    mode: 'arcade' as const,
+    filled: 0,
+    fillable: 40,
+    mistakes: 0,
+    hints: 0,
+  };
+
+  it('is zero on a fresh board and climbs with progress', () => {
+    expect(liveScore(live)).toBe(0);
+    const half = liveScore({ ...live, filled: 20 });
+    const full = liveScore({ ...live, filled: 40 });
+    expect(half).toBeGreaterThan(0);
+    expect(full).toBeGreaterThan(half);
+  });
+
+  it('at full progress equals the final score minus its time and flawless bonuses', () => {
+    const full = liveScore({ ...live, filled: 40, mistakes: 2, hints: 1 });
+    const b = scoreBreakdown({
+      difficulty: 'medium',
+      mode: 'arcade',
+      timeMs: 123_000,
+      mistakes: 2,
+      hints: 1,
+      won: true,
+    });
+    expect(full).toBe(b.base - b.mistakePenalty - b.hintPenalty);
+  });
+
+  it('never goes negative and treats an empty puzzle as zero', () => {
+    expect(liveScore({ ...live, filled: 1, mistakes: 20, hints: 20 })).toBe(0);
+    expect(liveScore({ ...live, fillable: 0 })).toBe(0);
   });
 });
