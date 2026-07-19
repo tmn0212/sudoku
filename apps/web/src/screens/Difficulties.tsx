@@ -16,11 +16,11 @@ const META: Record<Difficulty, { label: string; blurb: string }> = {
   impossible: { label: 'Impossible', blurb: 'Chains & deep logic' },
 };
 
-const MODE_LABEL: Record<Mode, string> = { good: 'Good', arcade: 'Arcade' };
+const MODE_LABEL: Record<Mode, string> = { relaxed: 'Relaxed', arcade: 'Arcade' };
 
 export const Difficulties = () => {
   const navigate = useUi((s) => s.navigate);
-  const mode = (useUi((s) => s.params.mode) as Mode) ?? 'good';
+  const mode = (useUi((s) => s.params.mode) as Mode) ?? 'relaxed';
 
   // Solved count per difficulty, from IndexedDB only — no puzzle packs are
   // loaded here, keeping this screen's memory footprint tiny.

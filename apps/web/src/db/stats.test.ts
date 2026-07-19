@@ -6,7 +6,7 @@ import { __resetDbForTests, getDb, type GameRecord } from './idb';
 import { computeStats, getStats, recordGame, MAX_GAME_RECORDS } from './stats';
 
 const game = (over: Partial<GameRecord>): GameRecord => ({
-  mode: 'good',
+  mode: 'relaxed',
   difficulty: 'easy',
   timeMs: 60_000,
   mistakes: 0,

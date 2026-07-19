@@ -69,7 +69,7 @@ describe('useRecordGame', () => {
     act(() => solveFully());
 
     await waitFor(async () => {
-      const progress = await getChallengeProgress('good', 'easy');
+      const progress = await getChallengeProgress('relaxed', 'easy');
       expect(progress.get(3)?.solved).toBe(true);
     });
   });

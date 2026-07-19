@@ -106,7 +106,7 @@ export const LessonDetail = () => {
         difficulty: gradeDifficulty(puzzle),
         givens: puzzle.reduce((n, v) => (v !== 0 ? n + 1 : n), 0),
       },
-      'good',
+      'relaxed',
     );
     navigate('game');
   };

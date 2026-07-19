@@ -17,7 +17,7 @@ const resetDb = (): void => {
 
 const makeGame = (id: string, updatedAt: number): SavedGame => ({
   id,
-  mode: 'good',
+  mode: 'relaxed',
   difficulty: 'easy',
   challenge: null,
   puzzle: new Array(81).fill(0),

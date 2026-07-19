@@ -121,8 +121,8 @@ const CONTROL_ROWS = [
 const GAME_MODE_ROWS = [
   {
     icon: <IconGrid size={22} />,
-    label: 'Good',
-    desc: 'Untimed and relaxed. Mistakes are flagged but never end the game.',
+    label: 'Relaxed',
+    desc: 'No clock on screen and free hints. Mistakes are flagged but never end the game.',
     extra: null as ReactNode,
   },
   {
@@ -195,7 +195,7 @@ const STEPS: Step[] = [
     ),
   },
   {
-    title: 'Good vs Arcade',
+    title: 'Relaxed vs Arcade',
     body: 'Pick a play style from the home screen. Both use the same puzzles, but Arcade adds pressure.',
     visual: (
       <div className="tut-gamemodes">
@@ -250,7 +250,7 @@ export const Tutorial = () => {
           {atEnd ? (
             <button
               className="walk__btn walk__btn--next"
-              onClick={() => navigate('difficulties', { mode: 'good' })}
+              onClick={() => navigate('difficulties', { mode: 'relaxed' })}
             >
               Start playing
             </button>

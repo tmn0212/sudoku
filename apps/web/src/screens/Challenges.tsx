@@ -20,7 +20,7 @@ const LABELS: Record<Difficulty, string> = {
 };
 
 export const Challenges = () => {
-  const mode = (useUi((s) => s.params.mode) as Mode) ?? 'good';
+  const mode = (useUi((s) => s.params.mode) as Mode) ?? 'relaxed';
   const difficulty = (useUi((s) => s.params.difficulty) as Difficulty) ?? 'easy';
   const navigate = useUi((s) => s.navigate);
 

@@ -138,7 +138,7 @@ export const IconDeselect = ({ size = 24, ...rest }: IconProps) => (
   </svg>
 );
 
-/** Sudoku grid — marks the untimed "Good" mode. */
+/** Sudoku grid — marks the untimed "Relaxed" mode. */
 export const IconGrid = ({ size = 24, ...rest }: IconProps) => (
   <svg {...svg(size, rest)}>
     <rect x="3" y="3" width="18" height="18" rx="3" {...stroke} />

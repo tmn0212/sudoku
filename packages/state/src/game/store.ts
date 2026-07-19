@@ -273,7 +273,7 @@ const buildGame = (
 
 /**
  * A correctly-filled cell locks once the game is validating entries (Arcade
- * always, Good when auto-check is on): you can't overwrite or erase it, and the
+ * always, Relaxed when auto-check is on): you can't overwrite or erase it, and the
  * number pad greys out every other digit. Givens are handled separately.
  */
 export const isCellLocked = (s: GameState, i: number): boolean =>
@@ -289,7 +289,7 @@ export const isCellLocked = (s: GameState, i: number): boolean =>
  * longer legally be placed, noted, or banned in cell `i`. Returned as a
  * candidate bitmask.
  *
- * Gated on `checking` (auto-check on, or Arcade) so Good mode with auto-check
+ * Gated on `checking` (auto-check on, or Arcade) so Relaxed mode with auto-check
  * off never leaks whether one of *your* entries is right — only givens, which
  * are known-correct clues, count there.
  */
@@ -362,19 +362,19 @@ export const createGameStore = (deps: GameStoreDeps) =>
   create<GameState>()(
   persist(
     (set, get) => ({
-      ...buildGame(generatePuzzle('easy'), 'good'),
+      ...buildGame(generatePuzzle('easy'), 'relaxed'),
       autoCheck: true,
 
-      newGame: (difficulty, mode = 'good') =>
+      newGame: (difficulty, mode = 'relaxed') =>
         set((s) => ({
           ...buildGame(generatePuzzle(difficulty), mode),
           autoCheck: s.autoCheck,
         })),
 
-      startGame: (puzzle, mode = 'good') =>
+      startGame: (puzzle, mode = 'relaxed') =>
         set((s) => ({ ...buildGame(puzzle, mode), autoCheck: s.autoCheck })),
 
-      startChallenge: (puzzle, ref, mode = 'good') =>
+      startChallenge: (puzzle, ref, mode = 'relaxed') =>
         set((s) => ({
           ...buildGame(puzzle, mode),
           challenge: ref,
@@ -509,7 +509,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
         // UI bounces the mark back out of them (see useBounceFx).
         const bounced: number[] = [];
 
-        // Arcade always validates entries (that's the mode); Good respects the
+        // Arcade always validates entries (that's the mode); Relaxed respects the
         // auto-check setting.
         const checking = s.autoCheck || s.mode === 'arcade';
 
@@ -528,7 +528,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
               bans[i] = 0;
               // A confirmed-correct placement resolves this digit for the whole
               // row/column/box, so sweep it out of every peer's notes, alt-notes,
-              // and bans. Gated on `checking` so an unvalidated Good-mode entry
+              // and bans. Gated on `checking` so an unvalidated Relaxed-mode entry
               // (which we can't know is right) never silently rewrites peers.
               if (autoClean && checking && digit === s.solution[i]) {
                 for (const p of PEERS[i]) {
@@ -791,7 +791,7 @@ export const createGameStore = (deps: GameStoreDeps) =>
     }),
     {
       name: 'sudoku-game',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => deps.storage),
       migrate: (persisted, version) => {
         const p = persisted as Partial<GameState>;
@@ -799,6 +799,8 @@ export const createGameStore = (deps: GameStoreDeps) =>
         if (version < 4 && !p.lockedBans) p.lockedBans = new Array(CELL_COUNT).fill(0);
         // committedMode added in v5: seed it from the old single input mode.
         if (version < 5 && !p.committedMode) p.committedMode = p.inputMode ?? 'normal';
+        // v6: 'good' mode renamed to 'relaxed'. Carry an in-progress game over.
+        if (version < 6 && (p.mode as string) === 'good') p.mode = 'relaxed';
         return p as GameState;
       },
       // Persist the game, not transient UI (selection/hint).

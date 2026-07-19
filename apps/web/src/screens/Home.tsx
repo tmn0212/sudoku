@@ -20,7 +20,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 };
 
 const MODES: { id: Mode; label: string; blurb: string; icon: ReactNode }[] = [
-  { id: 'good', label: 'Good', blurb: 'Classic sudoku at your own pace', icon: <IconGrid size={24} /> },
+  { id: 'relaxed', label: 'Relaxed', blurb: 'No clock, free hints, solve at your own pace', icon: <IconGrid size={24} /> },
   { id: 'arcade', label: 'Arcade', blurb: 'Race the clock, limited mistakes', icon: <IconBolt size={24} /> },
 ];
 
@@ -112,7 +112,7 @@ export const Home = () => {
     if (rolling) return;
     setRolling(true);
     try {
-      const m = pick<Mode>(['good', 'arcade']);
+      const m = pick<Mode>(['relaxed', 'arcade']);
       const diff = pick(DIFFICULTIES);
       const count = PACK_SIZES[diff];
       const progress = await progressRepo.get(m, diff);
@@ -146,7 +146,7 @@ export const Home = () => {
                 <span className="home__resume-info">
                   <span className="home__resume-label">{g.label}</span>
                   <span className="home__resume-meta">
-                    <span>{g.mode === 'arcade' ? 'Arcade' : 'Good'}</span>
+                    <span>{g.mode === 'arcade' ? 'Arcade' : 'Relaxed'}</span>
                     <span>{formatTime(g.elapsedMs)}</span>
                     <span>
                       {g.filled}/{g.empties}
