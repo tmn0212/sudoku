@@ -55,7 +55,9 @@ export const computeScore = ({
   const rating = RATING[difficulty];
   const seconds = Math.max(timeMs / 1000, 1);
   const timeBonus = Math.round(rating * clamp(TARGET_TIME[difficulty] / seconds, 0, 3));
-  const hintPenalty = 100 * hints;
+  // Relaxed hints are free (a learning aid, not a penalised shortcut); Arcade
+  // still docks 100 points each.
+  const hintPenalty = mode === 'relaxed' ? 0 : 100 * hints;
   let score = rating + timeBonus - mistakePenalty(mistakes) - hintPenalty;
   // Arcade rewards flawless, no-mistake solves.
   if (mode === 'arcade' && mistakes === 0) score += Math.round(rating * 0.5);

@@ -4,7 +4,7 @@ import type { ScoreInput } from './score';
 
 const base: ScoreInput = {
   difficulty: 'medium',
-  mode: 'good',
+  mode: 'relaxed',
   timeMs: TARGET_TIME.medium * 1000,
   mistakes: 0,
   hints: 0,
@@ -35,9 +35,16 @@ describe('computeScore', () => {
     expect(fast).toBeGreaterThan(computeScore(base));
   });
 
-  it('penalizes mistakes and hints', () => {
+  it('penalizes mistakes', () => {
     expect(computeScore({ ...base, mistakes: 3 })).toBeLessThan(computeScore(base));
-    expect(computeScore({ ...base, hints: 2 })).toBeLessThan(computeScore(base));
+  });
+
+  it('penalizes hints in arcade but leaves them free in relaxed', () => {
+    expect(computeScore({ ...base, mode: 'arcade', hints: 2 })).toBeLessThan(
+      computeScore({ ...base, mode: 'arcade' }),
+    );
+    // Relaxed hints are a free learning aid — score is unchanged by them.
+    expect(computeScore({ ...base, hints: 2 })).toBe(computeScore(base));
   });
 
   it('harder difficulties score higher at equivalent pace', () => {
@@ -47,9 +54,9 @@ describe('computeScore', () => {
   });
 
   it('gives arcade a flawless bonus for zero mistakes', () => {
-    const good = computeScore({ ...base, mode: 'good' });
+    const relaxed = computeScore({ ...base, mode: 'relaxed' });
     const arcade = computeScore({ ...base, mode: 'arcade' });
-    expect(arcade).toBeGreaterThan(good);
+    expect(arcade).toBeGreaterThan(relaxed);
   });
 
   it('never goes negative', () => {
