@@ -4,6 +4,7 @@ import { useSettings } from '../state/settingsStore';
 import { useGame } from '../game/store';
 import { THEMES, FONTS } from '@sudoku/ui-tokens';
 import { AnimationPicker } from '../components/AnimationPicker';
+import { AudioSettings } from '../components/AudioSettings';
 
 interface ToggleRowProps {
   label: string;
@@ -42,8 +43,6 @@ export const Settings = () => {
   const warnOnBanned = useSettings((s) => s.warnOnBanned);
   const showRemaining = useSettings((s) => s.showRemaining);
   const celebrateCompletions = useSettings((s) => s.celebrateCompletions);
-  const sound = useSettings((s) => s.sound);
-  const music = useSettings((s) => s.music);
   const autoRevertMode = useSettings((s) => s.autoRevertMode);
   const toggle = useSettings((s) => s.toggle);
 
@@ -109,18 +108,7 @@ export const Settings = () => {
 
         <section className="settings-section">
           <h2 className="settings-section__title">Sound</h2>
-          <ToggleRow
-            label="Sound effects"
-            desc="Play tones when you place digits, complete units, win, or slip up"
-            checked={sound}
-            onChange={() => toggle('sound')}
-          />
-          <ToggleRow
-            label="Background music"
-            desc="Loop a calm soundtrack while you play"
-            checked={music}
-            onChange={() => toggle('music')}
-          />
+          <AudioSettings />
         </section>
 
         <section className="settings-section">

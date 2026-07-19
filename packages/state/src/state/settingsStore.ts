@@ -12,6 +12,8 @@ import {
   type ThemeId,
   type FontId,
   type AnimStyleId,
+  type SfxStyleId,
+  type MusicTrackId,
 } from '@sudoku/ui-tokens';
 import type {
   KeyValueStore,
@@ -53,8 +55,16 @@ export interface SettingsState {
   celebrateCompletions: boolean;
   /** Play sound effects (placement, completion, win/lose, …). */
   sound: boolean;
+  /** Which sound-effect pack (timbre) to play. */
+  soundStyle: SfxStyleId;
+  /** Sound-effect volume, 0–1. */
+  soundVolume: number;
   /** Play the looping background music. */
   music: boolean;
+  /** Which background-music track/style to loop. */
+  musicTrack: MusicTrackId;
+  /** Background-music volume, 0–1. */
+  musicVolume: number;
   /** A tool picked by a gesture (drag, double-tap, hold) lasts only for the next
    *  entry, then snaps back to the committed mode-bar tool. */
   autoRevertMode: boolean;
@@ -62,6 +72,10 @@ export interface SettingsState {
   setTheme: (theme: ThemeId) => void;
   setFont: (font: FontId) => void;
   setAnimStyle: (animStyle: AnimStyleId) => void;
+  setSoundStyle: (soundStyle: SfxStyleId) => void;
+  setMusicTrack: (musicTrack: MusicTrackId) => void;
+  setSoundVolume: (v: number) => void;
+  setMusicVolume: (v: number) => void;
   toggle: (key: BooleanSettingKey) => void;
 }
 
@@ -98,7 +112,11 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
         showRemaining: true,
         celebrateCompletions: true,
         sound: true,
+        soundStyle: 'chime',
+        soundVolume: 0.7,
         music: false,
+        musicTrack: 'lofi',
+        musicVolume: 0.5,
         autoRevertMode: true,
 
         setTheme: (theme) => {
@@ -113,6 +131,10 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
           deps.animApplier.apply(animStyle);
           set({ animStyle });
         },
+        setSoundStyle: (soundStyle) => set({ soundStyle }),
+        setMusicTrack: (musicTrack) => set({ musicTrack }),
+        setSoundVolume: (v) => set({ soundVolume: Math.max(0, Math.min(1, v)) }),
+        setMusicVolume: (v) => set({ musicVolume: Math.max(0, Math.min(1, v)) }),
         toggle: (key) => set({ [key]: !get()[key] } as Partial<SettingsState>),
       }),
       {

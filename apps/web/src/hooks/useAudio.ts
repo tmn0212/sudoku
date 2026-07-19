@@ -1,29 +1,45 @@
 import { useEffect } from 'react';
 import { music } from '../platform/music';
+import { sound } from '../platform/sound';
 import { appVisibility } from '../platform/visibility';
 import { useSettings } from '../state/settingsStore';
 
 /**
- * Drives the looping background music from the `music` setting. Mounted once by
- * App. Plays while enabled + foregrounded; pauses when the app is hidden and
- * resumes when it returns. Browsers block audio until a user gesture, so if the
- * initial play() is refused we retry on the next pointer/key event.
+ * Syncs the audio settings into the sound + music adapters, and drives the music
+ * lifecycle. Mounted once by App. SFX pack/volume + music track/volume apply live;
+ * music plays while enabled + foregrounded, pauses on hide, resumes on show, and
+ * retries on the next gesture if autoplay was blocked (browsers need a gesture).
  */
-export const useMusic = (): void => {
+export const useAudio = (): void => {
+  const soundStyle = useSettings((s) => s.soundStyle);
+  const soundVolume = useSettings((s) => s.soundVolume);
   const musicOn = useSettings((s) => s.music);
+  const musicTrack = useSettings((s) => s.musicTrack);
+  const musicVolume = useSettings((s) => s.musicVolume);
+
+  useEffect(() => {
+    sound.setPack(soundStyle);
+  }, [soundStyle]);
+  useEffect(() => {
+    sound.setVolume(soundVolume);
+  }, [soundVolume]);
+  useEffect(() => {
+    music.setTrack(musicTrack);
+  }, [musicTrack]);
+  useEffect(() => {
+    music.setVolume(musicVolume);
+  }, [musicVolume]);
 
   useEffect(() => {
     if (!musicOn) {
       music.pause();
       return;
     }
-
     const playIfVisible = () => {
       if (!appVisibility.isHidden()) music.play();
     };
-    playIfVisible(); // works immediately if a gesture already happened
+    playIfVisible();
 
-    // If autoplay was blocked (no gesture yet), start on the next one.
     const onGesture = () => playIfVisible();
     const opts = { once: true, passive: true } as const;
     window.addEventListener('pointerdown', onGesture, opts);
