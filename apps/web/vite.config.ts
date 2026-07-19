@@ -14,7 +14,7 @@ export default defineConfig({
       registerType: 'prompt',
       // Precache the full app shell so it launches with no network at all.
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json,ogg}'],
         // The app is a single-page app; serve index.html for any navigation.
         navigateFallback: 'index.html',
       },

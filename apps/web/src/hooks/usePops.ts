@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
 import { useFx, type Ghost } from '../state/fxStore';
+import { useSettings } from '../state/settingsStore';
+import { sound } from '../platform/sound';
 import { CELL_COUNT } from '@sudoku/core';
 
 /**
@@ -37,6 +39,10 @@ export const usePops = (): void => {
 
     const pops: number[] = [];
     const ghosts: Omit<Ghost, 'id'>[] = [];
+    // One sound per move (a multi-select fill is still one cue, not nine).
+    let placed = false;
+    let marked = false;
+    let erased = false;
     for (let i = 0; i < CELL_COUNT; i++) {
       const gainedValue = values[i] !== 0 && p.values[i] === 0;
       const gainedMark =
@@ -44,6 +50,11 @@ export const usePops = (): void => {
         (notesAlt[i] & ~p.notesAlt[i]) |
         (bans[i] & ~p.bans[i]);
       if (gainedValue || gainedMark) pops.push(i);
+      if (gainedValue) placed = true;
+      else if (gainedMark) marked = true;
+      // A cleared correct value plays a soft erase (a wrong value's removal /
+      // the auto-ban conversion is silent — its mistake cue already fired).
+      if (values[i] === 0 && p.values[i] !== 0 && p.values[i] === solution[i]) erased = true;
 
       // A value that was removed or replaced pops out (covers erase, overwrite,
       // and the auto-ban conversion of a wrong entry).
@@ -80,5 +91,11 @@ export const usePops = (): void => {
 
     if (pops.length) useFx.getState().pop(pops);
     if (ghosts.length) useFx.getState().addGhosts(ghosts);
+
+    if (useSettings.getState().sound) {
+      if (placed) sound.place();
+      else if (marked) sound.note();
+      else if (erased) sound.erase();
+    }
   }, [values, notes, notesAlt, bans, solution]);
 };

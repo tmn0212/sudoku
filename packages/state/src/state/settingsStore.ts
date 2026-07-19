@@ -51,6 +51,8 @@ export interface SettingsState {
   showRemaining: boolean;
   /** Play the green celebration flash when a row/column/box or digit is finished. */
   celebrateCompletions: boolean;
+  /** Play sound effects (placement, completion, win/lose, …). */
+  sound: boolean;
   /** A tool picked by a gesture (drag, double-tap, hold) lasts only for the next
    *  entry, then snaps back to the committed mode-bar tool. */
   autoRevertMode: boolean;
@@ -70,6 +72,7 @@ type BooleanSettingKey =
   | 'warnOnBanned'
   | 'showRemaining'
   | 'celebrateCompletions'
+  | 'sound'
   | 'autoRevertMode';
 
 /**
@@ -91,6 +94,7 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
         warnOnBanned: true,
         showRemaining: true,
         celebrateCompletions: true,
+        sound: true,
         autoRevertMode: true,
 
         setTheme: (theme) => {

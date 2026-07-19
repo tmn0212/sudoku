@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useGame } from '../game/store';
 import { useFx } from '../state/fxStore';
 import { useSettings } from '../state/settingsStore';
+import { sound } from '../platform/sound';
 import { CELL_COUNT, UNITS } from '@sudoku/core';
 
 /**
@@ -28,12 +29,14 @@ export const useCompletionFx = (): void => {
     const wasStatus = prevStatus.current;
     prevStatus.current = status;
 
-    if (!useSettings.getState().celebrateCompletions) return; // user turned it off
+    const { celebrateCompletions: celebrate, sound: snd } = useSettings.getState();
+    if (!celebrate && !snd) return; // both cues off — nothing to do
 
     // Solved! Celebrate the whole board once, the moment we enter 'won'. The win
     // overlay waits for this wave to finish before it slides in (see WinOverlay).
+    // The win *sound* is played by useGameFeedback, so only the flash is here.
     if (status === 'won' && wasStatus !== 'won') {
-      useFx.getState().flash(Array.from({ length: CELL_COUNT }, (_, i) => i));
+      if (celebrate) useFx.getState().flash(Array.from({ length: CELL_COUNT }, (_, i) => i));
       return;
     }
 
@@ -67,6 +70,9 @@ export const useCompletionFx = (): void => {
         for (let i = 0; i < values.length; i++) if (values[i] === d) flash.add(i);
       }
     }
-    if (flash.size) useFx.getState().flash([...flash]);
+    if (flash.size) {
+      if (celebrate) useFx.getState().flash([...flash]);
+      if (snd) sound.complete();
+    }
   }, [values, status]);
 };
