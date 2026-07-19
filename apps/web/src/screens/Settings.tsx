@@ -43,6 +43,7 @@ export const Settings = () => {
   const showRemaining = useSettings((s) => s.showRemaining);
   const celebrateCompletions = useSettings((s) => s.celebrateCompletions);
   const sound = useSettings((s) => s.sound);
+  const music = useSettings((s) => s.music);
   const autoRevertMode = useSettings((s) => s.autoRevertMode);
   const toggle = useSettings((s) => s.toggle);
 
@@ -113,6 +114,12 @@ export const Settings = () => {
             desc="Play tones when you place digits, complete units, win, or slip up"
             checked={sound}
             onChange={() => toggle('sound')}
+          />
+          <ToggleRow
+            label="Background music"
+            desc="Loop a calm soundtrack while you play"
+            checked={music}
+            onChange={() => toggle('music')}
           />
         </section>
 

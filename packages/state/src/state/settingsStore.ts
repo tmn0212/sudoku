@@ -53,6 +53,8 @@ export interface SettingsState {
   celebrateCompletions: boolean;
   /** Play sound effects (placement, completion, win/lose, …). */
   sound: boolean;
+  /** Play the looping background music. */
+  music: boolean;
   /** A tool picked by a gesture (drag, double-tap, hold) lasts only for the next
    *  entry, then snaps back to the committed mode-bar tool. */
   autoRevertMode: boolean;
@@ -73,6 +75,7 @@ type BooleanSettingKey =
   | 'showRemaining'
   | 'celebrateCompletions'
   | 'sound'
+  | 'music'
   | 'autoRevertMode';
 
 /**
@@ -95,6 +98,7 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
         showRemaining: true,
         celebrateCompletions: true,
         sound: true,
+        music: false,
         autoRevertMode: true,
 
         setTheme: (theme) => {

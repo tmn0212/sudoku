@@ -16,6 +16,12 @@ export interface AppVisibility {
    * unloading). Returns an unsubscribe function.
    */
   onHide(cb: () => void): () => void;
+  /**
+   * Subscribe to "the app returned to the foreground" (tab visible again or
+   * restored from bfcache). Returns an unsubscribe function. Used to resume
+   * background music that was paused on hide.
+   */
+  onShow(cb: () => void): () => void;
 }
 
 /** Web adapter over the Page Visibility API + `pagehide`. */
@@ -32,6 +38,18 @@ export const webAppVisibility: AppVisibility = {
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', cb);
+    };
+  },
+  onShow: (cb) => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') cb();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    // `pageshow` fires on bfcache restore, which visibilitychange can miss.
+    window.addEventListener('pageshow', cb);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pageshow', cb);
     };
   },
 };
