@@ -19,9 +19,13 @@
 
 .app__main {
   /* Centre the board and absorb any leftover height as symmetric breathing room.
-     The board now sizes itself to fit both the width and the remaining height
-     (see Board.css), so main can shrink freely — the guaranteed tray height is
-     baked into the board's --board-reserve, not enforced here. */
+     The board sizes itself to fit both the width and the remaining height (see
+     Board.css); the guaranteed tray height is baked into its --board-reserve.
+     Crucially, DON'T set min-height: 0 here — that would let this flex item
+     shrink below the board, and since the board is flex-shrink: 0 it would then
+     spill downward and overlap the top of the docked tray. Keeping the default
+     min-height: auto floors main at the board's height, so the tray absorbs the
+     shortfall by shrinking instead of being tucked under the grid. */
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
@@ -29,7 +33,6 @@
   justify-content: center;
   gap: clamp(8px, 2vh, 16px);
   padding: 10px clamp(10px, 3vw, 18px);
-  min-height: 0;
 }
 
 /* The controls dock at the bottom as a single cohesive tray (kills the large
