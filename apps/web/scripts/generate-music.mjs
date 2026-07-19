@@ -154,6 +154,50 @@ const STYLES = {
     }
     return total;
   },
+  // Ambient: slow evolving detuned pads + sub drone + sparse shimmer, no rhythm.
+  ambient: () => {
+    const beat = 0.9, cb = 6, prog = [[45, 'min'], [41, 'maj'], [48, 'maj'], [43, 'maj']]; // Am F C G
+    const total = prog.length * cb * beat; alloc(total);
+    let t = 0;
+    for (const [root, q] of prog) {
+      const tones = chordMidi(root, q);
+      [...tones, tones[0] + 12].forEach((m, k) => addNote(t, cb * beat + 0.15, midi(m + 12), { type: 'saw', gain: 0.05, attack: 1.0, release: 1.7, detune: 0.01, pan: (k - 1.5) * 0.35 }));
+      addNote(t, cb * beat + 0.15, midi(root - 12), { type: 'sine', gain: 0.22, attack: 0.6, release: 1.5 });
+      [1, 4].forEach((bt, i) => addNote(t + bt * beat, 2.0, midi(tones[(i + 1) % 3] + 24), { type: 'sine', gain: 0.06, decay: 1.2, release: 0.5, pan: i ? 0.4 : -0.4 }));
+      t += cb * beat;
+    }
+    return total;
+  },
+  // Piano: gentle waltz — bass-chord-chord left hand + a soft melody, 7th chords.
+  piano: () => {
+    const beat = 0.62, cb = 3, prog = [[60, 'maj7'], [57, 'min7'], [62, 'min7'], [55, 'dom7']]; // C Am Dm G
+    const total = prog.length * 2 * cb * beat; alloc(total);
+    let t = 0;
+    const pn = (start, m, dur, gain, pan = 0) => addNote(start, dur, midi(m), { type: 'tri', gain, decay: 2.6, attack: 0.004, release: 0.12, pan });
+    for (let loop = 0; loop < 2; loop++) for (const [root, q] of prog) {
+      const tones = chordMidi(root, q);
+      pn(t, root - 12, 1.5, 0.42, -0.3);
+      [1, 2].forEach((bt) => { pn(t + bt * beat, tones[1], 0.5, 0.15, -0.2); pn(t + bt * beat, tones[2], 0.5, 0.15, -0.2); });
+      [tones[2] + 12, tones[3] + 12, tones[1] + 12].forEach((m, k) => pn(t + k * beat, m, 0.9, 0.22, 0.25));
+      t += cb * beat;
+    }
+    return total;
+  },
+  // Bossa: warm nylon-guitar comping (syncopated), soft root/fifth bass, shaker.
+  bossa: () => {
+    const beat = 0.46, cb = 4, prog = [[57, 'min7'], [50, 'dom7'], [55, 'maj7'], [55, 'dom7']];
+    const total = prog.length * 2 * cb * beat; alloc(total);
+    let t = 0;
+    for (let loop = 0; loop < 2; loop++) for (const [root, q] of prog) {
+      const tones = chordMidi(root, q);
+      addNote(t, beat * 1.6, midi(root - 12), { type: 'tri', gain: 0.34, decay: 2.5, release: 0.1 });
+      addNote(t + 2 * beat, beat * 1.6, midi(tones[2] - 12), { type: 'tri', gain: 0.3, decay: 2.6, release: 0.1 });
+      [0, 1.5, 2, 3.5].forEach((b) => tones.forEach((m, k) => addNote(t + b * beat, 0.35, midi(m + 12), { type: 'tri', gain: 0.08, decay: 5, pan: (k - 1.5) * 0.2 })));
+      for (let e = 0; e < cb * 2; e++) noise(t + e * beat / 2, 0.05, e % 2 ? 0.03 : 0.045, 80, 0.2);
+      t += cb * beat;
+    }
+    return total;
+  },
 };
 
 function alloc(totalSec) { L = new Float32Array(Math.ceil(totalSec * SR)); R = new Float32Array(L.length); }

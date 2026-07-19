@@ -24,7 +24,14 @@ export const SFX_STYLES: SfxStyleDef[] = [
 export const isSfxStyleId = (v: string): v is SfxStyleId =>
   SFX_STYLES.some((s) => s.id === v);
 
-export type MusicTrackId = 'lofi' | 'jazz' | 'arcade' | 'synthwave';
+export type MusicTrackId =
+  | 'lofi'
+  | 'jazz'
+  | 'arcade'
+  | 'synthwave'
+  | 'ambient'
+  | 'piano'
+  | 'bossa';
 
 export interface MusicTrackDef {
   id: MusicTrackId;
@@ -35,8 +42,11 @@ export interface MusicTrackDef {
 export const MUSIC_TRACKS: MusicTrackDef[] = [
   { id: 'lofi', label: 'Lo-fi', blurb: 'Mellow, chilled' },
   { id: 'jazz', label: 'Jazz', blurb: 'Swing, walking bass' },
-  { id: 'arcade', label: 'Arcade', blurb: 'Upbeat chiptune' },
+  { id: 'bossa', label: 'Bossa', blurb: 'Warm, sophisticated' },
+  { id: 'piano', label: 'Piano', blurb: 'Gentle classical waltz' },
+  { id: 'ambient', label: 'Ambient', blurb: 'Slow evolving pads' },
   { id: 'synthwave', label: 'Synthwave', blurb: 'Driving retro' },
+  { id: 'arcade', label: 'Arcade', blurb: 'Upbeat chiptune' },
 ];
 
 export const isMusicTrackId = (v: string): v is MusicTrackId =>
