@@ -12,7 +12,12 @@ export type ThemeId =
   | 'ocean'
   | 'forest'
   | 'grape'
-  | 'contrast';
+  | 'contrast'
+  | 'neon'
+  | 'aurora'
+  | 'sunset'
+  | 'candy'
+  | 'arcade';
 
 export interface ThemeDef {
   id: ThemeId;
@@ -24,12 +29,18 @@ export interface ThemeDef {
 export const THEMES: ThemeDef[] = [
   { id: 'system', label: 'System', swatch: ['#eef1f6', '#1f6feb'] },
   { id: 'light', label: 'Classic', swatch: ['#ffffff', '#1f6feb'] },
-  { id: 'dark', label: 'Dark', swatch: ['#0e1320', '#4f8bff'] },
+  { id: 'dark', label: 'Dark', swatch: ['#0b1020', '#5b93ff'] },
   { id: 'sepia', label: 'Sepia', swatch: ['#f4ecd8', '#b06a2c'] },
-  { id: 'ocean', label: 'Ocean', swatch: ['#0b1a2b', '#35a0e0'] },
+  { id: 'ocean', label: 'Ocean', swatch: ['#06192b', '#22b8f5'] },
   { id: 'forest', label: 'Forest', swatch: ['#eef3ea', '#3a7d44'] },
-  { id: 'grape', label: 'Grape', swatch: ['#17111f', '#a56be0'] },
+  { id: 'grape', label: 'Grape', swatch: ['#140d20', '#b46bf2'] },
   { id: 'contrast', label: 'High Contrast', swatch: ['#ffffff', '#0033cc'] },
+  // The "fun" set — bold, saturated palettes with theme-matched crosshairs.
+  { id: 'neon', label: 'Neon', swatch: ['#100a20', '#ff2e97'] },
+  { id: 'aurora', label: 'Aurora', swatch: ['#05161b', '#2fe6a8'] },
+  { id: 'sunset', label: 'Sunset', swatch: ['#22101c', '#ff7a4d'] },
+  { id: 'candy', label: 'Candy', swatch: ['#fff0f6', '#ff4d94'] },
+  { id: 'arcade', label: 'Arcade', swatch: ['#0d1030', '#ffce31'] },
 ];
 
 export const isThemeId = (value: string): value is ThemeId =>

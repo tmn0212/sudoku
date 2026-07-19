@@ -36,30 +36,30 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0e1320;
-  --surface: #182031;
-  --text: #e7ebf3;
-  --muted: #94a3b8;
-  --primary: #4f8bff;
-  --primary-strong: #6ea0ff;
-  --grid-thin: #2b3547;
-  --grid-strong: #7c8aa5;
-  --cell-given: #e7ebf3;
-  --cell-user: #6ea8ff;
-  --sel: #2b4675;
-  --peer: #1b2436;
-  --same: #34507e;
-  --error-bg: #3a2023;
-  --error-fg: #ff6b6f;
-  --hint-bg: #4d3c12;
-  --hint-fg: #ffd873;
-  --note-alt: #94a3b8;
-  --ban: #ff6b6f;
-  --ban-bg: #3a2023;
-  --cross-bg: rgba(255, 184, 84, 0.34);
-  --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
-  --cross-filled-bg: rgba(255, 210, 66, 0.56);
-  --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  --bg: #0b1020;
+  --surface: #171f33;
+  --text: #eef2fb;
+  --muted: #9aa8c2;
+  --primary: #5b93ff;
+  --primary-strong: #82adff;
+  --grid-thin: #2c374d;
+  --grid-strong: #8092b0;
+  --cell-given: #f1f5fd;
+  --cell-user: #74a8ff;
+  --sel: #2f4f96;
+  --peer: #1d2740;
+  --same: #2f4f8c;
+  --error-bg: #3a1f26;
+  --error-fg: #ff6b74;
+  --hint-bg: #463612;
+  --hint-fg: #ffd36b;
+  --note-alt: #9aa8c2;
+  --ban: #ff6b74;
+  --ban-bg: #3a1f26;
+  --cross-bg: rgba(255, 190, 92, 0.22);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 30%, transparent);
+  --cross-filled-bg: rgba(255, 208, 80, 0.4);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
 :root[data-theme='sepia'] {
@@ -96,30 +96,30 @@
 
 :root[data-theme='ocean'] {
   color-scheme: dark;
-  --bg: #0b1a2b;
-  --surface: #12263c;
-  --text: #dce8f5;
-  --muted: #7f9bb5;
-  --primary: #35a0e0;
-  --primary-strong: #59b7ee;
-  --grid-thin: #24405c;
-  --grid-strong: #4f7ba3;
-  --cell-given: #eaf3fb;
-  --cell-user: #5bb2ec;
-  --sel: #153a5c;
-  --peer: #16293d;
-  --same: #1d4a70;
-  --error-bg: #3a2023;
-  --error-fg: #ff6b6f;
-  --hint-bg: #123a54;
-  --hint-fg: #7fd3ff;
-  --note-alt: #7f9bb5;
-  --ban: #ff6b6f;
-  --ban-bg: #3a2023;
-  --cross-bg: rgba(255, 184, 84, 0.32);
-  --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
-  --cross-filled-bg: rgba(255, 210, 66, 0.56);
-  --shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+  --bg: #06192b;
+  --surface: #0f2942;
+  --text: #dcecfb;
+  --muted: #86a6c6;
+  --primary: #22b8f5;
+  --primary-strong: #55cbfa;
+  --grid-thin: #1f4262;
+  --grid-strong: #4d84b0;
+  --cell-given: #eaf6ff;
+  --cell-user: #46c2f7;
+  --sel: #1560a0;
+  --peer: #123049;
+  --same: #17537f;
+  --error-bg: #3a1f26;
+  --error-fg: #ff6b74;
+  --hint-bg: #0e4260;
+  --hint-fg: #74d6ff;
+  --note-alt: #86a6c6;
+  --ban: #ff6b74;
+  --ban-bg: #3a1f26;
+  --cross-bg: rgba(255, 190, 92, 0.2);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 30%, transparent);
+  --cross-filled-bg: rgba(255, 208, 80, 0.38);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
 :root[data-theme='forest'] {
@@ -152,30 +152,30 @@
 
 :root[data-theme='grape'] {
   color-scheme: dark;
-  --bg: #17111f;
-  --surface: #241a30;
-  --text: #ece3f5;
-  --muted: #9c8bb0;
-  --primary: #a56be0;
-  --primary-strong: #b98bec;
-  --grid-thin: #362a45;
-  --grid-strong: #6b5a80;
-  --cell-given: #f2ecf9;
-  --cell-user: #b98bec;
-  --sel: #3a2a55;
-  --peer: #241a34;
-  --same: #4a3570;
-  --error-bg: #3a2028;
-  --error-fg: #ff6b8a;
+  --bg: #140d20;
+  --surface: #241834;
+  --text: #f1e7fb;
+  --muted: #ab97c2;
+  --primary: #b46bf2;
+  --primary-strong: #c892f6;
+  --grid-thin: #3a2b52;
+  --grid-strong: #75608f;
+  --cell-given: #f6eefc;
+  --cell-user: #c892f6;
+  --sel: #5a3494;
+  --peer: #281c3c;
+  --same: #472c72;
+  --error-bg: #3a1f2c;
+  --error-fg: #ff6b95;
   --hint-bg: #40331a;
-  --hint-fg: #ffd873;
-  --note-alt: #9c8bb0;
-  --ban: #ff6b8a;
-  --ban-bg: #3a2028;
-  --cross-bg: rgba(255, 184, 84, 0.32);
-  --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
-  --cross-filled-bg: rgba(255, 210, 66, 0.56);
-  --shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+  --hint-fg: #ffd36b;
+  --note-alt: #ab97c2;
+  --ban: #ff6b95;
+  --ban-bg: #3a1f2c;
+  --cross-bg: rgba(255, 190, 92, 0.2);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 30%, transparent);
+  --cross-filled-bg: rgba(255, 208, 80, 0.38);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
 :root[data-theme='contrast'] {
@@ -204,4 +204,155 @@
   --cross-banned-bg: color-mix(in srgb, var(--ban) 30%, transparent);
   --cross-filled-bg: rgba(255, 214, 0, 0.55);
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* ------------------------------------------------------------------ *
+ * The "fun" set. Bold, saturated palettes. Each picks a crosshair hue
+ * (--cross-bg / --cross-filled-bg) that fits the theme and stays clearly
+ * distinct from its --sel / --same, instead of the default amber.
+ * ------------------------------------------------------------------ */
+
+/* Neon — synthwave: hot-magenta accent, electric-cyan digits + crosshair. */
+:root[data-theme='neon'] {
+  color-scheme: dark;
+  --bg: #100a20;
+  --surface: #1c1236;
+  --text: #f6ecff;
+  --muted: #b49ad6;
+  --primary: #ff2e97;
+  --primary-strong: #ff5cae;
+  --grid-thin: #35204f;
+  --grid-strong: #7a4bb0;
+  --cell-given: #f6ecff;
+  --cell-user: #24e0ff;
+  --sel: #5a1a6e;
+  --peer: #241542;
+  --same: #3d1a5e;
+  --error-bg: #3a1526;
+  --error-fg: #ff5c7a;
+  --hint-bg: #143a52;
+  --hint-fg: #38e0ff;
+  --note-alt: #b49ad6;
+  --ban: #ff3d6a;
+  --ban-bg: #3a1526;
+  --cross-bg: rgba(56, 224, 255, 0.2);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+  --cross-filled-bg: rgba(56, 224, 255, 0.34);
+  --shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* Aurora — northern lights: mint-green accent, teal digits, violet crosshair. */
+:root[data-theme='aurora'] {
+  color-scheme: dark;
+  --bg: #05161b;
+  --surface: #0c2830;
+  --text: #e6fff7;
+  --muted: #7fb8ad;
+  --primary: #2fe6a8;
+  --primary-strong: #5cefc0;
+  --grid-thin: #164039;
+  --grid-strong: #3f7d70;
+  --cell-given: #eafff9;
+  --cell-user: #35e0c0;
+  --sel: #0f4d47;
+  --peer: #0e2f34;
+  --same: #12564d;
+  --error-bg: #3a2024;
+  --error-fg: #ff7a80;
+  --hint-bg: #113f52;
+  --hint-fg: #7fe6ff;
+  --note-alt: #7fb8ad;
+  --ban: #ff7a80;
+  --ban-bg: #3a2024;
+  --cross-bg: rgba(168, 120, 255, 0.22);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 32%, transparent);
+  --cross-filled-bg: rgba(168, 120, 255, 0.36);
+  --shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* Sunset — warm dusk: coral-orange accent, peach digits, warm-amber crosshair. */
+:root[data-theme='sunset'] {
+  color-scheme: dark;
+  --bg: #22101c;
+  --surface: #371a2a;
+  --text: #ffeee6;
+  --muted: #d09fa5;
+  --primary: #ff7a4d;
+  --primary-strong: #ff9a72;
+  --grid-thin: #4d2839;
+  --grid-strong: #9a5f6e;
+  --cell-given: #fff2ec;
+  --cell-user: #ffb27a;
+  --sel: #6e2a3f;
+  --peer: #3f1f30;
+  --same: #7a3048;
+  --error-bg: #45161f;
+  --error-fg: #ff6b7d;
+  --hint-bg: #5a3a12;
+  --hint-fg: #ffcf6b;
+  --note-alt: #d09fa5;
+  --ban: #ff5d7a;
+  --ban-bg: #45161f;
+  --cross-bg: rgba(255, 180, 90, 0.22);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 32%, transparent);
+  --cross-filled-bg: rgba(255, 200, 110, 0.36);
+  --shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+}
+
+/* Candy — pastel: raspberry accent, sky-blue crosshair, mint hints + filled. */
+:root[data-theme='candy'] {
+  color-scheme: light;
+  --bg: #fff0f6;
+  --surface: #ffffff;
+  --text: #4a2740;
+  --muted: #b07a99;
+  --primary: #ff4d94;
+  --primary-strong: #e63578;
+  --grid-thin: #f6d3e4;
+  --grid-strong: #d78fb2;
+  --cell-given: #3a1f33;
+  --cell-user: #ff4d94;
+  --sel: #ffd0e6;
+  --peer: #fde7f1;
+  --same: #ffbcd9;
+  --error-bg: #ffdbdb;
+  --error-fg: #e0356a;
+  --hint-bg: #d9f6e6;
+  --hint-fg: #1f9d63;
+  --note-alt: #b07a99;
+  --ban: #e0356a;
+  --ban-bg: #ffdbdb;
+  --cross-bg: rgba(90, 180, 255, 0.28);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 26%, transparent);
+  --cross-filled-bg: rgba(90, 210, 170, 0.42);
+  --shadow: 0 6px 22px rgba(220, 120, 170, 0.22);
+}
+
+/* Arcade — bold cabinet colours: coin-yellow accent, cyan digits, red crosshair. */
+:root[data-theme='arcade'] {
+  color-scheme: dark;
+  --bg: #0d1030;
+  --surface: #191d4a;
+  --text: #f2f4ff;
+  --muted: #9aa0d8;
+  --primary: #ffce31;
+  --primary-strong: #ffda5c;
+  --grid-thin: #2a2f66;
+  --grid-strong: #5b62b0;
+  --cell-given: #ffffff;
+  --cell-user: #4dc3ff;
+  --sel: #2c3684;
+  --peer: #202659;
+  --same: #343f96;
+  --error-bg: #3a1230;
+  --error-fg: #ff4d6a;
+  --hint-bg: #123f2e;
+  --hint-fg: #4dffa0;
+  --note-alt: #9aa0d8;
+  --ban: #ff4d6a;
+  --ban-bg: #3a1230;
+  --cross-bg: rgba(255, 77, 110, 0.22);
+  --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
+  --cross-filled-bg: rgba(255, 206, 49, 0.34);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }

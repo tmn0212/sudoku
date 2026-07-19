@@ -58,39 +58,39 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1320;
-    --surface: #182031;
-    --text: #e7ebf3;
-    --muted: #94a3b8;
-    --primary: #4f8bff;
-    --primary-strong: #6ea0ff;
+    /* Keep in sync with the explicit `dark` theme in themes.css. */
+    --bg: #0b1020;
+    --surface: #171f33;
+    --text: #eef2fb;
+    --muted: #9aa8c2;
+    --primary: #5b93ff;
+    --primary-strong: #82adff;
 
-    --grid-thin: #2b3547;
-    --grid-strong: #7c8aa5;
+    --grid-thin: #2c374d;
+    --grid-strong: #8092b0;
 
-    --cell-given: #e7ebf3;
-    --cell-user: #6ea8ff;
+    --cell-given: #f1f5fd;
+    --cell-user: #74a8ff;
 
-    --sel: #2b4675;
-    --peer: #1b2436;
-    --same: #34507e;
-    --error-bg: #3a2023;
-    --error-fg: #ff6b6f;
-    --hint-bg: #4d3c12;
-    --hint-fg: #ffd873;
+    --sel: #2f4f96;
+    --peer: #1d2740;
+    --same: #2f4f8c;
+    --error-bg: #3a1f26;
+    --error-fg: #ff6b74;
+    --hint-bg: #463612;
+    --hint-fg: #ffd36b;
 
-    --note-alt: #94a3b8;
-    --ban: #ff6b6f;
-    --ban-bg: #3a2023;
+    --note-alt: #9aa8c2;
+    --ban: #ff6b74;
+    --ban-bg: #3a1f26;
 
-    /* Brighter amber + more opacity so the wash reads on the dark surface. */
-    --cross-bg: rgba(255, 184, 84, 0.34);
-    --cross-banned-bg: color-mix(in srgb, var(--ban) 34%, transparent);
-    /* A brighter, more opaque gold so filled cells read as yellow (not olive)
-       on the dark surface, still legible under light digits. */
-    --cross-filled-bg: rgba(255, 210, 66, 0.56);
+    /* Amber crosshair/scan — lighter alpha than before so it no longer muddies
+       the dark board (the stacked washes in Cell.css still read clearly). */
+    --cross-bg: rgba(255, 190, 92, 0.22);
+    --cross-banned-bg: color-mix(in srgb, var(--ban) 30%, transparent);
+    --cross-filled-bg: rgba(255, 208, 80, 0.4);
 
-    --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
   }
 }
 
