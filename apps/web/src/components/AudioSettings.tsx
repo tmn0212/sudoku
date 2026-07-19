@@ -53,6 +53,15 @@ export const AudioSettings = () => {
   const pickMusic = (id: (typeof MUSIC_TRACKS)[number]['id']) => {
     setMusicTrack(id);
     music.setTrack(id); // swaps live if music is playing
+    if (musicOn) music.play(); // this tap is a gesture — (re)start if enabled
+  };
+  const toggleMusic = () => {
+    const turningOn = !musicOn;
+    toggle('music');
+    // Start/stop straight from the click so it counts as the user gesture
+    // browsers require (a useEffect fires too late for iOS autoplay rules).
+    if (turningOn) music.play();
+    else music.pause();
   };
 
   const sfxBlurb = SFX_STYLES.find((s) => s.id === soundStyle)?.blurb;
@@ -98,7 +107,7 @@ export const AudioSettings = () => {
         label="Background music"
         desc="Loop a soundtrack while you play"
         checked={musicOn}
-        onChange={() => toggle('music')}
+        onChange={toggleMusic}
       />
       {musicOn && (
         <div className="audio-controls">
