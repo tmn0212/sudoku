@@ -7,7 +7,7 @@
  * cell index, measures the held cell's rect for the radial anchor, owns the
  * long-press timer, and captures the pointer. The host feeds this reducer
  * already-normalized events and carries out the returned effects. That keeps the
- * fiddly interaction *policy* — the 450ms long-press, the 8px drag threshold, the
+ * fiddly interaction *policy* — the 300ms long-press, the 8px drag threshold, the
  * 320ms double-tap window, the idle/pending/drag/radial state machine — unit
  * testable without jsdom, and swappable for measured-rect hit-testing in RN.
  */
@@ -16,8 +16,10 @@ import type { InputMode } from '../game/store';
 import { radialActionFromPointer, type RadialAction } from './radial';
 
 /** How long a hold must last (ms) before the radial mode picker opens. The host
- *  owns the actual timer; this is exported so both agree on the duration. */
-export const LONG_PRESS_MS = 450;
+ *  owns the actual timer; this is exported so both agree on the duration. Kept
+ *  comfortably below iOS's ~500ms so the picker feels snappy, but above the tap
+ *  reaction time so an ordinary tap doesn't trip it. */
+export const LONG_PRESS_MS = 300;
 /** A second tap on the same cell within this window (ms) cycles the input mode. */
 export const DOUBLE_TAP_MS = 320;
 /** Pointer travel (px) past which a press becomes a drag-multi-select. */
