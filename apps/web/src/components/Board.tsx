@@ -206,7 +206,17 @@ export const Board = () => {
     // Inside an existing multi-selection? Then a hold can pick a mode without the
     // press collapsing the group (the reducer keeps it).
     const inMultiSelection = st.selection.length > 1 && st.selection.includes(index);
-    dispatch({ type: 'pointerDown', index, x: e.clientX, y: e.clientY, now: Date.now(), inMultiSelection });
+    // Already selected at all (single or multi)? Then a hold offers Deselect.
+    const pressSelected = st.selection.includes(index);
+    dispatch({
+      type: 'pointerDown',
+      index,
+      x: e.clientX,
+      y: e.clientY,
+      now: Date.now(),
+      inMultiSelection,
+      pressSelected,
+    });
   };
 
   const onPointerMove = (e: React.PointerEvent) => {

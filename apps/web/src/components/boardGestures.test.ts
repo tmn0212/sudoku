@@ -25,20 +25,20 @@ const run = (start: GestureState, ...events: GestureEvent[]) => {
 
 describe('gestureReducer — pointerDown', () => {
   it('ignores a press off the grid', () => {
-    const r = gestureReducer(S(), { type: 'pointerDown', index: null, x: 0, y: 0, now: 0, inMultiSelection: false });
+    const r = gestureReducer(S(), { type: 'pointerDown', index: null, x: 0, y: 0, now: 0, inMultiSelection: false, pressSelected: false });
     expect(r.state).toEqual(S());
     expect(r.effects).toEqual([]);
   });
 
   it('starts a pending press: single-selects the cell and arms the long-press timer', () => {
-    const r = gestureReducer(S(), { type: 'pointerDown', index: 42, x: 5, y: 6, now: 100, inMultiSelection: false });
+    const r = gestureReducer(S(), { type: 'pointerDown', index: 42, x: 5, y: 6, now: 100, inMultiSelection: false, pressSelected: false });
     expect(r.state.phase).toBe('pending');
     expect(r.state).toMatchObject({ startX: 5, startY: 6, pressCell: 42, lastIdx: 42 });
     expect(r.effects).toEqual([{ type: 'selectSingle', index: 42 }, { type: 'startPressTimer' }]);
   });
 
   it('does NOT collapse an existing multi-selection when the press lands inside it', () => {
-    const r = gestureReducer(S(), { type: 'pointerDown', index: 42, x: 5, y: 6, now: 100, inMultiSelection: true });
+    const r = gestureReducer(S(), { type: 'pointerDown', index: 42, x: 5, y: 6, now: 100, inMultiSelection: true, pressSelected: true });
     expect(r.state.phase).toBe('pending');
     expect(r.effects).toEqual([{ type: 'startPressTimer' }]); // no selectSingle
   });
@@ -48,7 +48,7 @@ describe('gestureReducer — double-tap to cycle mode', () => {
   it('cycles the mode on a second tap of the same cell within the window', () => {
     const withTap = S({ lastTap: { cell: 7, time: 1000 } });
     const r = gestureReducer(withTap, {
-      type: 'pointerDown', index: 7, x: 0, y: 0, now: 1000 + DOUBLE_TAP_MS - 1, inMultiSelection: false,
+      type: 'pointerDown', index: 7, x: 0, y: 0, now: 1000 + DOUBLE_TAP_MS - 1, inMultiSelection: false, pressSelected: false,
     });
     expect(r.state.phase).toBe('idle');
     expect(r.state.lastTap).toBeNull();
@@ -59,7 +59,7 @@ describe('gestureReducer — double-tap to cycle mode', () => {
   it('treats a too-slow second tap as a fresh press, not a double-tap', () => {
     const withTap = S({ lastTap: { cell: 7, time: 1000 } });
     const r = gestureReducer(withTap, {
-      type: 'pointerDown', index: 7, x: 0, y: 0, now: 1000 + DOUBLE_TAP_MS, inMultiSelection: false,
+      type: 'pointerDown', index: 7, x: 0, y: 0, now: 1000 + DOUBLE_TAP_MS, inMultiSelection: false, pressSelected: false,
     });
     expect(r.state.phase).toBe('pending');
     expect(r.effects).toContainEqual({ type: 'startPressTimer' });
@@ -67,7 +67,7 @@ describe('gestureReducer — double-tap to cycle mode', () => {
 
   it('treats a tap on a different cell as a fresh press', () => {
     const withTap = S({ lastTap: { cell: 7, time: 1000 } });
-    const r = gestureReducer(withTap, { type: 'pointerDown', index: 8, x: 0, y: 0, now: 1050, inMultiSelection: false });
+    const r = gestureReducer(withTap, { type: 'pointerDown', index: 8, x: 0, y: 0, now: 1050, inMultiSelection: false, pressSelected: false });
     expect(r.state.phase).toBe('pending');
     expect(r.effects).toContainEqual({ type: 'selectSingle', index: 8 });
   });
@@ -76,9 +76,9 @@ describe('gestureReducer — double-tap to cycle mode', () => {
     // down -> up records lastTap; a quick down on the same cell double-taps.
     const { state, effects } = run(
       S(),
-      { type: 'pointerDown', index: 3, x: 0, y: 0, now: 0, inMultiSelection: false },
+      { type: 'pointerDown', index: 3, x: 0, y: 0, now: 0, inMultiSelection: false, pressSelected: false },
       { type: 'pointerUp', selectionCount: 1, now: 10 },
-      { type: 'pointerDown', index: 3, x: 0, y: 0, now: 20, inMultiSelection: false },
+      { type: 'pointerDown', index: 3, x: 0, y: 0, now: 20, inMultiSelection: false, pressSelected: false },
     );
     expect(state.phase).toBe('idle');
     expect(effects).toContainEqual({ type: 'cycleMode' });
@@ -94,16 +94,34 @@ describe('gestureReducer — long-press opens the radial', () => {
     expect(r.effects).toEqual([{ type: 'openRadial', x: 55, y: 60, deselect: false }]);
   });
 
-  it('offers Deselect when the held cell was inside a multi-selection', () => {
-    // pointerDown inside a group records pressInMulti; the timer then opens the
-    // radial with the extra option enabled.
+  it('offers Deselect when the held cell was already selected (single)', () => {
+    // A hold on a lone already-selected cell records pressSelected; the timer
+    // then opens the radial with the extra option enabled.
     const { state, effects } = run(
       S(),
-      { type: 'pointerDown', index: 5, x: 50, y: 50, now: 0, inMultiSelection: true },
+      { type: 'pointerDown', index: 5, x: 50, y: 50, now: 0, inMultiSelection: false, pressSelected: true },
       { type: 'pressTimerElapsed', anchorX: 50, anchorY: 50 },
     );
-    expect(state.pressInMulti).toBe(true);
+    expect(state.pressSelected).toBe(true);
     expect(effects).toContainEqual({ type: 'openRadial', x: 50, y: 50, deselect: true });
+  });
+
+  it('offers Deselect when the held cell was inside a multi-selection', () => {
+    const { effects } = run(
+      S(),
+      { type: 'pointerDown', index: 5, x: 50, y: 50, now: 0, inMultiSelection: true, pressSelected: true },
+      { type: 'pressTimerElapsed', anchorX: 50, anchorY: 50 },
+    );
+    expect(effects).toContainEqual({ type: 'openRadial', x: 50, y: 50, deselect: true });
+  });
+
+  it('omits Deselect when holding a fresh (unselected) cell', () => {
+    const { effects } = run(
+      S(),
+      { type: 'pointerDown', index: 5, x: 50, y: 50, now: 0, inMultiSelection: false, pressSelected: false },
+      { type: 'pressTimerElapsed', anchorX: 50, anchorY: 50 },
+    );
+    expect(effects).toContainEqual({ type: 'openRadial', x: 50, y: 50, deselect: false });
   });
 
   it('ignores a stale timer once the gesture became a drag', () => {
@@ -199,9 +217,9 @@ describe('gestureReducer — radial tracking + commit', () => {
   });
 
   it('picks Deselect toward down-left only when the multi-selection option is armed', () => {
-    // down-left of the anchor (dx<0, dy>0). Without pressInMulti it falls to a
+    // down-left of the anchor (dx<0, dy>0). Without pressSelected it falls to a
     // mode sector (Ban/Notes 2); with it, that direction becomes Deselect.
-    const armed = S({ ...radial, pressInMulti: true });
+    const armed = S({ ...radial, pressSelected: true });
     const r = gestureReducer(armed, { type: 'pointerMove', index: null, x: 60, y: 140, inputMode: 'note' });
     expect(r.state.radialAction).toBe('deselect');
     expect(r.effects).toEqual([{ type: 'updateRadial', action: 'deselect' }]);
@@ -211,7 +229,7 @@ describe('gestureReducer — radial tracking + commit', () => {
   });
 
   it('removes the held cell from the selection when Deselect is released', () => {
-    const onDeselect = S({ ...radial, pressCell: 12, pressInMulti: true, radialAction: 'deselect' });
+    const onDeselect = S({ ...radial, pressCell: 12, pressSelected: true, radialAction: 'deselect' });
     const r = gestureReducer(onDeselect, { type: 'pointerUp', selectionCount: 3, now: 0 });
     expect(r.state.phase).toBe('idle');
     expect(r.effects).toEqual([

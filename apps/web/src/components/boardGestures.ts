@@ -36,9 +36,10 @@ export interface GestureState {
   lastIdx: number | null;
   /** The previous tap, for double-tap detection. */
   lastTap: { cell: number; time: number } | null;
-  /** Whether the press landed inside an existing multi-selection — gates whether
-   *  the radial offers the "deselect this cell" option. Set on pointerDown. */
-  pressInMulti: boolean;
+  /** Whether the press landed on an already-selected cell (single or multi) —
+   *  gates whether the radial offers the "deselect this cell" option. A hold on
+   *  a fresh cell keeps the plain four-mode radial. Set on pointerDown. */
+  pressSelected: boolean;
   /** Radial anchor (held-cell centre, viewport coords) while phase === 'radial'. */
   radialAnchor: { x: number; y: number } | null;
   /** Action currently under the finger in the radial (null = dead zone / cancel). */
@@ -52,7 +53,7 @@ export const initialGestureState: GestureState = {
   pressCell: null,
   lastIdx: null,
   lastTap: null,
-  pressInMulti: false,
+  pressSelected: false,
   radialAnchor: null,
   radialAction: null,
 };
@@ -68,7 +69,7 @@ export type GestureEffect =
   | { type: 'startPressTimer' }
   | { type: 'clearPressTimer' }
   /** Open the radial at (x,y): host shows it and fires a haptic tap. `deselect`
-   *  is whether the held cell was in a multi-selection (offers the extra option). */
+   *  is whether the held cell was already selected (offers the extra option). */
   | { type: 'openRadial'; x: number; y: number; deselect: boolean }
   | { type: 'updateRadial'; action: RadialAction | null }
   | { type: 'closeRadial' };
@@ -77,7 +78,9 @@ export type GestureEffect =
 export type GestureEvent =
   /** Pointer down. `index` is the hit-tested cell (null = off the grid).
    *  `inMultiSelection` is true when the press lands inside an existing
-   *  multi-selection (so a hold can pick a mode without collapsing it). */
+   *  multi-selection (so a hold can pick a mode without collapsing it).
+   *  `pressSelected` is true when the press lands on any already-selected cell
+   *  (single or multi) — it gates the radial's Deselect option. */
   | {
       type: 'pointerDown';
       index: number | null;
@@ -85,6 +88,7 @@ export type GestureEvent =
       y: number;
       now: number;
       inMultiSelection: boolean;
+      pressSelected: boolean;
     }
   /** The long-press timer elapsed; `anchor*` is the held cell's measured centre. */
   | { type: 'pressTimerElapsed'; anchorX: number; anchorY: number }
@@ -107,7 +111,7 @@ const noChange = (state: GestureState): Result => ({ state, effects: [] });
 export const gestureReducer = (state: GestureState, event: GestureEvent): Result => {
   switch (event.type) {
     case 'pointerDown': {
-      const { index, x, y, now, inMultiSelection } = event;
+      const { index, x, y, now, inMultiSelection, pressSelected } = event;
       if (index == null) return noChange(state);
 
       // Double-tap the same cell → cycle the input mode. The selection is left
@@ -133,7 +137,7 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
           startY: y,
           pressCell: index,
           lastIdx: index,
-          pressInMulti: inMultiSelection,
+          pressSelected,
         },
         effects,
       };
@@ -150,7 +154,7 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
           radialAction: null,
         },
         effects: [
-          { type: 'openRadial', x: event.anchorX, y: event.anchorY, deselect: state.pressInMulti },
+          { type: 'openRadial', x: event.anchorX, y: event.anchorY, deselect: state.pressSelected },
         ],
       };
     }
@@ -160,7 +164,7 @@ export const gestureReducer = (state: GestureState, event: GestureEvent): Result
       if (state.phase === 'idle') return noChange(state);
 
       if (state.phase === 'radial') {
-        const action = radialActionFromPointer(state.radialAnchor, x, y, state.pressInMulti);
+        const action = radialActionFromPointer(state.radialAnchor, x, y, state.pressSelected);
         if (action === state.radialAction) return noChange(state);
         return { state: { ...state, radialAction: action }, effects: [{ type: 'updateRadial', action }] };
       }

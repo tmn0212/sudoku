@@ -154,6 +154,25 @@ const run = async () => {
     `shown=${deselectShown} sel=[${sel}] removed=${trio[1]}`,
   );
 
+  // 6) Holding a lone already-selected cell also offers Deselect, which clears it.
+  await page.waitForTimeout(400); await reset();
+  const solo = trio[0];
+  await page.evaluate((i) => window.__stores.game.getState().setSelection([i]), solo);
+  const ps = await centre(solo);
+  await page.mouse.move(ps.x, ps.y); await page.mouse.down();
+  await page.waitForTimeout(560);
+  const soloDeselectShown = await page.locator('.radial__opt--danger').count();
+  await page.mouse.move(ps.x - 45, ps.y + 62, { steps: 6 }); // toward lower-left = Deselect
+  await page.waitForTimeout(60);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  const soloSel = (await g()).selection;
+  check(
+    'hold on a single selected cell deselects it',
+    soloDeselectShown === 1 && soloSel.length === 0,
+    `shown=${soloDeselectShown} sel=[${soloSel}]`,
+  );
+
   await browser.close();
 
   const failed = results.filter((ok) => !ok).length;
