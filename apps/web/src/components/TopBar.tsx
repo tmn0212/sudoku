@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './TopBar.css';
 import { useGame, ARCADE_LIVES } from '../game/store';
+import { LiveScore } from './LiveScore';
 import { formatTime } from '../utils/format';
 import {
   IconClock,
@@ -61,9 +62,13 @@ export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps
           {challenge && <span>#{challenge.index + 1}</span>}
         </span>
         {mode === 'arcade' && (
-          <span className="topbar__timer" role="timer" aria-label="Elapsed time">
-            <IconClock size={20} />
-            {formatTime(elapsedMs)}
+          <span className="topbar__metrics">
+            <span className="topbar__timer" role="timer" aria-label="Elapsed time">
+              <IconClock size={18} />
+              {formatTime(elapsedMs)}
+            </span>
+            <span className="topbar__metric-sep" aria-hidden="true" />
+            <LiveScore />
           </span>
         )}
         <span className="topbar__status">

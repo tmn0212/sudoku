@@ -119,7 +119,24 @@
   color: var(--text);
 }
 
-/* The clock is the headline element: big, bold, high-contrast. */
+/* Arcade headline row: the clock and the live score sit side by side, equal
+   weight, split by a hairline. In Arcade the score is the reward you're chasing,
+   so it earns the same prominence as the timer. */
+.topbar__metrics {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  line-height: 1.05;
+}
+.topbar__metric-sep {
+  width: 1.5px;
+  align-self: stretch;
+  margin: 2px 0;
+  background: var(--grid-thin);
+  border-radius: 1px;
+}
+
+/* The clock: big, bold, high-contrast. */
 .topbar__timer {
   display: inline-flex;
   align-items: center;
@@ -132,6 +149,38 @@
 }
 .topbar__timer svg {
   color: var(--muted);
+}
+
+/* Live Arcade score — matches the clock's weight, with a small "pts" unit. */
+.topbar__score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.topbar__score-value {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--text);
+  /* Tween the tint back to neutral after a gain/loss flash. */
+  transition: color 0.5s ease;
+}
+.topbar__score-unit {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+/* Snap to the flash colour instantly, then let the transition fade it out. */
+.topbar__score[data-delta='up'] .topbar__score-value {
+  color: var(--primary);
+  transition: none;
+}
+.topbar__score[data-delta='down'] .topbar__score-value {
+  color: var(--ban);
+  transition: none;
 }
 
 /* Reserve the lives/mistakes row so the timer never shifts when a mistake

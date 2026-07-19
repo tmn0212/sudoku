@@ -86,16 +86,16 @@
 }
 
 /* ============================================================
-   Phase C: arcade lives + score
+   Arcade lives + animated score reveal
    ============================================================ */
 .overlay__score {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: -6px 0 18px;
+  margin: -6px 0 6px;
 }
 .overlay__score-value {
-  font-size: 2.4rem;
+  font-size: 2.9rem;
   font-weight: 800;
   color: var(--primary);
   font-variant-numeric: tabular-nums;
@@ -107,4 +107,83 @@
   letter-spacing: 0.06em;
   color: var(--muted);
   margin-top: 2px;
+}
+
+/* "Solved in 4:12 · Medium" line under the total. */
+.overlay__subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.overlay__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.7;
+}
+
+/* Score breakdown: one line per component, each sliding up in turn so the
+   running total (which counts on in parallel) has something to explain it. */
+.overlay__break {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 20px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: var(--peer);
+  text-align: left;
+}
+.overlay__break-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  animation: breakIn 0.36s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i) * 90ms + 260ms);
+}
+.overlay__break-row + .overlay__break-row {
+  border-top: 1px solid color-mix(in srgb, var(--muted) 18%, transparent);
+}
+.overlay__break-row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.overlay__break-row dd {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.overlay__break-icon {
+  display: inline-flex;
+  color: var(--muted);
+}
+/* Bonuses read as gains (accent), penalties as losses (red). */
+.overlay__break-row--bonus dd,
+.overlay__break-row--bonus .overlay__break-icon {
+  color: var(--primary);
+}
+.overlay__break-row--sub dd,
+.overlay__break-row--sub .overlay__break-icon {
+  color: var(--ban);
+}
+
+@keyframes breakIn {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
 }
