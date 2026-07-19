@@ -8,22 +8,32 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   isThemeId,
   isFontId,
+  isAnimStyleId,
   type ThemeId,
   type FontId,
+  type AnimStyleId,
 } from '@sudoku/ui-tokens';
-import type { KeyValueStore, ThemeApplier, FontApplier } from '../ports';
+import type {
+  KeyValueStore,
+  ThemeApplier,
+  FontApplier,
+  AnimApplier,
+} from '../ports';
 
 /** Platform dependencies injected when the app instantiates the settings store. */
 export interface SettingsStoreDeps {
   storage: KeyValueStore;
   themeApplier: ThemeApplier;
   fontApplier: FontApplier;
+  animApplier: AnimApplier;
 }
 
 export interface SettingsState {
   theme: ThemeId;
   /** Typeface applied across the app (board digits + UI chrome). */
   font: FontId;
+  /** Board animation style (placement + completion effects). */
+  animStyle: AnimStyleId;
   /** Highlight the row/column/box of the selected cell. */
   highlightPeers: boolean;
   /** Highlight all cells sharing the selected cell's digit. */
@@ -47,6 +57,7 @@ export interface SettingsState {
 
   setTheme: (theme: ThemeId) => void;
   setFont: (font: FontId) => void;
+  setAnimStyle: (animStyle: AnimStyleId) => void;
   toggle: (key: BooleanSettingKey) => void;
 }
 
@@ -71,6 +82,7 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
       (set, get) => ({
         theme: 'system',
         font: 'system',
+        animStyle: 'classic',
         highlightPeers: true,
         highlightSame: true,
         highlightNotes: true,
@@ -89,6 +101,10 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
           deps.fontApplier.apply(font);
           set({ font });
         },
+        setAnimStyle: (animStyle) => {
+          deps.animApplier.apply(animStyle);
+          set({ animStyle });
+        },
         toggle: (key) => set({ [key]: !get()[key] } as Partial<SettingsState>),
       }),
       {
@@ -105,19 +121,23 @@ export const createSettingsStore = (deps: SettingsStoreDeps) => {
     const raw = deps.storage.getItem('sudoku-settings');
     let theme: ThemeId = 'system';
     let font: FontId = 'system';
+    let animStyle: AnimStyleId = 'classic';
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
         const storedTheme = parsed?.state?.theme;
         const storedFont = parsed?.state?.font;
+        const storedAnim = parsed?.state?.animStyle;
         if (typeof storedTheme === 'string' && isThemeId(storedTheme)) theme = storedTheme;
         if (typeof storedFont === 'string' && isFontId(storedFont)) font = storedFont;
+        if (typeof storedAnim === 'string' && isAnimStyleId(storedAnim)) animStyle = storedAnim;
       } catch {
         /* ignore malformed storage */
       }
     }
     deps.themeApplier.apply(theme);
     deps.fontApplier.apply(font);
+    deps.animApplier.apply(animStyle);
   };
 
   return { useSettings, initSettings };

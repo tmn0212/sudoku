@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import './theme/themes.css';
+import './theme/animations.css'; // selectable board animation styles (data-anim)
 import './theme/fonts'; // registers the self-hosted Typeface faces (@font-face)
 import './styles/base.css';
 import './styles/shell.css';

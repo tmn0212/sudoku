@@ -1,0 +1,156 @@
+/*
+ * Selectable board animation styles (Settings -> Animation). Each style swaps the
+ * keyframes on the two board effects — placement (.cell--pop) and completion
+ * (.cell--flash) — selected by a `data-anim` attribute on <html> (set by the
+ * AnimApplier). `classic` sets no attribute and keeps the base keyframes in
+ * Cell.css, so only the non-default styles live here.
+ *
+ * These selectors are intentionally more specific than the base ones (they add
+ * the [data-anim] root) so they win the cascade. The global reduced-motion rule
+ * in base.css (`* { animation-duration: .001ms !important }`) still forces them
+ * instant, so no per-style reduced-motion guard is needed.
+ *
+ * --flash-delay (per-cell diagonal stagger) is set inline by Cell.tsx; every
+ * completion keyframe below reads it so the wave is preserved across styles.
+ */
+
+/* ============================ Bouncy ============================ *
+ * Springy, elastic overshoot on both placement and completion. */
+:root[data-anim='bouncy'] .cell--pop .cell__value {
+  animation: popInBouncy 0.44s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+:root[data-anim='bouncy'] .cell--pop .cell__notes {
+  animation: popInBouncy 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popInBouncy {
+  0% { transform: scale(0); opacity: 0; }
+  55% { transform: scale(1.42); opacity: 1; }
+  72% { transform: scale(0.84); }
+  86% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+:root[data-anim='bouncy'] .cell--flash::before {
+  animation: cellFlashBouncy 0.62s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellFlashBouncy {
+  0% { opacity: 0; transform: scale(0.4); }
+  35% { opacity: 0.85; transform: scale(1.14); }
+  60% { transform: scale(0.94); }
+  100% { opacity: 0; transform: scale(1); }
+}
+:root[data-anim='bouncy'] .cell--flash .cell__value {
+  animation: cellPopBouncy 0.62s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellPopBouncy {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.5); }
+  55% { transform: scale(0.8); }
+  76% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+/* ============================ Confetti ============================ *
+ * Completions fire a little particle burst (::after) over the green wash. */
+:root[data-anim='confetti'] .cell--flash::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: none;
+  z-index: 2;
+  /* Six coloured particles placed around the centre; scaling the element flings
+     them outward from the middle. */
+  box-shadow:
+    10px -8px 0 0 #ff5c8a,
+    -9px -7px 0 0 #ffd23f,
+    9px 9px 0 0 #35e0c0,
+    -10px 7px 0 0 #4dc3ff,
+    0 -12px 0 0 #b46bf2,
+    1px 12px 0 0 #ff9a4d;
+  animation: confettiBurst 0.62s ease var(--flash-delay, 0ms) both;
+}
+@keyframes confettiBurst {
+  0% { opacity: 0; transform: scale(0.2); }
+  25% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2); }
+}
+
+/* ============================ Glow ============================ *
+ * Neon pulse in the theme accent instead of the flat green wash. */
+:root[data-anim='glow'] .cell--flash::before {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  box-shadow:
+    0 0 16px 3px var(--primary),
+    inset 0 0 10px 1px var(--primary);
+  animation: cellGlow 0.6s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellGlow {
+  0% { opacity: 0; transform: scale(0.9); }
+  45% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0; transform: scale(1); }
+}
+:root[data-anim='glow'] .cell--flash .cell__value {
+  animation: cellGlowValue 0.6s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellGlowValue {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.16); text-shadow: 0 0 12px var(--primary); }
+  100% { transform: scale(1); text-shadow: none; }
+}
+:root[data-anim='glow'] .cell--pop .cell__value {
+  animation: popInGlow 0.34s ease;
+}
+@keyframes popInGlow {
+  0% { transform: scale(0.5); opacity: 0; text-shadow: 0 0 16px var(--primary); }
+  60% { transform: scale(1.12); opacity: 1; text-shadow: 0 0 8px var(--primary); }
+  100% { transform: scale(1); text-shadow: none; }
+}
+
+/* ============================ Flip ============================ *
+ * Digits flip in on a 3D axis; completions spin the digit a full turn. */
+:root[data-anim='flip'] .cell {
+  perspective: 300px;
+}
+:root[data-anim='flip'] .cell--pop .cell__value {
+  animation: popInFlip 0.42s ease;
+}
+@keyframes popInFlip {
+  0% { transform: rotateX(-90deg) scale(0.92); opacity: 0; }
+  60% { transform: rotateX(14deg) scale(1.05); opacity: 1; }
+  100% { transform: rotateX(0) scale(1); }
+}
+:root[data-anim='flip'] .cell--flash .cell__value {
+  animation: cellFlipValue 0.6s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellFlipValue {
+  0% { transform: rotateY(0); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* ============================ Minimal ============================ *
+ * Calm: a soft fade with no scale, glow, or overshoot. */
+:root[data-anim='minimal'] .cell--pop .cell__value,
+:root[data-anim='minimal'] .cell--pop .cell__notes {
+  animation: popInMinimal 0.2s ease;
+}
+@keyframes popInMinimal {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+:root[data-anim='minimal'] .cell--flash::before {
+  box-shadow: none;
+  animation: cellFlashMinimal 0.45s ease var(--flash-delay, 0ms) both;
+}
+@keyframes cellFlashMinimal {
+  0% { opacity: 0; }
+  40% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+:root[data-anim='minimal'] .cell--flash .cell__value {
+  animation: none;
+}

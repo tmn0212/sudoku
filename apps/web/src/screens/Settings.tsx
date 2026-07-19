@@ -3,6 +3,7 @@ import './Settings.css';
 import { useSettings } from '../state/settingsStore';
 import { useGame } from '../game/store';
 import { THEMES, FONTS } from '@sudoku/ui-tokens';
+import { AnimationPicker } from '../components/AnimationPicker';
 
 interface ToggleRowProps {
   label: string;
@@ -97,6 +98,11 @@ export const Settings = () => {
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="settings-section">
+          <h2 className="settings-section__title">Animation</h2>
+          <AnimationPicker />
         </section>
 
         <section className="settings-section">

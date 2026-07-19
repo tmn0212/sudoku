@@ -4,11 +4,13 @@ import { createSettingsStore } from '@sudoku/state';
 import { webKeyValueStore } from '../platform/keyValueStore';
 import { webThemeApplier } from '../platform/theme';
 import { webFontApplier } from '../platform/font';
+import { webAnimApplier } from '../platform/animations';
 
 const { useSettings, initSettings } = createSettingsStore({
   storage: webKeyValueStore,
   themeApplier: webThemeApplier,
   fontApplier: webFontApplier,
+  animApplier: webAnimApplier,
 });
 
 export { useSettings, initSettings };

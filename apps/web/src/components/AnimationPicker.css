@@ -1,0 +1,84 @@
+/* Animation-style picker (colocated with AnimationPicker.tsx). */
+.anim-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Live preview: one board-style cell that loops the active style's effects. */
+.anim-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--grid-thin);
+}
+.anim-preview .cell {
+  width: 60px;
+  height: 60px;
+  border: 1px solid var(--grid-strong);
+  border-radius: 4px;
+}
+.anim-preview .cell__value {
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.anim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.anim-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 2px solid transparent;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.anim-option--active {
+  border-color: var(--primary);
+}
+.anim-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.anim-option__label {
+  font-weight: 600;
+}
+.anim-option__blurb {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.anim-option__check {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--grid-strong);
+  position: relative;
+}
+.anim-option--active .anim-option__check {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.anim-option--active .anim-option__check::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}

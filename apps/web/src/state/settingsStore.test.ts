@@ -5,10 +5,12 @@ import { useSettings } from './settingsStore';
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
+  document.documentElement.removeAttribute('data-anim');
   document.documentElement.style.removeProperty('--app-font');
   useSettings.setState({
     theme: 'system',
     font: 'system',
+    animStyle: 'classic',
     highlightPeers: true,
     highlightSame: true,
     autoCleanupNotes: true,
@@ -49,6 +51,19 @@ describe('settingsStore', () => {
     useSettings.getState().setFont('rounded');
     const raw = localStorage.getItem('sudoku-settings');
     expect(raw).toContain('rounded');
+  });
+
+  it('applies an explicit animation style via data-anim', () => {
+    useSettings.getState().setAnimStyle('bouncy');
+    expect(useSettings.getState().animStyle).toBe('bouncy');
+    expect(document.documentElement.getAttribute('data-anim')).toBe('bouncy');
+  });
+
+  it('clears data-anim for the classic (default) style', () => {
+    useSettings.getState().setAnimStyle('glow');
+    expect(document.documentElement.getAttribute('data-anim')).toBe('glow');
+    useSettings.getState().setAnimStyle('classic');
+    expect(document.documentElement.hasAttribute('data-anim')).toBe(false);
   });
 
   it('toggles boolean preferences', () => {
