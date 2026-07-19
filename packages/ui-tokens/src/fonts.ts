@@ -14,9 +14,12 @@
 export type FontId =
   | 'system'
   | 'rounded'
+  | 'chunky'
   | 'handwritten'
-  | 'display'
+  | 'party'
+  | 'retro'
   | 'arcade'
+  | 'code'
   | 'mono';
 
 export interface FontDef {
@@ -38,19 +41,35 @@ export const FONTS: FontDef[] = [
     stack: "'Fredoka Variable', Fredoka, ui-rounded, 'Segoe UI', system-ui, sans-serif",
   },
   {
+    id: 'chunky',
+    label: 'Chunky',
+    stack: "'Titan One', Impact, 'Arial Black', system-ui, sans-serif",
+  },
+  {
     id: 'handwritten',
     label: 'Handwritten',
     stack: "'Caveat Variable', Caveat, 'Segoe Print', 'Comic Sans MS', cursive",
   },
   {
-    id: 'display',
-    label: 'Display',
-    stack: "Bungee, Impact, 'Arial Black', system-ui, sans-serif",
+    id: 'party',
+    label: 'Party',
+    stack: "'Luckiest Guy', 'Comic Sans MS', 'Arial Black', sans-serif",
+  },
+  {
+    id: 'retro',
+    label: 'Retro',
+    stack: "Audiowide, 'Trebuchet MS', system-ui, sans-serif",
   },
   {
     id: 'arcade',
     label: 'Arcade',
     stack: "VT323, ui-monospace, 'Courier New', monospace",
+  },
+  {
+    id: 'code',
+    label: 'Code',
+    stack:
+      "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace",
   },
   {
     id: 'mono',
