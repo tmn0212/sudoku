@@ -112,6 +112,13 @@
   line-height: 1;
 }
 
+/* Relaxed hides the clock, so the mode/difficulty label steps up from tiny
+   muted eyebrow text to the high-contrast headline of the centre column. */
+.topbar__center--noclock .topbar__difficulty {
+  font-size: 1rem;
+  color: var(--text);
+}
+
 /* The clock is the headline element: big, bold, high-contrast. */
 .topbar__timer {
   display: inline-flex;

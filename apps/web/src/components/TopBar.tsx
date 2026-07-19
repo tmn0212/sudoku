@@ -20,7 +20,7 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   impossible: 'Impossible',
 };
 
-const MODE_LABEL: Record<string, string> = { good: 'Good', arcade: 'Arcade' };
+const MODE_LABEL: Record<string, string> = { relaxed: 'Relaxed', arcade: 'Arcade' };
 
 interface TopBarProps {
   onNewGame: () => void;
@@ -51,17 +51,21 @@ export const TopBar = ({ onNewGame, onHome, onSettings, onRestart }: TopBarProps
       <div className="topbar__slot" aria-hidden="true" />
 
       {/* The clock is the anchored centrepiece; the puzzle's mode/difficulty/#
-          sit above it and lives/mistakes right below, one central column. */}
-      <div className="topbar__center">
+          sit above it and lives/mistakes right below, one central column. In
+          Relaxed the clock is hidden (it still runs, just off-screen — scoring
+          reads it) so the mode/difficulty label becomes the headline instead. */}
+      <div className={`topbar__center ${mode === 'relaxed' ? 'topbar__center--noclock' : ''}`}>
         <span className="topbar__difficulty">
           <span>{MODE_LABEL[mode] ?? mode}</span>
           <span>{DIFFICULTY_LABEL[difficulty] ?? difficulty}</span>
           {challenge && <span>#{challenge.index + 1}</span>}
         </span>
-        <span className="topbar__timer" role="timer" aria-label="Elapsed time">
-          <IconClock size={20} />
-          {formatTime(elapsedMs)}
-        </span>
+        {mode === 'arcade' && (
+          <span className="topbar__timer" role="timer" aria-label="Elapsed time">
+            <IconClock size={20} />
+            {formatTime(elapsedMs)}
+          </span>
+        )}
         <span className="topbar__status">
           {mode === 'arcade' ? (
             <span className="topbar__lives" aria-label={`${livesLeft} lives left`}>
