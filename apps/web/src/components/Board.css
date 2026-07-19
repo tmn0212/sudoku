@@ -2,13 +2,27 @@
 
 .board {
   container-type: inline-size;
-  /* The board is the fixed anchor: it always fills the available width and stays
-     square, regardless of screen height. The docked tray below shrinks to fit
-     the remaining space (see shell.css), so the board never gets squeezed or
-     clipped on short screens. */
-  width: 100%;
+  /* The board fits the SMALLER of the available width and the height left over
+     after the top bar and a guaranteed control-tray. So it stays a perfect
+     square (aspect-ratio 1) yet yields height on short screens instead of
+     crushing the pad or getting clipped. --app-height is window.innerHeight,
+     published from main.tsx and kept fresh on resize/rotation; --board-reserve
+     is the vertical space kept for the top bar + tray (safe-area insets are
+     subtracted separately so the notch never eats into the board). */
+  --board-reserve: 350px;
+  width: min(
+    100%,
+    calc(
+      var(--app-height, 100vh) - env(safe-area-inset-top) -
+        env(safe-area-inset-bottom) - var(--board-reserve)
+    )
+  );
   max-width: 100%;
   aspect-ratio: 1;
+  /* Never let the flex column squeeze the board's height below its square (that
+     distorted it on short screens); the tray absorbs the shortfall instead. The
+     height budget above guarantees the tray always still fits. */
+  flex-shrink: 0;
   margin: 0 auto;
   display: grid;
   /* Pin BOTH axes to nine equal fractions of the (definite, square) board so a

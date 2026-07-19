@@ -18,10 +18,11 @@
 }
 
 .app__main {
-  /* Grow to centre the board on tall screens, but never shrink below the board's
-     own (width-driven) size — so the board keeps a fixed size and the tray below
-     absorbs any shortfall instead. */
-  flex: 1 0 auto;
+  /* Centre the board and absorb any leftover height as symmetric breathing room.
+     The board now sizes itself to fit both the width and the remaining height
+     (see Board.css), so main can shrink freely — the guaranteed tray height is
+     baked into the board's --board-reserve, not enforced here. */
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,7 +62,7 @@
    right. Its basis scales with viewport height and shrinks when space is tight. */
 .pad-row {
   display: flex;
-  gap: clamp(8px, 2.4vw, 12px);
+  gap: clamp(6px, 1.8vw, 10px);
   align-items: stretch;
   flex: 1 1 clamp(140px, 32vh, 224px);
   min-height: 0;
