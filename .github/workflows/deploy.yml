@@ -31,6 +31,13 @@ jobs:
           node-version: 20
           cache: pnpm
 
+      # Canonical Pages setup: enables Pages (source = Actions) if it isn't
+      # already, so this workflow is self-contained — no manual repo setup needed.
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - run: pnpm install --frozen-lockfile
 
       - name: Build (base path = /sudoku/ for the Pages subpath)
